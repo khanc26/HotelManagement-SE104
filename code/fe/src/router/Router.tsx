@@ -1,25 +1,49 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AuthLayout from "../layouts/AuthLayout";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
+import AuthLayout from "../layouts/AuthLayout";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
+import RoomsPage from "../pages/RoomsPage";
+import ProfilePage from "../pages/ProfilePage";
+import SettingsPage from "../pages/SettingsPage";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MainLayout />,
+    children: [
+      {
+        path: "dashboard",
+        element: <DashboardPage />,
+      },
+      {
+        path: "rooms",
+        element: <RoomsPage />,
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />,
+      },
+    ],
+  },
+  {
+    path: "/auth",
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+    ],
+  },
+]);
 
 const Router = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<AuthLayout />}>
-          <Route index element={<LoginPage />} />
-        </Route>
-        <Route path="/dashboard" element={<MainLayout />}>
-          <Route index element={<DashboardPage />} />
-        </Route>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<DashboardPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 };
 
 export default Router;
