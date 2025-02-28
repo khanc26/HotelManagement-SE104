@@ -45,4 +45,22 @@ export class UsersService {
       message: 'Deleted user successfully.',
     };
   };
+
+  public handleGetProfileByUserId = async (userId: string) => {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        nationality: true,
+        userType: true,
+      },
+    });
+
+    if (!user)
+      throw new NotFoundException(`User with id: '${userId}' not found.`);
+
+    return user;
+  };
 }

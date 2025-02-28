@@ -11,4 +11,5 @@ export default () => ({
   session_secret_key: process.env.SESSION_SECRET_KEY,
   access_token_life: process.env.ACCESS_TOKEN_LIFE,
   refresh_token_life: process.env.REFRESH_TOKEN_LIFE,
+  origin_fe_url: process.env.ORIGIN_FE_URL,
 });

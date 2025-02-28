@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { SESSION_MAX_AGE } from 'src/libs/common/constants';
@@ -18,6 +19,11 @@ async function bootstrap() {
   );
 
   const configService = app.get(ConfigService);
+
+  app.enableCors({
+    origin: configService.get<string>('origin_fe_url') as string,
+    credentials: true,
+  });
 
   app.use(
     session({
@@ -36,6 +42,7 @@ async function bootstrap() {
 
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use(cookieParser());
 
   const PORT = configService.get<number>('port') ?? 3001;
 
