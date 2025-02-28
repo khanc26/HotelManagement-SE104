@@ -5,7 +5,7 @@ import { UserType } from '../enums/user-type.enum';
 @Entity()
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column('text')
   name: string;
