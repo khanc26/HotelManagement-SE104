@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 config();
 
@@ -14,6 +15,7 @@ const AppDataSource = new DataSource({
   migrations: ['dist/config/migrations/*.js'],
   synchronize: false,
   logging: false,
+  namingStrategy: new SnakeNamingStrategy(),
 });
 
 export default AppDataSource;
