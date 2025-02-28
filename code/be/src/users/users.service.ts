@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { SignUpDto } from '../auth/dto/sign-up.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SignUpDto } from '../auth/dto/sign-up.dto';
 import { UsersRepository } from './users.repository';
 
 @Injectable()
@@ -13,23 +13,36 @@ export class UsersService {
     return this.userRepository.save(signUpDto);
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
+  async findAll() {
+    return await this.userRepository.find({
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        nationality: true,
+        userType: true,
+      },
+    });
+  }
 
   async findOne(signUpDto: SignUpDto) {
     return await this.userRepository.findOne({
       where: {
         email: signUpDto.email,
       },
-    })
+    });
   }
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+  public handleDeleteUser = async (userId: string) => {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
+    if (!user)
+      throw new NotFoundException(`User With ID: '${userId}' Not Found.`);
+
+    await this.userRepository.delete({ id: userId });
+
+    return {
+      message: 'Deleted user successfully.',
+    };
+  };
 }

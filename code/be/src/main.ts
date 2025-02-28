@@ -1,8 +1,11 @@
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as session from 'express-session';
+import * as passport from 'passport';
+import { SESSION_MAX_AGE } from 'src/libs/common/constants';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +18,24 @@ async function bootstrap() {
   );
 
   const configService = app.get(ConfigService);
+
+  app.use(
+    session({
+      name: 'user_session',
+      secret: configService.get<string>('session_secret_key') ?? '',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false,
+        maxAge: SESSION_MAX_AGE,
+        httpOnly: false,
+        sameSite: 'lax',
+      },
+    }),
+  );
+
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   const PORT = configService.get<number>('port') ?? 3001;
 
