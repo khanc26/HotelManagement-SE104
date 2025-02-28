@@ -7,4 +7,8 @@ export default () => ({
     name: process.env.DB_DATABASE,
     host: process.env.DB_HOST,
   },
+  jwt_secret_key: process.env.JWT_SECRET_KEY,
+  session_secret_key: process.env.SESSION_SECRET_KEY,
+  access_token_life: process.env.ACCESS_TOKEN_LIFE,
+  refresh_token_life: process.env.REFRESH_TOKEN_LIFE,
 });

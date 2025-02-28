@@ -7,7 +7,7 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column()
   name: string;
 
   @Column({
@@ -17,13 +17,13 @@ export class User extends BaseEntity {
   })
   role: Role;
 
-  @Column('text', { unique: true })
+  @Column({ unique: true })
   email: string;
 
-  @Column('text')
+  @Column()
   password: string;
 
-  @Column('text')
+  @Column()
   nationality: string;
 
   @Column({
