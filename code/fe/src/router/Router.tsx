@@ -13,6 +13,10 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       {
+        index: true,
+        element: <DashboardPage />,
+      },
+      {
         path: "dashboard",
         element: <DashboardPage />,
       },
@@ -21,13 +25,32 @@ const router = createBrowserRouter([
         element: <RoomsPage />,
       },
       {
-        path: "profile",
+        path: "users",
         element: <ProfilePage />,
       },
       {
-        path: "settings",
+        path: "rents",
         element: <SettingsPage />,
       },
+      {
+        path: "regulations",
+        element: <SettingsPage />
+      },
+      {
+        path: "room-types",
+        element: <SettingsPage />
+      },
+      {
+        path: "month-revenue",
+        element: <SettingsPage />
+      },
+      {
+        path: "invoices",
+        element: <SettingsPage />
+      },
+      {
+        path: ""
+      }
     ],
   },
   {
