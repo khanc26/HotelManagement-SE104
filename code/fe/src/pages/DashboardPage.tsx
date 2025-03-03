@@ -6,12 +6,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const DashboardPage = () => {
   return (
     <div className="p-8">
       <Breadcrumb>
         <BreadcrumbList>
+          <SidebarTrigger className="text-black bg-white" />
+          <BreadcrumbSeparator>|</BreadcrumbSeparator>
           <BreadcrumbItem>
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
