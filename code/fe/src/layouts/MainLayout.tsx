@@ -4,10 +4,17 @@ import { AppSidebar } from "@/components/app-sidebar";
 
 const MainLayout = () => {
   return (
-    <div>
+    <div className="w-screen">
       <SidebarProvider>
         <AppSidebar />
         <main className="flex-1">
+          <Outlet />
+          <Outlet />
+          <Outlet />
+          <Outlet />
+          <Outlet />
+          <Outlet />
+          <Outlet />
           <Outlet />
         </main>
       </SidebarProvider>
