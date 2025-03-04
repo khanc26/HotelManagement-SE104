@@ -1,16 +1,17 @@
 import { Outlet } from "react-router-dom";
-import {  SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 
 const MainLayout = () => {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <main>
-        {/* <SidebarTrigger /> */}
-        <Outlet />
-      </main>
-    </SidebarProvider>
+    <div>
+      <SidebarProvider>
+        <AppSidebar />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+      </SidebarProvider>
+    </div>
   );
 };
 
