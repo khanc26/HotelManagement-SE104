@@ -6,6 +6,8 @@ import DashboardPage from "../pages/DashboardPage";
 import RoomsPage from "../pages/RoomsPage";
 import ProfilePage from "../pages/ProfilePage";
 import SettingsPage from "../pages/SettingsPage";
+import { RoomList } from "@/features/room/components/room-list";
+import { RoomAddNew } from "@/features/room/components/room-add";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +25,20 @@ const router = createBrowserRouter([
       {
         path: "rooms",
         element: <RoomsPage />,
+        children: [
+          {
+            index: true,
+            element: <RoomList />
+          },
+          {
+            path: "list",
+            element: <RoomList />
+          },
+          {
+            path: "add",
+            element: <RoomAddNew />
+          }
+        ]
       },
       {
         path: "users",
