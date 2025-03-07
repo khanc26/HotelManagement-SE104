@@ -24,7 +24,7 @@ const roomSchema = z.object({
     .min(2, { message: "Location must be at least 2 characters." }),
 });
 
-export function RoomAddNew() {
+export function RoomEdit() {
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
     defaultValues: {

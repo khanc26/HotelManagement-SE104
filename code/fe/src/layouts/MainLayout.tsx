@@ -7,14 +7,7 @@ const MainLayout = () => {
     <div className="w-screen">
       <SidebarProvider>
         <AppSidebar />
-        <main className="flex-1">
-          <Outlet />
-          <Outlet />
-          <Outlet />
-          <Outlet />
-          <Outlet />
-          <Outlet />
-          <Outlet />
+        <main className="flex-1 pr-2">
           <Outlet />
         </main>
       </SidebarProvider>
