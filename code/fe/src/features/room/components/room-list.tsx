@@ -101,15 +101,6 @@ export function RoomList() {
 
     setData(filteredRooms);
   }
-  // async function onSearch(values: z.infer<typeof roomSchema>) {
-  //   try {
-  //     const res = await fetch(`/api/rooms?name=${values.name}&price=${values.price}&location=${values.location}`);
-  //     const result = await res.json();
-  //     setData(result); // Update data table with new results
-  //   } catch (error) {
-  //     console.error("Failed to fetch rooms:", error);
-  //   }
-  // }
 
   return (
     <div>

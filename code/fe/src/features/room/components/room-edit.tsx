@@ -13,6 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useSearchParams } from "react-router-dom";
 
 const roomSchema = z.object({
   name: z
@@ -25,6 +26,9 @@ const roomSchema = z.object({
 });
 
 export function RoomEdit() {
+  const [searchParams] = useSearchParams();
+  const roomId = searchParams.get("id");
+  console.log(roomId);
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
