@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { CustomSidebarHeader } from "./custom-sidebar-header";
 
 const items = [
   {
@@ -19,7 +20,7 @@ const items = [
   },
   {
     title: "Rooms",
-    url: "/rooms",
+    url: "/rooms/list",
     icon: Inbox,
   },
   {
@@ -42,6 +43,8 @@ const items = [
 export function AppSidebar() {
   return (
     <Sidebar>
+      <CustomSidebarHeader />
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>

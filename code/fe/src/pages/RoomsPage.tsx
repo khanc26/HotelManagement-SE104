@@ -10,10 +10,21 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet } from "react-router-dom";
 
+const menuItems = [
+  {
+    title: "Room List",
+    url: "list",
+  },
+  {
+    title: "Add New Room",
+    url: "add",
+  },
+];
+
 const RoomsPage = () => {
   return (
     <div className="p-8">
-      <Breadcrumb>
+      <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <SidebarTrigger className="text-black bg-white" />
           <BreadcrumbSeparator>|</BreadcrumbSeparator>
@@ -27,7 +38,7 @@ const RoomsPage = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <CustomNavigationMenu />
+      <CustomNavigationMenu menuItems={menuItems} className="mb-4" />
 
       <Outlet />
     </div>

@@ -4,26 +4,40 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { NavLink } from "react-router-dom";
+import { Button } from "./ui/button";
 
-const items = [
-  {
-    title: "Room List",
-    url: "list",
-  },
-  {
-    title: "Add New Room",
-    url: "add",
-  },
-];
+interface CustomNavigationMenuProps {
+  className?: string;
+  menuItems: {
+    title: string;
+    url: string;
+  }[];
+}
 
-export function CustomNavigationMenu() {
+export function CustomNavigationMenu({
+  className,
+  menuItems,
+}: CustomNavigationMenuProps) {
   return (
-    <NavigationMenu>
+    <NavigationMenu className={className}>
       <NavigationMenuList>
-        {items.map((item) => (
-          <NavigationMenuItem key={item.url}>
-            <NavLink to={item.url}>{item.title}</NavLink>
-          </NavigationMenuItem>
+        {menuItems.map((item) => (
+          <NavLink
+            to={item.url}
+            key={item.url}
+            className={({ isActive }) =>
+              isActive ? "rounded-md bg-primary text-white" : "rounded-md"
+            }
+          >
+            <NavigationMenuItem>
+              <Button
+                variant={"ghost"}
+                className="w-full !border-[1px] !border-slate-200"
+              >
+                {item.title}
+              </Button>
+            </NavigationMenuItem>
+          </NavLink>
         ))}
       </NavigationMenuList>
     </NavigationMenu>
