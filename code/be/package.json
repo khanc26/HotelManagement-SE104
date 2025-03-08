@@ -21,7 +21,8 @@
     "typeorm": "npm run build && npx typeorm -d dist/config/typeorm.config.js",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert"
+    "migration:revert": "npm run typeorm -- migration:revert",
+    "db:seed": "npm run build && node dist/libs/common/seeds/seed.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -37,12 +38,14 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
     "express-session": "^1.18.1",
+    "lodash": "^4.17.21",
     "mysql2": "^3.12.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20",
+    "typeorm-extension": "^3.7.0",
     "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {
@@ -58,6 +61,7 @@
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.1",
     "@types/jest": "^29.5.14",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^22.10.7",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",

@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Request } from 'express';
+import { SESSION_MAX_AGE } from 'src/libs/common/constants';
 import { HashingProvider } from 'src/libs/common/providers';
 import { JwtPayload, TUserSession } from 'src/libs/common/types';
-import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
@@ -14,39 +14,16 @@ export class AuthService {
   constructor(
     private readonly hashingProvider: HashingProvider,
     private readonly usersService: UsersService,
-    @InjectRepository(UsersRepository)
-    private readonly userRepository: UsersRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
+
   async signUp(signUpDto: SignUpDto) {
-    const hashedPassword = await this.hashingProvider.hashPassword(
-      signUpDto.password,
-    );
-
-    const user = await this.usersService.create({
-      ...signUpDto,
-      password: hashedPassword,
-    });
-
-    return await this.userRepository.findOne({
-      where: {
-        id: user.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        nationality: true,
-        userType: true,
-      },
-    });
+    return await this.usersService.createUser(signUpDto);
   }
 
-  async signIn(signInDto: SignInDto) {
-    const user = await this.userRepository.findOne({
-      where: { email: signInDto.email },
-    });
+  async signIn(signInDto: SignInDto, request: Request) {
+    const user = await this.usersService.findOne(signInDto.email);
 
     if (!user) {
       throw new UnauthorizedException('This email is not registered');
@@ -63,20 +40,21 @@ export class AuthService {
 
     const { accessToken, refreshToken } = this.handleGenerateTokens(
       user.id,
-      user.role,
+      user.role.role_name,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...res } = user;
+    request.session.user = {
+      userId: user.id,
+      role: user.role.role_name,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      email: user.email,
+      expired_at: new Date(Date.now() + SESSION_MAX_AGE),
+    };
 
     return {
-      statusCode: 200,
-      message: 'Sign in successfully.',
-      data: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        user: res,
-      },
+      accessToken,
+      refreshToken,
     };
   }
 
