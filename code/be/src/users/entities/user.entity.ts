@@ -1,36 +1,49 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Role } from '../enums/role.enum';
-import { UserType } from '../enums/user-type.enum';
+import { Profile } from 'src/users/entities/profile.entity';
+import { Role } from 'src/users/entities/role.entity';
+import { UserType } from 'src/users/entities/user-type.entity';
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column()
-  name: string;
-
-  @Column({
-    type: 'enum',
-    enum: Role,
-    default: Role.USER,
-  })
-  role: Role;
+  readonly id!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
-  @Column()
-  nationality: string;
+  @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
+  profile!: Profile;
 
-  @Column({
-    name: 'user_type',
-    type: 'enum',
-    enum: UserType,
-    default: UserType.LOCAL,
+  @ManyToOne(() => Role, (role) => role.users, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
-  userType: UserType;
+  @JoinColumn({ name: 'role_id' })
+  role!: Role;
+
+  @ManyToOne(() => UserType, (userType) => userType.users, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_type_id' })
+  user_type!: UserType;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  readonly created_at?: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  readonly updated_at?: Date;
 }
