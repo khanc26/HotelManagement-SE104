@@ -20,46 +20,64 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
-
-export type Room = {
-  id: string;
-  name: string;
-  type: string;
-  price: number;
-  note?: string;
-  status: "unknown" | "occupied" | "available";
-};
+import { Room } from "../types/room.types";
 
 export const roomColumns: ColumnDef<Room>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "room_name",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Room Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "type",
-    header: "Type",
+    accessorKey: "room_type",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Room Type
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "price",
-    header: "Price",
-  },
-  {
-    accessorKey: "note",
-    header: "Note",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Price( per night )
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     id: "actions",
@@ -86,8 +104,6 @@ export const roomColumns: ColumnDef<Room>[] = [
               <DialogTrigger asChild>
                 <DropdownMenuItem>Delete</DropdownMenuItem>
               </DialogTrigger>
-
-              <DropdownMenuItem>Edit</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -96,7 +112,7 @@ export const roomColumns: ColumnDef<Room>[] = [
               <DialogTitle>Are you absolutely sure?</DialogTitle>
               <DialogDescription>
                 This action cannot be undone. Are you sure you want to
-                permanently delete this file from our servers?
+                permanently delete this room f?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
