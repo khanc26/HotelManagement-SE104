@@ -1,5 +1,5 @@
 import { DataTable } from "@/components/ui/data-table";
-import { Room, roomColumns } from "./room-columns";
+import { roomColumns } from "./room-columns";
 import {
   Form,
   FormControl,
@@ -16,62 +16,52 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Room } from "../types/room.types";
 
 const roomsData: Room[] = [
   {
     id: "1",
-    name: "Deluxe Suite",
-    type: "Suite",
+    room_name: "Deluxe Suite",
+    room_type: "A",
     price: 200,
-    note: "Ocean view",
     status: "occupied",
   },
   {
     id: "2",
-    name: "Standard Room",
-    type: "Single",
+    room_name: "Standard Room",
+    room_type: "B",
     price: 100,
-    note: undefined,
     status: "available",
   },
   {
     id: "3",
-    name: "Family Room",
-    type: "Double",
+    room_name: "Family Room",
+    room_type: "A",
     price: 150,
-    note: "Extra bed available",
     status: "available",
   },
   {
     id: "4",
-    name: "Penthouse",
-    type: "Suite",
+    room_name: "Penthouse",
+    room_type: "C",
     price: 500,
-    note: "Private pool",
     status: "occupied",
   },
   {
     id: "5",
-    name: "Budget Room",
-    type: "Single",
+    room_name: "Budget Room",
+    room_type: "C",
     price: 50,
-    note: "No air conditioning",
-    status: "unknown",
+    status: "inactive",
   },
 ];
 
 const roomSchema = z.object({
-  name: z
+  room_name: z
     .string()
-    .min(2, { message: "Room name must be at least 2 characters." })
+    .min(2, { message: "Room room_name must be at least 2 characters." })
     .optional(),
-  price: z
-    .string()
-    .transform((v) => Number(v) || 0)
-    .refine((v) => v >= 1, {
-      message: "Price must be at least 1",
-    })
-    .optional(),
+  price: z.coerce.number().optional(),
   location: z
     .string()
     .min(2, { message: "Location must be at least 2 characters." })
@@ -84,7 +74,7 @@ export function RoomList() {
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
-      name: "",
+      room_name: "",
       price: 1,
       location: "",
     },
@@ -93,23 +83,16 @@ export function RoomList() {
   function onSearch(values: z.infer<typeof roomSchema>) {
     const filteredRooms = roomsData.filter((room) => {
       return (
-        (values.name
-          ? room.name.toLowerCase().includes(values.name.toLowerCase())
+        (values.room_name
+          ? room.room_name
+              .toLowerCase()
+              .includes(values.room_name.toLowerCase())
           : true) && (values.price ? room.price >= Number(values.price) : true)
       );
     });
 
     setData(filteredRooms);
   }
-  // async function onSearch(values: z.infer<typeof roomSchema>) {
-  //   try {
-  //     const res = await fetch(`/api/rooms?name=${values.name}&price=${values.price}&location=${values.location}`);
-  //     const result = await res.json();
-  //     setData(result); // Update data table with new results
-  //   } catch (error) {
-  //     console.error("Failed to fetch rooms:", error);
-  //   }
-  // }
 
   return (
     <div>
@@ -125,7 +108,7 @@ export function RoomList() {
             <form onSubmit={form.handleSubmit(onSearch)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="room_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Room Name</FormLabel>

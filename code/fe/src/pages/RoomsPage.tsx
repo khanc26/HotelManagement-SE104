@@ -23,7 +23,7 @@ const menuItems = [
 
 const RoomsPage = () => {
   return (
-    <div className="p-8">
+    <div className="px-8 py-6">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <SidebarTrigger className="text-black bg-white" />
@@ -33,7 +33,11 @@ const RoomsPage = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Rooms</BreadcrumbPage>
+          <BreadcrumbLink href="/rooms/list">Rooms</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Edit</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
