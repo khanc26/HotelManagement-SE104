@@ -61,13 +61,7 @@ const roomSchema = z.object({
     .string()
     .min(2, { message: "Room room_name must be at least 2 characters." })
     .optional(),
-  price: z
-    .string()
-    .transform((v) => Number(v) || 0)
-    .refine((v) => v >= 1, {
-      message: "Price must be at least 1",
-    })
-    .optional(),
+  price: z.coerce.number().optional(),
   location: z
     .string()
     .min(2, { message: "Location must be at least 2 characters." })

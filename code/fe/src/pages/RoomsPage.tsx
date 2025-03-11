@@ -23,7 +23,7 @@ const menuItems = [
 
 const RoomsPage = () => {
   return (
-    <div className="p-8">
+    <div className="px-8 py-6">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <SidebarTrigger className="text-black bg-white" />
