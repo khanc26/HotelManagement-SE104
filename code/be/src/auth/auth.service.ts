@@ -40,12 +40,12 @@ export class AuthService {
 
     const { accessToken, refreshToken } = this.handleGenerateTokens(
       user.id,
-      user.role.role_name,
+      user.role.roleName,
     );
 
     request.session.user = {
       userId: user.id,
-      role: user.role.role_name,
+      role: user.role.roleName,
       access_token: accessToken,
       refresh_token: refreshToken,
       email: user.email,

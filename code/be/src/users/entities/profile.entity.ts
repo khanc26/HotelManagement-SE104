@@ -1,5 +1,4 @@
 import { User } from 'src/users/entities/user.entity';
-import { ProfileStatus } from 'src/users/enums/profile-status.enum';
 import {
   Column,
   CreateDateColumn,
@@ -10,46 +9,51 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { ProfileStatusEnum } from '../enums/profile-status.enum';
 
-@Entity({ name: 'profile' })
+@Entity()
 export class Profile {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
   @Column()
-  full_name!: string;
+  fullName!: string;
 
   @Column()
   nationality!: string;
 
-  @Column({ type: 'enum', enum: ProfileStatus, default: ProfileStatus.ACTIVE })
-  status!: ProfileStatus;
+  @Column({
+    type: 'enum',
+    enum: ProfileStatusEnum,
+    default: ProfileStatusEnum.ACTIVE,
+  })
+  status!: ProfileStatusEnum;
 
   @Column({ type: 'timestamp' })
   dob!: Date;
 
   @Column()
-  phone_number!: string;
+  phoneNumber!: string;
 
   @Column()
   address!: string;
 
   @Column()
-  identity_number!: string;
+  identityNumber!: string;
 
   @OneToOne(() => User, (user) => user.profile, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user!: User;
 
   @CreateDateColumn({ type: 'timestamp' })
-  readonly created_at!: Date;
+  readonly createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  readonly updated_at!: Date;
+  readonly updatedAt!: Date;
 
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
-  readonly deleted_at?: Date;
+  readonly deletedAt?: Date;
 }

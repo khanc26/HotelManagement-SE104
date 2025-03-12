@@ -1,34 +1,42 @@
 import { User } from 'src/users/entities/user.entity';
-import { UserTypeEnum } from 'src/users/enums/user-type.enum';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserTypeEnum } from '../enums/user-type.enum';
 
-@Entity({ name: 'user_type' })
+@Entity()
 export class UserType {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column({ type: 'enum', enum: UserTypeEnum })
-  type_name!: UserTypeEnum;
+  @Column({
+    type: 'enum',
+    enum: UserTypeEnum,
+    default: UserTypeEnum.LOCAL,
+  })
+  typeName!: UserTypeEnum;
 
   @Column({ nullable: true })
   description?: string;
 
-  @OneToMany(() => User, (user) => user.user_type, {
+  @OneToMany(() => User, (user) => user.userType, {
     cascade: true,
     orphanedRowAction: 'delete',
   })
   users!: User[];
 
   @CreateDateColumn({ type: 'timestamp' })
-  readonly created_at!: Date;
+  readonly createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  readonly updated_at!: Date;
+  readonly updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  readonly deletedAt?: Date;
 }

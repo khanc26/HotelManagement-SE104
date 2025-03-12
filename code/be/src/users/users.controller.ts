@@ -9,7 +9,7 @@ import {
 import { JwtAuthGuard, RoleAuthGuard } from 'src/auth/guards';
 import { Roles } from 'src/libs/common/decorators';
 import { UsersService } from './users.service';
-import { RoleEnum as Role } from 'src/users/enums/role.enum';
+import { RoleEnum as Role } from '../users/enums/role.enum';
 
 @Controller('users')
 export class UsersController {

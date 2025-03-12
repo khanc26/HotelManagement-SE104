@@ -24,7 +24,7 @@ export class SignUpDto {
   @IsString()
   @ApiProperty()
   @IsNotEmpty()
-  readonly full_name: string;
+  readonly fullName: string;
 
   @IsString()
   @ApiProperty()
@@ -32,21 +32,26 @@ export class SignUpDto {
   readonly nationality: string;
 
   @IsDate()
+  @ApiProperty()
   @Transform(({ value }) => new Date(value as string))
   readonly dob!: Date;
 
   @IsString()
+  @ApiProperty()
   @IsNotEmpty()
-  readonly phone_number!: string;
+  readonly phoneNumber!: string;
 
   @IsString()
+  @ApiProperty()
   @IsNotEmpty()
   readonly address!: string;
 
   @IsString()
+  @ApiProperty()
   @IsNotEmpty()
-  readonly identity_number!: string;
+  readonly identityNumber!: string;
 
+  @ApiProperty()
   @IsEnum(UserTypeEnum)
-  readonly user_type_name!: UserTypeEnum;
+  readonly userTypeName!: UserTypeEnum;
 }

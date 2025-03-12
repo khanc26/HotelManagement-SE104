@@ -6,6 +6,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { RoomsModule } from './rooms/rooms.module';
+import { RoomTypesModule } from './room-types/room-types.module';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
   imports: [
@@ -28,10 +31,13 @@ import { AuthModule } from './auth/auth.module';
         migrations: ['dist/database/migrations/*.js'],
         synchronize: false,
         logging: false,
+        namingStrategy: new SnakeNamingStrategy(),
       }),
     }),
     UsersModule,
     AuthModule,
+    RoomsModule,
+    RoomTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
