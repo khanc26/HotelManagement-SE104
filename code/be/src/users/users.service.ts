@@ -8,7 +8,7 @@ import { omit } from 'lodash';
 import { HashingProvider } from 'src/libs/common/providers';
 import { Profile } from 'src/users/entities/profile.entity';
 import { UserType } from 'src/users/entities/user-type.entity';
-import { ProfileStatus } from 'src/users/enums/profile-status.enum';
+import { ProfileStatusEnum } from 'src/users/enums/profile-status.enum';
 import { Repository } from 'typeorm';
 import { SignUpDto } from '../auth/dto/sign-up.dto';
 import { UsersRepository } from './users.repository';
@@ -40,22 +40,22 @@ export class UsersService {
         `This email has already been used by another user.`,
       );
 
-    const { password, email, user_type_name, ...res } = signUpDto;
+    const { password, email, userTypeName, ...res } = signUpDto;
 
     const userRole = await this.roleRepository.findOne({
-      where: { role_name: RoleEnum.USER },
+      where: { roleName: RoleEnum.USER },
     });
 
     if (!userRole)
       throw new NotFoundException('Role user not found in database.');
 
     const existingUserType = await this.userTypeRepository.findOne({
-      where: { type_name: user_type_name },
+      where: { typeName: userTypeName },
     });
 
     if (!existingUserType)
       throw new NotFoundException(
-        `Type '${user_type_name} not found in database.`,
+        `Type '${userTypeName}' not found in database.`,
       );
 
     const hashedPassword = await this.hashingProvider.hashPassword(password);
@@ -69,7 +69,7 @@ export class UsersService {
     await this.profileRepository.save(newProfile);
 
     newUser.profile = newProfile;
-    newUser.user_type = existingUserType;
+    newUser.userType = existingUserType;
     newUser.role = userRole;
 
     await this.userRepository.save(newUser);
@@ -135,7 +135,7 @@ export class UsersService {
     if (!user)
       throw new NotFoundException(`User with id: '${userId}' not found.`);
 
-    user.profile.status = ProfileStatus.INACTIVE;
+    user.profile.status = ProfileStatusEnum.INACTIVE;
 
     await this.profileRepository.softDelete({ id: user.profile.id });
 

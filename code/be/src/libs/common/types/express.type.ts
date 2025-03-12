@@ -2,20 +2,7 @@ import 'express-session';
 import 'express';
 import { User } from 'src/users/entities/user.entity';
 
-export type JwtPayload = {
-  userId: string;
-  role: string;
-  iat: number;
-};
-
-export type TUserSession = {
-  userId: string;
-  role: string;
-  access_token: string;
-  refresh_token: string;
-  email: string;
-};
-
+// augment the express-session module to include the user property in the session data
 declare module 'express-session' {
   interface SessionData {
     user?: {
@@ -29,6 +16,7 @@ declare module 'express-session' {
   }
 }
 
+// augment the express module to include the user property in the request object
 declare module 'express' {
   interface Request {
     user?: User;

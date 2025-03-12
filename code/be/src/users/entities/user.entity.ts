@@ -2,9 +2,9 @@ import { Profile } from 'src/users/entities/profile.entity';
 import { Role } from 'src/users/entities/role.entity';
 import { UserType } from 'src/users/entities/user-type.entity';
 import {
-  BaseEntity,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class User extends BaseEntity {
+export class User {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
@@ -31,19 +31,22 @@ export class User extends BaseEntity {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn({ name: 'role_id' })
+  @JoinColumn()
   role!: Role;
 
   @ManyToOne(() => UserType, (userType) => userType.users, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_type_id' })
-  user_type!: UserType;
+  @JoinColumn()
+  userType!: UserType;
 
   @CreateDateColumn({ type: 'timestamp' })
-  readonly created_at?: Date;
+  readonly createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  readonly updated_at?: Date;
+  readonly updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  readonly deletedAt?: Date;
 }

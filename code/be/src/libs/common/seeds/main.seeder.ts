@@ -40,11 +40,11 @@ export class MainSeeder implements Seeder {
       for (const roleData of roleMockData) {
         if (
           !(await roleRepository.findOne({
-            where: { role_name: roleData.role_name },
+            where: { roleName: roleData.roleName },
           }))
         ) {
           const role = await roleFactory.make({
-            role_name: roleData.role_name,
+            roleName: roleData.roleName,
             description: roleData.description,
           });
 
@@ -58,12 +58,12 @@ export class MainSeeder implements Seeder {
         if (
           !(await userTypeRepository.findOne({
             where: {
-              type_name: userTypeData.type_name,
+              typeName: userTypeData.typeName,
             },
           }))
         ) {
           const newUserType = await userTypeFactory.make({
-            type_name: userTypeData.type_name,
+            typeName: userTypeData.typeName,
             description: userTypeData.description,
           });
 
@@ -77,7 +77,7 @@ export class MainSeeder implements Seeder {
         !(await userRepository.findOne({
           where: {
             role: {
-              role_name: RoleEnum.ADMIN,
+              roleName: RoleEnum.ADMIN,
             },
           },
           relations: ['role'],
@@ -100,21 +100,21 @@ export class MainSeeder implements Seeder {
         await profileRepository.save(newProfile);
 
         const userType = await userTypeRepository.findOneBy({
-          type_name: UserTypeEnum.LOCAL,
+          typeName: UserTypeEnum.LOCAL,
         });
 
         if (!userType)
           throw new NotFoundException('User type local not found in database.');
 
         const adminRole = await roleRepository.findOneBy({
-          role_name: RoleEnum.ADMIN,
+          roleName: RoleEnum.ADMIN,
         });
 
         if (!adminRole)
           throw new NotFoundException(`Admin role not found in database.`);
 
         newUserAdmin.profile = newProfile;
-        newUserAdmin.user_type = userType;
+        newUserAdmin.userType = userType;
         newUserAdmin.role = adminRole;
 
         await userRepository.save(newUserAdmin);

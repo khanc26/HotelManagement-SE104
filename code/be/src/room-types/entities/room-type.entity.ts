@@ -1,4 +1,3 @@
-import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,28 +7,24 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RoleEnum } from '../enums/role.enum';
+import { Room } from '../../rooms/entities/room.entity';
 
-@Entity()
-export class Role {
+@Entity({ name: 'room_type' })
+export class RoomType {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column({
-    type: 'enum',
-    enum: RoleEnum,
-    default: RoleEnum.USER,
-  })
-  roleName!: RoleEnum;
+  @Column({ unique: true })
+  name!: string;
 
   @Column({ nullable: true })
-  readonly description?: string;
+  description?: string;
 
-  @OneToMany(() => User, (user) => user.role, {
+  @OneToMany(() => Room, (room) => room.roomType, {
     cascade: true,
     orphanedRowAction: 'delete',
   })
-  users!: User[];
+  rooms!: Room[];
 
   @CreateDateColumn({ type: 'timestamp' })
   readonly createdAt!: Date;
