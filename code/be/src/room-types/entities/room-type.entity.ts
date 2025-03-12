@@ -20,6 +20,9 @@ export class RoomType {
   @Column({ nullable: true })
   description?: string;
 
+  @Column()
+  roomPrice!: number;
+
   @OneToMany(() => Room, (room) => room.roomType, {
     cascade: true,
     orphanedRowAction: 'delete',
