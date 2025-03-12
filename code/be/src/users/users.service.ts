@@ -77,20 +77,22 @@ export class UsersService {
     return omit(
       await this.userRepository.findOne({
         where: { id: newUser.id },
-        relations: ['role', 'profile', 'user_type'],
+        relations: ['role', 'profile', 'userType'],
       }),
       [
         'password',
-        'role.created_at',
-        'role.updated_at',
+        'role.createdAt',
+        'role.updatedAt',
+        'role.deletedAt',
         'role.id',
         'role.description',
-        'profile.created_at',
-        'profile.updated_at',
-        'profile.deleted_at',
-        'user_type.description',
-        'user_type.created_at',
-        'user_type.updated_at',
+        'profile.createdAt',
+        'profile.updatedAt',
+        'profile.deletedAt',
+        'userType.description',
+        'userType.createdAt',
+        'userType.updatedAt',
+        'userType.deletedAt',
       ],
     );
   }
@@ -98,21 +100,23 @@ export class UsersService {
   async findAll() {
     return (
       await this.userRepository.find({
-        relations: ['role', 'profile', 'user_type'],
+        relations: ['role', 'profile', 'userType'],
       })
     ).map((user) =>
       omit(user, [
         'password',
-        'role.created_at',
-        'role.updated_at',
+        'role.createdAt',
+        'role.updatedAt',
+        'role.deletedAt',
         'role.id',
         'role.description',
-        'profile.created_at',
-        'profile.updated_at',
-        'profile.deleted_at',
-        'user_type.description',
-        'user_type.created_at',
-        'user_type.updated_at',
+        'profile.createdAt',
+        'profile.updatedAt',
+        'profile.deletedAt',
+        'userType.description',
+        'userType.createdAt',
+        'userType.updatedAt',
+        'userType.deletedAt',
       ]),
     );
   }
@@ -122,7 +126,7 @@ export class UsersService {
       where: {
         email,
       },
-      relations: ['role', 'profile', 'user_type'],
+      relations: ['role', 'profile', 'userType'],
     });
   }
 
@@ -147,7 +151,7 @@ export class UsersService {
   public handleGetProfileByUserId = async (userId: string) => {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['profile', 'role'],
+      relations: ['profile', 'role', 'userType'],
     });
 
     if (!user)
@@ -155,16 +159,18 @@ export class UsersService {
 
     return omit(user, [
       'password',
-      'role.created_at',
-      'role.updated_at',
+      'role.createdAt',
+      'role.updatedAt',
+      'role.deletedAt',
       'role.id',
       'role.description',
-      'profile.created_at',
-      'profile.updated_at',
-      'profile.deleted_at',
-      'user_type.description',
-      'user_type.created_at',
-      'user_type.updated_at',
+      'profile.createdAt',
+      'profile.updatedAt',
+      'profile.deletedAt',
+      'userType.description',
+      'userType.createdAt',
+      'userType.updatedAt',
+      'userType.deletedAt',
     ]);
   };
 }
