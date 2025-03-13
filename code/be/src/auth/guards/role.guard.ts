@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { ROLES_KEY } from 'src/libs/common/decorators';
+import { JwtPayload } from 'src/libs/common/types';
 
 @Injectable()
 export class RoleAuthGuard implements CanActivate {
@@ -28,7 +29,7 @@ export class RoleAuthGuard implements CanActivate {
 
     if (!user) throw new UnauthorizedException('User Not Authenticated.');
 
-    const hasRole = requiredRoles.includes(user.role.roleName);
+    const hasRole = requiredRoles.includes((user as JwtPayload).role);
 
     if (!hasRole)
       throw new ForbiddenException(

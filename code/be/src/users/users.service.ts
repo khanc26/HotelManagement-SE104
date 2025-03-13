@@ -7,13 +7,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { HashingProvider } from 'src/libs/common/providers';
 import { Profile } from 'src/users/entities/profile.entity';
+import { Role } from 'src/users/entities/role.entity';
 import { UserType } from 'src/users/entities/user-type.entity';
 import { ProfileStatusEnum } from 'src/users/enums/profile-status.enum';
+import { RoleEnum } from 'src/users/enums/role.enum';
 import { Repository } from 'typeorm';
 import { SignUpDto } from '../auth/dto/sign-up.dto';
 import { UsersRepository } from './users.repository';
-import { Role } from 'src/users/entities/role.entity';
-import { RoleEnum } from 'src/users/enums/role.enum';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { SearchUsersDto } from 'src/users/dto/search-users.dto';
 
 @Injectable()
 export class UsersService {
@@ -97,28 +99,67 @@ export class UsersService {
     );
   }
 
-  async findAll() {
-    return (
-      await this.userRepository.find({
-        relations: ['role', 'profile', 'userType'],
-      })
-    ).map((user) =>
-      omit(user, [
-        'password',
-        'role.createdAt',
-        'role.updatedAt',
-        'role.deletedAt',
-        'role.id',
-        'role.description',
+  async findAll(searchUsersDto?: SearchUsersDto) {
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.userType', 'userType')
+      .leftJoinAndSelect('user.role', 'role')
+      .select([
+        'user.id',
+        'user.email',
+        'profile.id',
+        'profile.fullName',
+        'profile.nationality',
+        'profile.status',
+        'profile.address',
+        'profile.phoneNumber',
+        'profile.dob',
+        'profile.identityNumber',
         'profile.createdAt',
         'profile.updatedAt',
-        'profile.deletedAt',
-        'userType.description',
-        'userType.createdAt',
-        'userType.updatedAt',
-        'userType.deletedAt',
-      ]),
-    );
+        'role.roleName',
+        'userType.typeName',
+      ]);
+
+    if (searchUsersDto) {
+      if (searchUsersDto?.address) {
+        qb.andWhere('LOWER(profile.address) LIKE LOWER(:address)', {
+          address: `%${searchUsersDto.address}%`,
+        });
+      }
+
+      if (searchUsersDto?.email) {
+        qb.andWhere('LOWER(user.email) LIKE LOWER(:email)', {
+          email: `%${searchUsersDto?.email}%`,
+        });
+      }
+
+      if (searchUsersDto?.fullName) {
+        qb.andWhere('LOWER(profile.fullName) LIKE LOWER(:fullName)', {
+          fullName: `%${searchUsersDto.fullName}%`,
+        });
+      }
+
+      if (searchUsersDto?.identityNumber) {
+        qb.andWhere(
+          'LOWER(profile.identityNumber) LIKE LOWER(:identityNumber)',
+          {
+            identityNumber: `%${searchUsersDto.identityNumber}%`,
+          },
+        );
+      }
+
+      if (searchUsersDto?.status) {
+        qb.andWhere('profile.status = :status', {
+          status: `%${searchUsersDto.status}%`,
+        });
+      }
+    }
+
+    qb.andWhere('role.roleName != :roleName', { roleName: 'admin' });
+
+    return await qb.getMany();
   }
 
   async findOne(email: string) {
@@ -127,6 +168,29 @@ export class UsersService {
         email,
       },
       relations: ['role', 'profile', 'userType'],
+      select: {
+        id: true,
+        email: true,
+        profile: {
+          id: true,
+          fullName: true,
+          nationality: true,
+          status: true,
+          address: true,
+          phoneNumber: true,
+          dob: true,
+          identityNumber: true,
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+        },
+        role: {
+          roleName: true,
+        },
+        userType: {
+          typeName: true,
+        },
+      },
     });
   }
 
@@ -152,25 +216,109 @@ export class UsersService {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['profile', 'role', 'userType'],
+      select: {
+        id: true,
+        email: true,
+        profile: {
+          id: true,
+          fullName: true,
+          nationality: true,
+          status: true,
+          address: true,
+          phoneNumber: true,
+          dob: true,
+          identityNumber: true,
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+        },
+        role: {
+          roleName: true,
+        },
+        userType: {
+          typeName: true,
+        },
+      },
     });
 
     if (!user)
       throw new NotFoundException(`User with id: '${userId}' not found.`);
 
-    return omit(user, [
-      'password',
-      'role.createdAt',
-      'role.updatedAt',
-      'role.deletedAt',
-      'role.id',
-      'role.description',
-      'profile.createdAt',
-      'profile.updatedAt',
-      'profile.deletedAt',
-      'userType.description',
-      'userType.createdAt',
-      'userType.updatedAt',
-      'userType.deletedAt',
-    ]);
+    return user;
+  };
+
+  public handleUpdateUser = async (
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ) => {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['profile'],
+    });
+
+    if (!user) throw new NotFoundException(`User with id: '${id}' not found.`);
+
+    if (!Object.keys(updateUserDto).length)
+      throw new BadRequestException(
+        `You must be provide some information to update the profile.`,
+      );
+
+    const { email, ...res } = updateUserDto;
+
+    if (email) {
+      await this.userRepository.update({ id }, { email });
+    }
+
+    const profileId = user.profile.id;
+
+    await this.profileRepository.update({ id: profileId }, res);
+
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['role', 'profile', 'userType'],
+      select: {
+        id: true,
+        email: true,
+        profile: {
+          id: true,
+          fullName: true,
+          nationality: true,
+          status: true,
+          address: true,
+          phoneNumber: true,
+          dob: true,
+          identityNumber: true,
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+        },
+        role: {
+          roleName: true,
+        },
+        userType: {
+          typeName: true,
+        },
+      },
+    });
+  };
+
+  public handleGetProfileWithPassword = async (email: string) => {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['role'],
+      select: {
+        password: true,
+        id: true,
+        role: {
+          roleName: true,
+        },
+        email: true,
+      },
+    });
+
+    if (!user)
+      throw new NotFoundException(`User with email: '${email}' not found.`);
+
+    return user;
   };
 }

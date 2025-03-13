@@ -1,17 +1,15 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
-import { User } from 'src/users/entities/user.entity';
+import { IUserSession } from 'src/libs/common/types';
 
 export const UserSession = createParamDecorator(
-  (data: keyof User | undefined, ctx: ExecutionContext) => {
+  (data: keyof IUserSession['user'] | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<Request>();
 
-    const user = request.session?.user;
-
-    if (!user) return data ? '' : {};
+    const user = request.user as IUserSession['user'];
 
     if (data && data in user) {
-      return (user[data] as string) ?? '';
+      return user[data] ?? null;
     }
 
     return user;

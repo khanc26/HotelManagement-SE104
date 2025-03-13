@@ -1,6 +1,6 @@
 export const UserMockData = {
-  email: 'admin@gmail.com',
-  password: 'admin',
+  email: 'admin123@gmail.com',
+  password: 'admin123',
   fullName: 'John Doe',
   nationality: 'England',
   dob: '2025-03-08T00:00:00Z',

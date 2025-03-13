@@ -1,26 +1,87 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RoomType } from 'src/room-types/entities/room-type.entity';
+import { Repository } from 'typeorm';
 import { CreateRoomTypeDto } from './dto/create-room-type.dto';
 import { UpdateRoomTypeDto } from './dto/update-room-type.dto';
 
 @Injectable()
 export class RoomTypesService {
-  create(createRoomTypeDto: CreateRoomTypeDto) {
-    return 'This action adds a new roomType';
+  constructor(
+    @InjectRepository(RoomType)
+    private readonly roomTypeRepository: Repository<RoomType>,
+  ) {}
+
+  async create(createRoomTypeDto: CreateRoomTypeDto) {
+    const { name } = createRoomTypeDto;
+
+    const existingRoomType = await this.roomTypeRepository.findOne({
+      where: {
+        name,
+      },
+    });
+
+    if (existingRoomType)
+      throw new BadRequestException(
+        `Room type with name: '${name}' already existed.`,
+      );
+
+    const newRoomType = this.roomTypeRepository.create(createRoomTypeDto);
+
+    await this.roomTypeRepository.save(newRoomType);
+
+    return newRoomType;
   }
 
-  findAll() {
-    return `This action returns all roomTypes`;
+  async findAll() {
+    return this.roomTypeRepository.find({ relations: ['rooms'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} roomType`;
+  async findOne(id: string) {
+    const findRoomType = await this.roomTypeRepository.findOne({
+      where: { id },
+      relations: ['rooms'],
+    });
+
+    if (!findRoomType)
+      throw new NotFoundException(`Room type with id: '${id}' not found.`);
+
+    return findRoomType;
   }
 
-  update(id: number, updateRoomTypeDto: UpdateRoomTypeDto) {
-    return `This action updates a #${id} roomType`;
+  async update(id: string, updateRoomTypeDto: UpdateRoomTypeDto) {
+    if (!updateRoomTypeDto)
+      throw new BadRequestException(
+        `You must be provide some information to update room type.`,
+      );
+
+    const roomType = await this.roomTypeRepository.findOne({ where: { id } });
+
+    if (!roomType)
+      throw new NotFoundException(`Room type with id: '${id}' not found.`);
+
+    await this.roomTypeRepository.update({ id }, updateRoomTypeDto);
+
+    return await this.roomTypeRepository.findOne({
+      where: { id },
+      relations: ['rooms'],
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} roomType`;
+  async remove(id: string) {
+    const findRoomType = await this.roomTypeRepository.findOne({
+      where: { id },
+    });
+
+    if (!findRoomType)
+      throw new NotFoundException(`Room type with id: '${id}' not found.`);
+
+    await this.roomTypeRepository.softDelete({ id });
+
+    return await this.roomTypeRepository.find({ relations: ['rooms'] });
   }
 }
