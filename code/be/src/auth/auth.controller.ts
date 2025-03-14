@@ -6,18 +6,18 @@ import {
   HttpStatus,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
-import { SESSION_MAX_AGE } from 'src/libs/common/constants';
+import { Request, Response } from 'express';
+import { JwtAuthGuard, RoleAuthGuard } from 'src/auth/guards';
+import { Roles, UserSession } from 'src/libs/common/decorators';
+import { JwtPayload } from 'src/libs/common/types';
+import { RoleEnum as Role } from 'src/users/enums/role.enum';
+import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import { Roles, UserSession } from 'src/libs/common/decorators';
-import { TUserSession } from 'src/libs/common/types';
-import { JwtAuthGuard, RoleAuthGuard } from 'src/auth/guards';
-import { Role } from 'src/users/enums/role.enum';
-import { UsersService } from 'src/users/users.service';
 
 @Controller('auth')
 export class AuthController {
@@ -33,36 +33,40 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('sign-in')
-  async signIn(@Body() signInDto: SignInDto, @Req() request: Request) {
-    const response = await this.authService.signIn(signInDto);
+  async signIn(
+    @Body() signInDto: SignInDto,
+    @Req() request: Request,
+    @Res() res: Response,
+  ) {
+    const { accessToken } = await this.authService.signIn(signInDto, request);
 
-    const { data } = response;
+    res.status(HttpStatus.OK).json({ accessToken });
+  }
 
-    request.session.user = {
-      userId: data.user.id,
-      role: data.user.role,
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      email: data.user.email,
-      expired_at: new Date(Date.now() + SESSION_MAX_AGE),
-    };
+  @HttpCode(HttpStatus.OK)
+  @Post('sign-out')
+  signOut(@Req() req: Request, @Res() res: Response) {
+    req.session.destroy((err) => {
+      if (err) return res.status(500).json({ error: 'Failed to log out.' });
 
-    return {
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-    };
+      res.clearCookie('user_session', { path: '/' });
+
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Signed out successfully.' });
+    });
   }
 
   @Post('refresh-token')
-  refreshAccessToken(@UserSession() userSession: TUserSession) {
-    return this.authService.handleRefreshToken(userSession);
+  refreshAccessToken(@UserSession('refresh_token') refreshToken: string) {
+    return this.authService.handleRefreshToken(refreshToken);
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard, RoleAuthGuard)
   @Roles(Role.ADMIN, Role.USER)
-  async handleGetProfile(@UserSession() userSession: TUserSession) {
-    const { userId } = userSession;
+  async handleGetProfile(@Req() request: Request) {
+    const { userId } = request.user as JwtPayload;
 
     return this.usersService.handleGetProfileByUserId(userId);
   }

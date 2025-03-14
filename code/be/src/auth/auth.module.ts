@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from 'src/auth/strategies';
-import { BcryptProvider, HashingProvider } from 'src/libs/common/providers';
+import {
+  BcryptProvider,
+  HashingProvider,
+  JwtProvider,
+} from 'src/libs/common/providers';
 import { UsersModule } from '../users/users.module';
 import { UsersRepository } from '../users/users.repository';
 import { AuthController } from './auth.controller';
@@ -13,14 +16,13 @@ import { AuthService } from './auth.service';
   imports: [
     UsersModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('jwt_secret_key'),
         signOptions: {
           expiresIn: configService.get('access_token_life') ?? '120s',
         },
       }),
+      inject: [ConfigService],
     }),
     PassportModule.register({
       session: true,
@@ -33,7 +35,7 @@ import { AuthService } from './auth.service';
       useClass: BcryptProvider,
     },
     UsersRepository,
-    JwtStrategy,
+    JwtProvider,
   ],
   controllers: [AuthController],
 })
