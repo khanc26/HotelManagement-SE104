@@ -1,14 +1,16 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from 'src/config/configuration';
+import { SessionMiddleware } from 'src/libs/common/middlewares';
+import { RedisProvider } from 'src/libs/common/providers';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { RoomsModule } from './rooms/rooms.module';
 import { RoomTypesModule } from './room-types/room-types.module';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { RoomsModule } from './rooms/rooms.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
         port: configService.get<number>('database.port'),
         host: configService.get<string>('database.host'),
         entities: ['dist/**/*.entity.js'],
-        migrations: ['dist/database/migrations/*.js'],
+        migrations: ['dist/config/migrations/*.js'],
         synchronize: false,
         logging: false,
         namingStrategy: new SnakeNamingStrategy(),
@@ -40,6 +42,13 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
     RoomTypesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SessionMiddleware, RedisProvider],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SessionMiddleware)
+      .exclude('/auth/sign-in', '/auth/sign-up', '/auth/sign-out')
+      .forRoutes('*');
+  }
+}

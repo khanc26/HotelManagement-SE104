@@ -1,27 +1,30 @@
+import { Transform } from 'class-transformer';
 import {
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
-  IsUUID,
 } from 'class-validator';
 import { RoomStatusEnum } from 'src/rooms/enums/room-status.enum';
 
-export class UpdateRoomDto {
+export class SearchRoomsDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  readonly roomNumber?: string;
+  readonly name?: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  readonly note?: string;
+  readonly roomTypeName?: string;
 
   @IsOptional()
-  @IsUUID()
-  @IsNotEmpty()
-  readonly roomTypeId!: string;
+  @Transform(({ value }) => parseFloat(value as string))
+  @IsNumber()
+  @IsPositive()
+  readonly price?: number;
 
   @IsOptional()
   @IsEnum(RoomStatusEnum)

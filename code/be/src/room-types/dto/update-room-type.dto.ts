@@ -1,4 +1,19 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateRoomTypeDto } from './create-room-type.dto';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
-export class UpdateRoomTypeDto extends PartialType(CreateRoomTypeDto) {}
+export class UpdateRoomTypeDto {
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  readonly roomPrice?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly description?: string;
+}

@@ -18,7 +18,7 @@ export class Room {
   @Column({ unique: true })
   roomNumber!: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   note?: string;
 
   @Column({
