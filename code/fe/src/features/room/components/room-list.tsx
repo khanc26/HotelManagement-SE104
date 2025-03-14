@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Room } from "../types/room.types";
+import { Room } from "../../../types/room.types";
 
 const roomsData: Room[] = [
   {
@@ -59,13 +59,19 @@ const roomsData: Room[] = [
 const roomSchema = z.object({
   room_name: z
     .string()
-    .min(2, { message: "Room room_name must be at least 2 characters." })
-    .optional(),
-  price: z.coerce.number().optional(),
+    .min(2, { message: "Room room_name must be at least 1 characters." })
+    .optional()
+    .or(z.literal("")),
+  price: z.coerce
+    .number()
+    .min(1, { message: "Price must be greater than or equal to 1" })
+    .optional()
+    .or(z.literal("")),
   location: z
     .string()
     .min(2, { message: "Location must be at least 2 characters." })
-    .optional(),
+    .optional()
+    .or(z.literal("")),
 });
 
 export function RoomList() {
@@ -129,11 +135,7 @@ export function RoomList() {
                   <FormItem>
                     <FormLabel>Room price</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Room price"
-                        {...field}
-                      />
+                      <Input placeholder="Room price" {...field} />
                     </FormControl>
                     <FormDescription>
                       Maximum number of people this room can hold.
