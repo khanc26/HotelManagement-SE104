@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
-import { Room } from "../types/room.types";
+import { Room } from "../../../types/room.types";
 
 export const roomColumns: ColumnDef<Room>[] = [
   {
@@ -31,7 +31,7 @@ export const roomColumns: ColumnDef<Room>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Room Name
+          Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -45,7 +45,7 @@ export const roomColumns: ColumnDef<Room>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Room Type
+          Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -98,11 +98,17 @@ export const roomColumns: ColumnDef<Room>[] = [
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <Link to={`/rooms/edit?id=${room.id}`}>Edit</Link>
+                <Link to={`/rooms/edit?id=${room.id}`}>
+                  <p className="text-sm font-normal">Edit</p>
+                </Link>
               </DropdownMenuItem>
 
               <DialogTrigger asChild>
-                <DropdownMenuItem>Delete</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => console.log("delete", room.id)}
+                >
+                  Delete
+                </DropdownMenuItem>
               </DialogTrigger>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -112,7 +118,11 @@ export const roomColumns: ColumnDef<Room>[] = [
               <DialogTitle>Are you absolutely sure?</DialogTitle>
               <DialogDescription>
                 This action cannot be undone. Are you sure you want to
-                permanently delete this room f?
+                permanently delete room{" "}
+                <p className="font-semibold inline text-black underline">
+                  {room.room_name}
+                </p>
+                ?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
