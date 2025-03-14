@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
-import { Room } from "../types/room.types";
+import { Room } from "../../../types/room.types";
 
 export const roomColumns: ColumnDef<Room>[] = [
   {

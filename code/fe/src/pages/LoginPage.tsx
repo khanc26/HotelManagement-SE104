@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,17 +15,31 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useQuery } from "@tanstack/react-query";
+import { getUsers } from "@/api/users";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const formSchema = z.object({
   username: z.string().min(2, {
     message: "Username must be at least 2 characters.",
   }),
-  password: z.string().min(6, {
+  password: z.string().min(4, {
     message: "Password must be at least 6 characters.",
   }),
 });
 
 const LoginPage = () => {
+  const [storedValue, setAccessTokenValue] = useLocalStorage(
+    "access_token",
+    null
+  );
+
+  const { data, refetch } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => getUsers(storedValue),
+    enabled: false,
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,8 +48,21 @@ const LoginPage = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await axios.post("http://localhost:3001/auth/sign-in", {
+        email: values.username,
+        password: values.password,
+      });
+
+      const access_token = response.data.access_token;
+      setAccessTokenValue(access_token);
+
+      refetch();
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
@@ -64,9 +91,15 @@ const LoginPage = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Enter your password" {...field} />
+                  <Input
+                    type="password"
+                    placeholder="Enter your password"
+                    {...field}
+                  />
                 </FormControl>
-                <FormDescription>Make sure your password is secure.</FormDescription>
+                <FormDescription>
+                  Make sure your password is secure.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
