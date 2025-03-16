@@ -15,14 +15,17 @@ import {
 } from "@/components/ui/form";
 import { useSearchParams } from "react-router-dom";
 
+const ROOM_TYPES = ["A", "B", "C"] as const;
+
 const roomSchema = z.object({
-  name: z
+  room_name: z
     .string()
     .min(2, { message: "Room name must be at least 2 characters." }),
-  capacity: z.number().min(1, { message: "Capacity must be at least 1." }),
-  location: z
-    .string()
-    .min(2, { message: "Location must be at least 2 characters." }),
+  room_type: z.enum(["A", "B", "C"]),
+  price: z.coerce
+    .number()
+    .min(0, { message: "Price must be greater than or equal to 0" }),
+  status: z.enum(["available", "occupied", "inactive"]),
 });
 
 export function RoomEdit() {
@@ -32,9 +35,10 @@ export function RoomEdit() {
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
-      name: "",
-      capacity: 1,
-      location: "",
+      room_name: "",
+      room_type: "A",
+      price: 0,
+      status: "available",
     },
   });
 
@@ -53,7 +57,7 @@ export function RoomEdit() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="room_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Room Name</FormLabel>
@@ -69,19 +73,25 @@ export function RoomEdit() {
               />
               <FormField
                 control={form.control}
-                name="capacity"
+                name="room_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Capacity</FormLabel>
+                    <FormLabel>Room Type</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Room Capacity"
+                      <select
                         {...field}
-                      />
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">Select type</option>
+                        {ROOM_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            Type {type}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormDescription>
-                      Maximum number of people this room can hold.
+                      Type of the room (e.g. A, B, C)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -89,22 +99,50 @@ export function RoomEdit() {
               />
               <FormField
                 control={form.control}
-                name="location"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Location</FormLabel>
+                    <FormLabel>Room Price</FormLabel>
                     <FormControl>
-                      <Input placeholder="Room Location" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="Room Price"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Where this room is located.
+                      Price per night for this room.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Room Status</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">Select status</option>
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      Current status of the room
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full">
-                Add Room
+                Update Room
               </Button>
             </form>
           </Form>

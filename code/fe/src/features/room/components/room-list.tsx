@@ -18,6 +18,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Room } from "../../../types/room.types";
 
+const ROOM_TYPES = ["A", "B", "C"] as const;
+
 const roomsData: Room[] = [
   {
     id: "1",
@@ -59,17 +61,19 @@ const roomsData: Room[] = [
 const roomSchema = z.object({
   room_name: z
     .string()
-    .min(2, { message: "Room room_name must be at least 1 characters." })
+    .optional()
+    .or(z.literal("")),
+  room_type: z
+    .string()
     .optional()
     .or(z.literal("")),
   price: z.coerce
     .number()
-    .min(1, { message: "Price must be greater than or equal to 1" })
+    .min(0)
     .optional()
     .or(z.literal("")),
-  location: z
-    .string()
-    .min(2, { message: "Location must be at least 2 characters." })
+  status: z
+    .enum(["available", "occupied", "inactive"])
     .optional()
     .or(z.literal("")),
 });
@@ -81,8 +85,9 @@ export function RoomList() {
     resolver: zodResolver(roomSchema),
     defaultValues: {
       room_name: "",
-      price: 1,
-      location: "",
+      room_type: "",
+      price: undefined,
+      status: "",
     },
   });
 
@@ -93,7 +98,14 @@ export function RoomList() {
           ? room.room_name
               .toLowerCase()
               .includes(values.room_name.toLowerCase())
-          : true) && (values.price ? room.price >= Number(values.price) : true)
+          : true) &&
+        (values.room_type
+          ? room.room_type
+              .toLowerCase()
+              .includes(values.room_type.toLowerCase())
+          : true) &&
+        (values.price ? room.price >= values.price : true) &&
+        (values.status ? room.status === values.status : true)
       );
     });
 
@@ -130,15 +142,25 @@ export function RoomList() {
               />
               <FormField
                 control={form.control}
-                name="price"
+                name="room_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room price</FormLabel>
+                    <FormLabel>Room Type</FormLabel>
                     <FormControl>
-                      <Input placeholder="Room price" {...field} />
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">All Types</option>
+                        {ROOM_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            Type {type}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormDescription>
-                      Maximum number of people this room can hold.
+                      Type of the room (e.g. A, B, C)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -146,15 +168,43 @@ export function RoomList() {
               />
               <FormField
                 control={form.control}
-                name="location"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Location</FormLabel>
+                    <FormLabel>Room Price</FormLabel>
                     <FormControl>
-                      <Input placeholder="Room Location" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="Room Price"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Where this room is located.
+                      Price per night for this room.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Room Status</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">All Status</option>
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      Current status of the room
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
