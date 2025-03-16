@@ -12,4 +12,9 @@ export default () => ({
   access_token_life: process.env.ACCESS_TOKEN_LIFE,
   refresh_token_life: process.env.REFRESH_TOKEN_LIFE,
   origin_fe_url: process.env.ORIGIN_FE_URL,
+  redis: {
+    url: process.env.REDIS_URL,
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+  },
 });

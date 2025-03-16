@@ -2,10 +2,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { RedisStore } from 'connect-redis';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { SESSION_MAX_AGE } from 'src/libs/common/constants';
+import { RedisProvider } from 'src/libs/common/providers';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -21,20 +23,28 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: configService.get<string>('origin_fe_url') as string,
+    origin: configService.get<string>('origin_fe_url', ''),
     credentials: true,
   });
+
+  const redisProvider = app.get(RedisProvider);
+
+  redisProvider.onModuleInit();
 
   app.use(
     session({
       name: 'user_session',
-      secret: configService.get<string>('session_secret_key') ?? '',
+      secret: configService.get<string>('session_secret_key', ''),
       resave: false,
       saveUninitialized: false,
+      store: new RedisStore({
+        client: RedisProvider.getInstance(),
+        prefix: 'sess:',
+      }),
       cookie: {
         secure: false,
         maxAge: SESSION_MAX_AGE,
-        httpOnly: false,
+        httpOnly: true,
         sameSite: 'lax',
       },
     }),
@@ -42,7 +52,7 @@ async function bootstrap() {
 
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use(cookieParser());
+  app.use(cookieParser(configService.get<string>('session_secret_key', '')));
 
   const PORT = configService.get<number>('port') ?? 3001;
 

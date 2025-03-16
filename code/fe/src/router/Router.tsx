@@ -6,6 +6,9 @@ import DashboardPage from "../pages/DashboardPage";
 import RoomsPage from "../pages/RoomsPage";
 import ProfilePage from "../pages/ProfilePage";
 import SettingsPage from "../pages/SettingsPage";
+import { RoomList } from "@/features/room/components/room-list";
+import { RoomAddNew } from "@/features/room/components/room-add";
+import { RoomEdit } from "@/features/room/components/room-edit";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +26,20 @@ const router = createBrowserRouter([
       {
         path: "rooms",
         element: <RoomsPage />,
+        children: [
+          {
+            path: "list",
+            element: <RoomList />,
+          },
+          {
+            path: "add",
+            element: <RoomAddNew />,
+          },
+          {
+            path: "edit",
+            element: <RoomEdit />,
+          },
+        ],
       },
       {
         path: "users",
@@ -34,23 +51,23 @@ const router = createBrowserRouter([
       },
       {
         path: "regulations",
-        element: <SettingsPage />
+        element: <SettingsPage />,
       },
       {
         path: "room-types",
-        element: <SettingsPage />
+        element: <SettingsPage />,
       },
       {
         path: "month-revenue",
-        element: <SettingsPage />
+        element: <SettingsPage />,
       },
       {
         path: "invoices",
-        element: <SettingsPage />
+        element: <SettingsPage />,
       },
       {
-        path: ""
-      }
+        path: "",
+      },
     ],
   },
   {
