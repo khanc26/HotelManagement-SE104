@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+// import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -38,8 +38,8 @@ const VerifyOTPPage = () => {
       otp: "",
     },
   });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  // values: z.infer<typeof formSchema>
+  async function onSubmit() {
     // try {
     //   const response = await axios.post("http://localhost:3001/auth/verify-otp", {
     //     email,

@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+// import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
   password: z.string().min(6, {
@@ -28,7 +28,7 @@ const formSchema = z.object({
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
   // const { email, token } = location.state || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -39,7 +39,7 @@ const ResetPasswordPage = () => {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit() {
     // try {
     //   const response = await axios.post("http://localhost:3001/auth/reset-password", {
     //     email,
