@@ -83,6 +83,8 @@ button:hover {
   border-color: #767676;
 }
 
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -178,5 +180,21 @@ button:hover {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Add the new keyframes and animation configurations */
+@layer utilities {
+  @keyframes caret-blink {
+    0%,70%,100% {
+      opacity: 1;
+    }
+    20%,50% {
+      opacity: 0;
+    }
+  }
+
+  .animate-caret-blink {
+    animation: caret-blink 1.25s ease-out infinite;
   }
 }
