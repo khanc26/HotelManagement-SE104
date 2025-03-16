@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "@/api/users";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Link } from "react-router-dom";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -28,7 +29,7 @@ const formSchema = z.object({
   }),
 });
 
-const LoginPage = () => {
+const SignInPage = () => {
   const [storedValue, setAccessTokenValue] = useLocalStorage(
     "access_token",
     null
@@ -107,10 +108,23 @@ const LoginPage = () => {
           <Button type="submit" className="w-full">
             Login
           </Button>
+          <div className="space-y-2 text-center text-sm">
+            <p>
+              Don't have an account?{" "}
+              <Link to="/auth/sign-up" className="text-blue-600 hover:underline">
+                Sign up here
+              </Link>
+            </p>
+            <p>
+              <Link to="/auth/forgot-password" className="text-blue-600 hover:underline">
+                Forgot your password?
+              </Link>
+            </p>
+          </div>
         </form>
       </Form>
     </div>
   );
 };
 
-export default LoginPage;
+export default SignInPage;
