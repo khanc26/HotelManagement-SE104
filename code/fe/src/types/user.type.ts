@@ -13,10 +13,14 @@ export enum UserType {
 // Type for User
 export interface User {
   id: string;
-  name: string;
-  email: string;
+  fullname: string;
   role: Role;
-  password: string;
+  email: string;
+  address: string;
   nationality: string;
-  userType: UserType;
+  user_type: UserType;
+  phone_number: string;
+  identity_number: string;
+  // password: string | null;
+  dob: string; //
 }
