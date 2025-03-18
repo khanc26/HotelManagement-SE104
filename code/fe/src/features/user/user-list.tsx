@@ -18,9 +18,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { userColumns } from "./user-columns";
 
-const USER_TYPES = ["foreign", "local"] as const;
-const USER_ROLE = ["admin", "user"] as const;
-
 const usersData: User[] = [
   {
     id: "1",
@@ -35,8 +32,8 @@ const usersData: User[] = [
     identity_number: "12345522342",
   },
   {
-    id: "1",
-    fullname: "Minh Nguyen",
+    id: "2",
+    fullname: "Nguyen Nguyen",
     role: Role.ADMIN,
     email: "minh@gmail.com",
     address: "tp hcm, quan 10",
@@ -47,8 +44,8 @@ const usersData: User[] = [
     identity_number: "12345522342",
   },
   {
-    id: "1",
-    fullname: "Minh Nguyen",
+    id: "3",
+    fullname: "An Nguyen",
     role: Role.ADMIN,
     email: "minh@gmail.com",
     address: "tp hcm, quan 10",
@@ -59,37 +56,37 @@ const usersData: User[] = [
     identity_number: "12345522342",
   },
   {
-    id: "1",
-    fullname: "Minh Nguyen",
+    id: "4",
+    fullname: "Tung Nguyen",
     role: Role.ADMIN,
     email: "minh@gmail.com",
     address: "tp hcm, quan 10",
-    nationality: "Vietnam",
+    nationality: "Han quoc",
     user_type: UserType.LOCAL,
     dob: new Date("1995-07-15").toLocaleDateString(),
     phone_number: "09234234324",
     identity_number: "12345522342",
   },
   {
-    id: "1",
-    fullname: "Minh Nguyen",
+    id: "5",
+    fullname: "Lionel Messi",
     role: Role.ADMIN,
-    email: "minh@gmail.com",
+    email: "messi@gmail.com",
     address: "tp hcm, quan 10",
-    nationality: "Vietnam",
-    user_type: UserType.LOCAL,
+    nationality: "Argentina",
+    user_type: UserType.FOREIGN,
     dob: new Date("1995-07-15").toLocaleDateString(),
     phone_number: "09234234324",
     identity_number: "12345522342",
   },
   {
-    id: "1",
-    fullname: "Minh Nguyen",
+    id: "6",
+    fullname: "Bruno Mars",
     role: Role.ADMIN,
     email: "minh@gmail.com",
     address: "tp hcm, quan 10",
-    nationality: "Vietnam",
-    user_type: UserType.LOCAL,
+    nationality: "Mars",
+    user_type: UserType.FOREIGN,
     dob: new Date("1995-07-15").toLocaleDateString(),
     phone_number: "09234234324",
     identity_number: "12345522342",
@@ -191,7 +188,7 @@ export function UserList() {
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                       >
                         <option value="">All Role</option>
-                        {USER_ROLE.map((type) => (
+                        {Object.values(Role).map((type) => (
                           <option key={type} value={type}>
                             {type}
                           </option>
@@ -265,7 +262,7 @@ export function UserList() {
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                       >
                         <option value="">Select type</option>
-                        {USER_TYPES.map((type) => (
+                        {Object.values(UserType).map((type) => (
                           <option key={type} value={type}>
                             {type}
                           </option>
