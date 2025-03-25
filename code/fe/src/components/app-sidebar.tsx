@@ -1,3 +1,4 @@
+
 import { Calendar, Home, Inbox, Search, Settings, User } from "lucide-react";
 
 import {
@@ -46,6 +47,9 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const { role } = useRole();
+  const items = menuItems[role];
+
   return (
     <Sidebar>
       <CustomSidebarHeader />

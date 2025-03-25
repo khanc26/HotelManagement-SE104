@@ -54,7 +54,7 @@ const SignUpPage = () => {
       });
 
       if (response.status === 201) {
-        navigate("/auth/login");
+        navigate("/auth/sign-in");
       }
     } catch (error) {
       console.error(error);
@@ -131,7 +131,7 @@ const SignUpPage = () => {
           </Button>
           <p className="text-center text-sm">
             Already have an account?{" "}
-            <Link to="/auth/login" className="text-blue-600 hover:underline">
+            <Link to="/auth/sign-in" className="text-blue-600 hover:underline">
               Login here
             </Link>
           </p>
