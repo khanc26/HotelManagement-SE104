@@ -1,50 +1,45 @@
-
-import { Calendar, Home, Inbox, Search, Settings, User } from "lucide-react";
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { useRole } from "@/hooks/useRole";
+import { Role } from "@/types/user.type";
+import { Calendar, Home, Inbox, Settings, User } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 
-const items = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Rooms",
-    url: "/rooms/list",
-    icon: Inbox,
-  },
-  {
-    title: "Users",
-    url: "/users/list",
-    icon: User,
-  },
-  {
-    title: "Profile",
-    url: "/profile",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-];
+const menuItems = {
+  [Role.ADMIN]: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: Home,
+    },
+    {
+      title: "Rooms",
+      url: "/rooms/list",
+      icon: Inbox,
+    },
+    {
+      title: "Users",
+      url: "/users/list",
+      icon: User,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
+    },
+  ],
+  [Role.USER]: [
+    {
+      title: "Rooms",
+      url: "/rooms/list",
+      icon: Inbox,
+    },
+    {
+      title: "Profile",
+      url: "/profile",
+      icon: Calendar,
+    },
+  ],
+};
 
 export function AppSidebar() {
   const { role } = useRole();
@@ -76,3 +71,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
