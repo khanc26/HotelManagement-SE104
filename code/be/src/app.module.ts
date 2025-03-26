@@ -7,10 +7,13 @@ import { RedisProvider } from 'src/libs/common/providers';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { RoomTypesModule } from './room-types/room-types.module';
-import { RoomsModule } from './rooms/rooms.module';
-import { UsersModule } from './users/users.module';
+import { RoomTypesModule } from 'src/modules/room-types/room-types.module';
+import { AuthModule } from 'src/modules/auth/auth.module';
+import { BookingDetailsModule } from 'src/modules/booking-details/booking-details.module';
+import { BookingsModule } from 'src/modules/bookings/bookings.module';
+import { InvoicesModule } from 'src/modules/invoices/invoices.module';
+import { RoomsModule } from 'src/modules/rooms/rooms.module';
+import { UsersModule } from 'src/modules/users/users.module';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     RoomsModule,
     RoomTypesModule,
+    InvoicesModule,
+    BookingsModule,
+    BookingDetailsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],

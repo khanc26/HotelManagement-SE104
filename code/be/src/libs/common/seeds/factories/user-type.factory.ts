@@ -1,4 +1,4 @@
-import { UserType } from 'src/users/entities/user-type.entity';
+import { UserType } from 'src/modules/users/entities/user-type.entity';
 import { setSeederFactory } from 'typeorm-extension';
 
 export const UserTypeFactory = setSeederFactory(UserType, () => {

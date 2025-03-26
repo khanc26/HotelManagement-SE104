@@ -1,4 +1,4 @@
-import { UserTypeEnum } from 'src/users/enums/user-type.enum';
+import { UserTypeEnum } from 'src/modules/users/enums/user-type.enum';
 
 export const UserTypeMockData: Array<{
   typeName: UserTypeEnum;

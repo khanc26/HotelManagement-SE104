@@ -5,12 +5,12 @@ import {
   UserMockData,
   UserTypeMockData,
 } from 'src/libs/common/seeds/mocks';
-import { Profile } from 'src/users/entities/profile.entity';
-import { Role } from 'src/users/entities/role.entity';
-import { UserType } from 'src/users/entities/user-type.entity';
-import { User } from 'src/users/entities/user.entity';
-import { RoleEnum } from 'src/users/enums/role.enum';
-import { UserTypeEnum } from 'src/users/enums/user-type.enum';
+import { Profile } from 'src/modules/users/entities/profile.entity';
+import { Role } from 'src/modules/users/entities/role.entity';
+import { UserType } from 'src/modules/users/entities/user-type.entity';
+import { User } from 'src/modules/users/entities/user.entity';
+import { RoleEnum } from 'src/modules/users/enums/role.enum';
+import { UserTypeEnum } from 'src/modules/users/enums/user-type.enum';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
