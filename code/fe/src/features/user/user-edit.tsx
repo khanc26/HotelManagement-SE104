@@ -1,179 +1,373 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Role, User, UserType } from "@/types/user.type";
-import { useState } from "react";
-// import { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router-dom";
+import { Role, UserType } from "@/types/user.type";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useSearchParams } from "react-router";
+import { z } from "zod";
+
+const USER_TYPES = ["foreign", "local"] as const;
+const USER_ROLE = ["admin", "user"] as const;
+
+const userSchema = z.object({
+  fullname: z.string().min(2, "Full name must be at least 2 characters."),
+  role: z.enum(["admin", "user"]),
+  email: z.string().email("Invalid email format."),
+  address: z.string().min(5, "Address must be at least 5 characters."),
+  nationality: z.string().min(2, "Nationality must be specified."),
+  guest_type: z.enum(["foreign", "local"]),
+  phone_number: z.string().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number."),
+  identity_number: z
+    .string()
+    .min(5, "Identity number must be at least 5 characters."),
+  status: z.enum(["active", "deleted"]),
+  dob: z.coerce.date().refine((date) => date <= new Date(), {
+    message: "Date of birth must be in the past.",
+  }),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  deleted_at: z.coerce.date().nullable().optional(),
+});
 
 export const UserEdit = () => {
-  // const { id } = useParams<{ id: string }>();
-  // const navigate = useNavigate();
-  // const [user, setUser] = useState<User | null>(null);
+  const [searchParams] = useSearchParams();
+  const userId = searchParams.get('userId');
+  console.log(userId);
 
-  // useEffect(() => {
-  //   // Fetch user data by ID
-  //   const fetchUser = async () => {
-  //     try {
-  //       const response = await fetch(`/api/users/${id}`);
-  //       if (!response.ok) {
-  //         throw new Error("User not found");
-  //       }
-  //       const data = await response.json();
-  //       setUser(data);
-  //     } catch (error) {
-  //       console.error("Failed to fetch user:", error);
-  //       navigate("/users");
-  //     }
-  //   };
-
-  //   fetchUser();
-  // }, [id, navigate]);
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!user) return;
-
-  //   try {
-  //     const response = await fetch(`/api/users/${id}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(user),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update user");
-  //     }
-
-  //     navigate("/users");
-  //   } catch (error) {
-  //     console.error("Failed to update user:", error);
-  //   }
-  // };
-
-  // if (!user) {
-  //   return <div>Loading...</div>;
-  // }
-
-  const [user, setUser] = useState<User>({
-    id: "1",
-    fullname: "Minh Nguyen",
-    role: Role.ADMIN,
-    email: "minh@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Vietnam",
-    user_type: UserType.LOCAL,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Updated User:", user);
-  };
+  const form = useForm<z.infer<typeof userSchema>>({
+      resolver: zodResolver(userSchema),
+      defaultValues: {
+        fullname: "",
+        role: Role.USER,
+        email: "",
+        address: "",
+        nationality: "",
+        guest_type: UserType.LOCAL,
+        phone_number: "",
+        identity_number: "",
+        status: "active",
+        dob: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      },
+    });
+  function onSubmit(values: z.infer<typeof userSchema>) {
+    console.log(values);
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Edit User</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label className="mb-2" htmlFor="fullname">Fullname</Label>
-          <Input
-            id="fullname"
-            value={user.fullname}
-            onChange={(e) => setUser({ ...user, fullname: e.target.value })}
-          />
-        </div>
-        <div>
-        <label htmlFor="role">Role:</label>
-        <select
-          id="role"
-          value={user.role}
-          onChange={(e) => {
-            const selectedRole = e.target.value as Role;
-            setUser({ ...user, role: selectedRole });
-          }}
-        >
-          {Object.values(Role).map((role) => (
-            <option key={role} value={role}>
-              {role.charAt(0).toUpperCase() + role.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-        <div>
-          <Label className="mb-2" htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            value={user.email}
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label className="mb-2" htmlFor="address">Address</Label>
-          <Input
-            id="address"
-            value={user.address}
-            onChange={(e) => setUser({ ...user, address: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label className="mb-2" htmlFor="nationality">Nationality</Label>
-          <Input
-            id="nationality"
-            value={user.nationality}
-            onChange={(e) => setUser({ ...user, nationality: e.target.value })}
-          />
-        </div>
-        <div>
-        <label className="mb-2" htmlFor="user_type">User Type:</label>
-        <select
-          id="user_type"
-          value={user.user_type}
-          onChange={(e) => {
-            const selectedUserType = e.target.value as UserType;
-            setUser({ ...user, user_type: selectedUserType });
-          }}
-        >
-          {Object.values(UserType).map((type) => (
-            <option key={type} value={type}>
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-        <div>
-          <Label className="mb-2" htmlFor="dob">Date of Birth</Label>
-          <Input
-            id="dob"
-            type="date"
-            value={user.dob}
-            onChange={(e) => setUser({ ...user, dob: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label className="mb-2" htmlFor="phone_number">Phone Number</Label>
-          <Input
-            id="phone_number"
-            value={user.phone_number}
-            onChange={(e) => setUser({ ...user, phone_number: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label className="mb-2" htmlFor="identity_number">Identity Number</Label>
-          <Input
-            id="identity_number"
-            value={user.identity_number}
-            onChange={(e) =>
-              setUser({ ...user, identity_number: e.target.value })
-            }
-          />
-        </div>
-        <Button type="submit">Save Changes</Button>
-      </form>
+    <div className="flex justify-center items-center">
+      <Card className="w-full h-full">
+        <CardHeader>
+          <CardTitle>Add New User</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="fullname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>User Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the user name" {...field} />
+                    </FormControl>
+                    <FormDescription>Type the full name</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">Select role</option>
+                        {USER_ROLE.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormDescription>Type the role</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter your email address"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Valid email address</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the address" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The address must include the city, district, and street
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="nationality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nationality</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the nationality" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The nationality must be specified
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="guest_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Guest_type</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">Select type</option>
+                        {USER_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormDescription>Type the guest type</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone_number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the phone_number" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The phone number must be in the format +84..
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="identity_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identity_number</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter the identity_number"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The identity_number is important
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>User Status</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <option value="">Select status</option>
+                        <option value="active">active</option>
+                        <option value="deleted">deleted</option>
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      Current status of the user
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dob"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of Birth</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        value={field.value?.toISOString().split("T")[0]}
+                        onChange={(e) =>
+                          field.onChange(new Date(e.target.value))
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="created_at"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Created At</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        value={
+                          field.value
+                            ? new Date(
+                                field.value.getTime() -
+                                  field.value.getTimezoneOffset() * 60000
+                              )
+                                .toISOString()
+                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date
+                          const date = value ? new Date(value) : null;
+                          field.onChange(date);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="updated_at"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Updated At</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        value={
+                          field.value
+                            ? new Date(
+                                field.value.getTime() -
+                                  field.value.getTimezoneOffset() * 60000
+                              )
+                                .toISOString()
+                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date
+                          const date = value ? new Date(value) : null;
+                          field.onChange(date);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="deleted_at"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Deleted At</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        value={
+                          field.value
+                            ? new Date(
+                                field.value.getTime() -
+                                  field.value.getTimezoneOffset() * 60000
+                              )
+                                .toISOString()
+                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date hoặc null
+                          const date = value ? new Date(value) : null;
+                          field.onChange(date);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full">
+                Update User
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
