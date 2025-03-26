@@ -1,6 +1,7 @@
+
 import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
-import { Calendar, Home, Inbox, Settings, User } from "lucide-react";
+import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 
@@ -14,29 +15,24 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: Inbox,
+      icon: BedDouble,
     },
     {
       title: "Users",
       url: "/users/list",
-      icon: User,
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
+      icon: BookUser,
     },
   ],
   [Role.USER]: [
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: Inbox,
+      icon: BedDouble,
     },
     {
       title: "Profile",
       url: "/profile",
-      icon: Calendar,
+      icon: UserCog,
     },
   ],
 };
@@ -58,7 +54,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
-                      <item.icon />
+                      <item.icon/>
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
