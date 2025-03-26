@@ -17,14 +17,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LogIn, User } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { LogOut, User } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const CustomHeader = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathSegments = location.pathname
     .split("/")
     .filter((segment) => segment);
+
+  const handleLogOut = () => {
+    console.log("Log out");
+  };
 
   return (
     <div className="mx-6 pr-2 flex justify-between items-center">
@@ -74,17 +79,13 @@ const CustomHeader = () => {
           <DropdownMenuContent>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
               <User />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleLogOut()}>
               <LogOut />
               <span>Log out</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LogIn />
-              <span>Log in</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

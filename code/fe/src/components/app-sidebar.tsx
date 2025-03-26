@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Settings } from "lucide-react";
+import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
@@ -14,24 +14,24 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: Inbox,
+      icon: BedDouble,
     },
     {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
+      title: "Users",
+      url: "/users/list",
+      icon: BookUser,
     },
   ],
   [Role.USER]: [
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: Inbox,
+      icon: BedDouble,
     },
     {
       title: "Profile",
       url: "/profile",
-      icon: Calendar,
+      icon: UserCog,
     },
   ],
 };
