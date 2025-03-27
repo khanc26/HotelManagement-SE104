@@ -110,7 +110,7 @@ export const roomColumns: ColumnDef<Room>[] = [
                   Delete
                 </DropdownMenuItem>
               </DialogTrigger>
-            </DropdownMenuContent>
+</DropdownMenuContent>
           </DropdownMenu>
 
           <DialogContent>
