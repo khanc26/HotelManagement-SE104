@@ -14,12 +14,13 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: BedDouble,
+      icon: BookUser,
     },
     {
       title: "Users",
       url: "/users/list",
       icon: BookUser,
+
     },
   ],
   [Role.USER]: [
