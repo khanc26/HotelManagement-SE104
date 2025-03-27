@@ -1,3 +1,4 @@
+import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
 import { Calendar, Home, Inbox, Settings, User } from "lucide-react";
@@ -14,7 +15,7 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: Inbox,
+      icon: BookUser,
     },
     {
       title: "Users",
@@ -31,12 +32,12 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: Inbox,
+      icon: BedDouble,
     },
     {
       title: "Profile",
       url: "/profile",
-      icon: Calendar,
+      icon: UserCog,
     },
   ],
 };
