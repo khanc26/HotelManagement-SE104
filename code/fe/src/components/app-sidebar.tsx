@@ -1,8 +1,8 @@
-import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
+import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 
 const menuItems = {
   [Role.ADMIN]: [
@@ -14,12 +14,13 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: BedDouble,
+      icon: BookUser,
     },
     {
       title: "Users",
       url: "/users/list",
       icon: BookUser,
+
     },
   ],
   [Role.USER]: [
