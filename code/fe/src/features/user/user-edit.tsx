@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -10,8 +11,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Role, UserType } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router";
 import { z } from "zod";
@@ -41,27 +49,27 @@ const userSchema = z.object({
 
 export const UserEdit = () => {
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get('userId');
+  const userId = searchParams.get("userId");
   console.log(userId);
 
   const form = useForm<z.infer<typeof userSchema>>({
-      resolver: zodResolver(userSchema),
-      defaultValues: {
-        fullname: "",
-        role: Role.USER,
-        email: "",
-        address: "",
-        nationality: "",
-        guest_type: UserType.LOCAL,
-        phone_number: "",
-        identity_number: "",
-        status: "active",
-        dob: new Date(),
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-      },
-    });
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      fullname: "",
+      role: Role.USER,
+      email: "",
+      address: "",
+      nationality: "",
+      guest_type: UserType.LOCAL,
+      phone_number: "",
+      identity_number: "",
+      status: "active",
+      dob: new Date(),
+      created_at: new Date(),
+      updated_at: new Date(),
+      deleted_at: null,
+    },
+  });
   function onSubmit(values: z.infer<typeof userSchema>) {
     console.log(values);
   }
@@ -249,113 +257,36 @@ export const UserEdit = () => {
                 control={form.control}
                 name="dob"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Date of Birth</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value?.toISOString().split("T")[0]}
-                        onChange={(e) =>
-                          field.onChange(new Date(e.target.value))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="created_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Created At</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        value={
-                          field.value
-                            ? new Date(
-                                field.value.getTime() -
-                                  field.value.getTimezoneOffset() * 60000
-                              )
-                                .toISOString()
-                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date
-                          const date = value ? new Date(value) : null;
-                          field.onChange(date);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="updated_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Updated At</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        value={
-                          field.value
-                            ? new Date(
-                                field.value.getTime() -
-                                  field.value.getTimezoneOffset() * 60000
-                              )
-                                .toISOString()
-                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date
-                          const date = value ? new Date(value) : null;
-                          field.onChange(date);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deleted_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deleted At</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        value={
-                          field.value
-                            ? new Date(
-                                field.value.getTime() -
-                                  field.value.getTimezoneOffset() * 60000
-                              )
-                                .toISOString()
-                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date hoặc null
-                          const date = value ? new Date(value) : null;
-                          field.onChange(date);
-                        }}
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className="w-full pl-3 text-left font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
