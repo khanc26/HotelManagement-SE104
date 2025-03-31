@@ -14,22 +14,22 @@ export class SignUpDto {
   @IsEmail()
   @ApiProperty()
   @IsNotEmpty()
-  readonly email: string;
+  readonly email!: string;
 
   @IsString()
   @ApiProperty()
   @Length(6)
-  readonly password: string;
+  readonly password!: string;
 
   @IsString()
   @ApiProperty()
   @IsNotEmpty()
-  readonly fullName: string;
+  readonly fullName!: string;
 
   @IsString()
   @ApiProperty()
   @IsNotEmpty()
-  readonly nationality: string;
+  readonly nationality!: string;
 
   @IsDate()
   @ApiProperty()

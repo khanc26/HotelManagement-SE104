@@ -10,7 +10,7 @@ import {
 import { RoomTypeName } from 'src/modules/room-types/enums/room-type-name.enum';
 import { Room } from 'src/modules/rooms/entities/room.entity';
 
-@Entity({ name: 'room_type' })
+@Entity()
 export class RoomType {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;

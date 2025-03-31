@@ -1,1 +1,1 @@
-export * from './booking-details.entity';
+export * from './booking-detail.entity';
