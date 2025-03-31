@@ -1,25 +1,23 @@
-import { BookingDetails } from 'src/modules/booking-details/entities';
+import { BookingDetail } from 'src/modules/booking-details/entities';
 import { BookingsStatus } from 'src/modules/bookings/enums';
 import { Invoice } from 'src/modules/invoices/entities';
 import { User } from 'src/modules/users/entities';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Booking {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
-
-  @Column({ type: 'decimal', scale: 2, precision: 10 })
-  total_price!: number;
 
   @Column({
     type: 'enum',
@@ -35,18 +33,18 @@ export class Booking {
   @JoinColumn()
   user!: User;
 
-  @OneToMany(() => BookingDetails, (bookingDetails) => bookingDetails.booking, {
+  @OneToMany(() => BookingDetail, (bookingDetail) => bookingDetail.booking, {
     orphanedRowAction: 'delete',
     cascade: true,
   })
-  bookingDetails!: BookingDetails[];
-
-  @OneToOne(() => Invoice, (invoice) => invoice.booking, {
-    orphanedRowAction: 'delete',
-    cascade: true,
-  })
-  invoice!: Invoice;
+  bookingDetails!: BookingDetail[];
 
   @CreateDateColumn({ type: 'timestamp' })
-  readonly created_at!: Date;
+  readonly createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  readonly updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  readonly deletedAt?: Date;
 }

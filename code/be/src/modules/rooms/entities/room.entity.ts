@@ -10,9 +10,9 @@ import {
 } from 'typeorm';
 import { RoomType } from '../../room-types/entities/room-type.entity';
 import { RoomStatusEnum } from '../enums/room-status.enum';
-import { BookingDetails } from 'src/modules/booking-details/entities/booking-details.entity';
+import { BookingDetail } from 'src/modules/booking-details/entities/booking-detail.entity';
 
-@Entity({ name: 'room' })
+@Entity()
 export class Room {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
@@ -36,11 +36,11 @@ export class Room {
   })
   roomType!: RoomType;
 
-  @OneToMany(() => BookingDetails, (bookingDetails) => bookingDetails.room, {
+  @OneToMany(() => BookingDetail, (bookingDetail) => bookingDetail.room, {
     orphanedRowAction: 'delete',
     cascade: true,
   })
-  bookingDetails!: BookingDetails[];
+  bookingDetails!: BookingDetail[];
 
   @CreateDateColumn({ type: 'timestamp' })
   readonly createdAt!: Date;

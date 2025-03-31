@@ -14,6 +14,7 @@ import { BookingsModule } from 'src/modules/bookings/bookings.module';
 import { InvoicesModule } from 'src/modules/invoices/invoices.module';
 import { RoomsModule } from 'src/modules/rooms/rooms.module';
 import { UsersModule } from 'src/modules/users/users.module';
+import { InvoiceDetailsModule } from './modules/invoice-details/invoice-details.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { UsersModule } from 'src/modules/users/users.module';
     InvoicesModule,
     BookingsModule,
     BookingDetailsModule,
+    InvoiceDetailsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],

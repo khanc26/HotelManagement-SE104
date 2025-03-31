@@ -18,6 +18,10 @@ export class RedisProvider implements OnModuleInit, OnModuleDestroy {
     this.redis = new Redis(redisUrl);
 
     RedisProvider.instance = this.redis;
+
+    this.redis.on('error', (err) => {
+      console.error('Redis error:', err);
+    });
   }
 
   async onModuleDestroy() {
