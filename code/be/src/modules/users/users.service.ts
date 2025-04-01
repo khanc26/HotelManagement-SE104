@@ -11,7 +11,11 @@ import { UsersRepository } from './users.repository';
 import { Profile, Role, UserType } from 'src/modules/users/entities';
 import { SignUpDto } from 'src/modules/auth/dto';
 import { SearchUsersDto, UpdateUserDto } from 'src/modules/users/dto';
-import { RoleEnum, ProfileStatusEnum } from 'src/modules/users/enums';
+import {
+  RoleEnum,
+  ProfileStatusEnum,
+  UserTypeEnum,
+} from 'src/modules/users/enums';
 
 @Injectable()
 export class UsersService {
@@ -316,5 +320,27 @@ export class UsersService {
       throw new NotFoundException(`User with email: '${email}' not found.`);
 
     return user;
+  };
+
+  public handleGetUserTypeByName = async (typeName: UserTypeEnum) => {
+    const userType = await this.userTypeRepository.findOne({
+      where: {
+        typeName,
+      },
+    });
+
+    if (!userType)
+      throw new NotFoundException(`User type ${typeName} not found.`);
+
+    return userType;
+  };
+
+  public handleGetUserByField = async (field: string, value: string) => {
+    return this.userRepository.findOne({
+      where: {
+        [field]: value,
+      },
+      relations: ['role'],
+    });
   };
 }

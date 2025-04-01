@@ -1,10 +1,14 @@
 import { Logger, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import {
+  ConfigurationMockData,
   roleMockData,
+  RoomTypeMock,
   UserMockData,
   UserTypeMockData,
 } from 'src/libs/common/seeds/mocks';
+import { Configuration } from 'src/modules/configurations/entities';
+import { RoomType } from 'src/modules/room-types/entities';
 import { Profile } from 'src/modules/users/entities/profile.entity';
 import { Role } from 'src/modules/users/entities/role.entity';
 import { UserType } from 'src/modules/users/entities/user-type.entity';
@@ -34,6 +38,11 @@ export class MainSeeder implements Seeder {
       const userRepository = entityManager.getRepository(User);
       const userFactory = factoryManager.get(User);
       const profileRepository = entityManager.getRepository(Profile);
+      const configurationRepository =
+        entityManager.getRepository(Configuration);
+      const configurationFactory = factoryManager.get(Configuration);
+      const roomTypeRepository = entityManager.getRepository(RoomType);
+      const roomTypeFactory = factoryManager.get(RoomType);
 
       this.logger.log('Starting seeding role data...');
 
@@ -65,6 +74,7 @@ export class MainSeeder implements Seeder {
           const newUserType = await userTypeFactory.make({
             typeName: userTypeData.typeName,
             description: userTypeData.description,
+            surcharge_factor: userTypeData.surcharge_factor,
           });
 
           await userTypeRepository.save(newUserType);
@@ -118,6 +128,43 @@ export class MainSeeder implements Seeder {
         newUserAdmin.role = adminRole;
 
         await userRepository.save(newUserAdmin);
+      }
+
+      this.logger.log('Seeding configuration data...');
+
+      for (const configurationData of ConfigurationMockData) {
+        if (
+          !(await configurationRepository.findOne({
+            where: {
+              configName: configurationData.config_name,
+            },
+          }))
+        ) {
+          const { config_name, config_value } = configurationData;
+
+          const newConfig = await configurationFactory.make({
+            configName: config_name,
+            configValue: config_value,
+          });
+
+          await configurationRepository.save(newConfig);
+        }
+      }
+
+      this.logger.log('Seeding room type data...');
+
+      for (const roomTypeData of RoomTypeMock) {
+        if (
+          !(await roomTypeRepository.findOne({
+            where: {
+              name: roomTypeData.name,
+            },
+          }))
+        ) {
+          const newRoomType = await roomTypeFactory.make(roomTypeData);
+
+          await roomTypeRepository.save(newRoomType);
+        }
       }
 
       this.logger.log('Seeding finished successfully.');

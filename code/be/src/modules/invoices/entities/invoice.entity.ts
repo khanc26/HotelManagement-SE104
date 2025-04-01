@@ -1,14 +1,15 @@
+import { BookingDetail } from 'src/modules/booking-details/entities';
 import { InvoicesStatus } from 'src/modules/invoices/enums/invoices-status.enum';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { InvoiceDetail } from '../../invoice-details/entities/invoice-detail.entity';
 
 @Entity()
 export class Invoice {
@@ -21,6 +22,9 @@ export class Invoice {
   @Column({ type: 'decimal', scale: 2, precision: 10 })
   totalPrice!: number;
 
+  @Column({ type: 'int' })
+  dayRent!: number;
+
   @Column({
     type: 'enum',
     enum: InvoicesStatus,
@@ -28,11 +32,13 @@ export class Invoice {
   })
   status!: InvoicesStatus;
 
-  @OneToMany(() => InvoiceDetail, (invoiceDetail) => invoiceDetail.invoice, {
+  @OneToOne(() => BookingDetail, (bookingDetail) => bookingDetail.invoice, {
     cascade: true,
-    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
-  invoiceDetails!: InvoiceDetail[];
+  @JoinColumn()
+  bookingDetail!: BookingDetail;
 
   @CreateDateColumn({ type: 'timestamp' })
   readonly createdAt!: Date;

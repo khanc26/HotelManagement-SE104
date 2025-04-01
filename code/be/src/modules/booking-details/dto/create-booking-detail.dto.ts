@@ -1,8 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
-  IsDate,
+  IsISO8601,
   IsNotEmpty,
   IsOptional,
   IsPositive,
@@ -11,29 +10,27 @@ import {
 
 export class CreateBookingDetailDto {
   @ApiProperty()
-  @IsNotEmpty()
   @IsUUID()
-  roomId!: string;
+  @IsNotEmpty()
+  readonly roomId!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsPositive()
-  guestCount!: number;
+  readonly guestCount!: number;
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsDate()
-  @Type(() => Date)
-  startDate!: Date;
+  @IsISO8601()
+  readonly startDate!: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsDate()
-  @Type(() => Date)
-  endDate!: Date;
+  @IsISO8601()
+  readonly endDate!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  hasForeigners?: boolean;
+  readonly hasForeigners?: boolean;
 }

@@ -25,6 +25,9 @@ export class UserType {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({ type: 'decimal', scale: 2, precision: 10 })
+  surcharge_factor!: number;
+
   @OneToMany(() => User, (user) => user.userType, {
     cascade: true,
     orphanedRowAction: 'delete',

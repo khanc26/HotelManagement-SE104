@@ -7,21 +7,27 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { BookingsService } from './bookings.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { DeleteBookingDetailsDto } from 'src/modules/booking-details/dto';
+import { CreateBookingDto, UpdateBookingDto } from 'src/modules/bookings/dto';
 import { Roles, UserSession } from '../../libs/common/decorators';
-import { RoleEnum } from '../users/enums';
-import { CreateBookingDto, UpdateBookingDto } from './dto';
 import { JwtAuthGuard, RoleAuthGuard } from '../../libs/common/guards';
+import { RoleEnum } from '../users/enums';
+import { BookingsService } from './bookings.service';
 
 @UseGuards(JwtAuthGuard, RoleAuthGuard)
+@ApiBearerAuth()
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
-  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
+
   @Post()
-  async create(
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  async createBooking(
     @Body() createBookingDto: CreateBookingDto,
     @UserSession('userId') userId: string,
   ) {
@@ -36,20 +42,11 @@ export class BookingsController {
 
   @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string,
-    @UserSession('userId') userId: string) {
-    return this.bookingsService.findOne(id, userId);
-  }
-
-  // just update totalPrice and status
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
-  @Patch(':id')
-  async update(
+  async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateBookingDto: UpdateBookingDto,
     @UserSession('userId') userId: string,
   ) {
-    return this.bookingsService.update(id, updateBookingDto, userId);
+    return this.bookingsService.findOne(id, userId);
   }
 
   @Roles(RoleEnum.ADMIN, RoleEnum.USER)
@@ -57,7 +54,18 @@ export class BookingsController {
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @UserSession('userId') userId: string,
+    @Query() deleteBookingDetailsDto?: DeleteBookingDetailsDto,
   ) {
-    return this.bookingsService.remove(id, userId);
+    return this.bookingsService.remove(id, userId, deleteBookingDetailsDto);
+  }
+
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Patch(':id')
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateBookingDto: UpdateBookingDto,
+    @UserSession('userId') userId: string,
+  ) {
+    return this.bookingsService.handleUpdate(updateBookingDto, userId, id);
   }
 }

@@ -1,98 +1,75 @@
 import {
+  BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersRepository } from '../users/users.repository';
-import { CreateBookingDetailDto } from './dto';
-import { BookingDetailsRepository } from './booking-details.repository';
-import { BookingsRepository } from '../bookings/bookings.repository';
-import { RoomsRepository } from '../rooms/rooms.repository';
-import { RoleEnum } from '../users/enums';
-import { InvoiceDetailsRepository } from '../invoice-details/invoice-details.repository';
-import { InvoicesRepository } from '../invoices/invoices.repository';
-import { InvoiceDetail } from '../invoice-details/entities';
-import { BookingDetail } from './entities';
 import { omit } from 'lodash';
+import { MAX_GUESTS_PER_ROOM } from 'src/libs/common/constants';
+import { BookingDetail } from 'src/modules/booking-details/entities';
+import { BookingDetailsStatus } from 'src/modules/booking-details/enums';
+import { Booking } from 'src/modules/bookings/entities';
+import { ConfigurationsService } from 'src/modules/configurations/configurations.service';
+import { InvoicesService } from 'src/modules/invoices/invoices.service';
+import { Room } from 'src/modules/rooms/entities';
+import { RoomStatusEnum } from 'src/modules/rooms/enums';
+import { RoomsService } from 'src/modules/rooms/rooms.service';
+import { UsersService } from 'src/modules/users/users.service';
+import { In } from 'typeorm';
+import { RoleEnum, UserTypeEnum } from '../users/enums';
+import { BookingDetailsRepository } from './booking-details.repository';
+import { CreateBookingDetailDto, UpdateBookingDetailDto } from './dto';
 
 @Injectable()
 export class BookingDetailsService {
   constructor(
-    @InjectRepository(UsersRepository)
-    private readonly usersRepository: UsersRepository,
-
     @InjectRepository(BookingDetailsRepository)
     private readonly bookingDetailsRepository: BookingDetailsRepository,
-
-    @InjectRepository(BookingsRepository)
-    private readonly bookingsRepository: BookingsRepository,
-
-    @InjectRepository(InvoiceDetailsRepository)
-    private readonly invoiceDetailsRepository: InvoiceDetailsRepository,
-
-    @InjectRepository(InvoicesRepository)
-    private readonly invoicesRepository: InvoicesRepository,
-
-    @InjectRepository(RoomsRepository)
-    private readonly roomsRepository: RoomsRepository,
+    private readonly usersService: UsersService,
+    private readonly invoicesService: InvoicesService,
+    private readonly configurationsService: ConfigurationsService,
+    private readonly roomsService: RoomsService,
   ) {}
 
-  async create(
-    bookingId: string,
-    createBookingDetailDto: CreateBookingDetailDto,
-    userId: string,
-  ) {
-    // find user
-    const existingUser = await this.usersRepository.findOne({
-      where: { id: userId },
-      relations: { role: true },
-    });
+  async create(createBookingDetailDto: CreateBookingDetailDto, userId: string) {
+    const { roomId, guestCount, hasForeigners } = createBookingDetailDto;
+
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
+
     if (!existingUser) {
-      throw new NotFoundException(`User with email: '${userId}' not found.`);
+      throw new NotFoundException(`User with id: '${userId}' not found.`);
     }
 
-    // find booking
-    const existingBooking = await this.bookingsRepository.findOne({
-      where: { id: bookingId },
-      relations: {
-        user: true,
-      },
-    });
-    if (!existingBooking) {
-      throw new NotFoundException(`Booking with id: '${bookingId}' not found.`);
-    }
+    const existingRoom = await this.roomsService.findOne(roomId);
 
-    // check if user is admin or booking owner
-    if (
-      !(
-        existingUser.role.roleName === RoleEnum.ADMIN ||
-        existingUser.id === existingBooking.user.id
-      )
-    ) {
-      throw new NotFoundException(
-        `User is not authorized to create booking details.`,
-      );
-    }
-
-    // find room
-    const existingRoom = await this.roomsRepository.findOne({
-      where: { id: createBookingDetailDto.roomId },
-      relations: {
-        roomType: true,
-      },
-    });
     if (!existingRoom) {
-      throw new NotFoundException(
-        `Room with id: '${createBookingDetailDto.roomId}' not found.`,
-      );
+      throw new NotFoundException(`Room with id: '${roomId}' not found.`);
     }
 
-    // calculate days
+    const maxGuestsPerRoomConfig =
+      await this.configurationsService.handleGetValueByName(
+        MAX_GUESTS_PER_ROOM,
+      );
+
+    if (!maxGuestsPerRoomConfig)
+      throw new NotFoundException(
+        `Configuration for max guests per room not found.`,
+      );
+
+    if (Number(maxGuestsPerRoomConfig.configValue) < guestCount)
+      throw new BadRequestException(
+        `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+      );
+
     const days =
       Math.ceil(
-        createBookingDetailDto.endDate.getTime() -
-          createBookingDetailDto.startDate.getTime(),
+        new Date(createBookingDetailDto.endDate).getTime() -
+          new Date(createBookingDetailDto.startDate).getTime(),
       ) /
         (1000 * 60 * 60 * 24) +
       1;
@@ -103,113 +80,73 @@ export class BookingDetailsService {
       );
     }
 
-    // calculate total price
     const baseDetailPrice = existingRoom.roomType.roomPrice * days;
+
+    const foreignUserType = await this.usersService.handleGetUserTypeByName(
+      UserTypeEnum.FOREIGN,
+    );
+
+    const localUserType = await this.usersService.handleGetUserTypeByName(
+      UserTypeEnum.LOCAL,
+    );
+
+    const surcharge_factor = hasForeigners
+      ? foreignUserType.surcharge_factor
+      : localUserType.surcharge_factor;
+
     const detailPrice =
       baseDetailPrice *
-      (1 + 0.25 * (createBookingDetailDto.guestCount > 2 ? 1 : 0)) *
-      (createBookingDetailDto.hasForeigners ? 1.5 : 1);
+      (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
+      surcharge_factor;
 
-    // find existing booking detail
-    const existingBookingDetail = await this.bookingDetailsRepository.findOne({
-      where: { booking: { id: bookingId } },
-      relations: {
-        booking: true,
-        room: true,
-      },
-    });
-    if (!existingBookingDetail) {
-      throw new NotFoundException(
-        `Booking detail with booking id: '${bookingId}' not found.`,
-      );
-    }
+    const newBookingDetail = this.bookingDetailsRepository.create(
+      omit(createBookingDetailDto, ['roomId', 'hasForeigners']),
+    );
 
-    // find existing invoice detail
-    const existingInvoiceDetail = await this.invoiceDetailsRepository.findOne({
-      where: { bookingDetail: { id: existingBookingDetail.id } },
-      relations: {
-        invoice: true,
-        bookingDetail: true,
-      },
-    });
-    if (!existingInvoiceDetail) {
-      throw new NotFoundException(
-        `Invoice detail with booking detail id: '${bookingId}' not found.`,
-      );
-    }
-
-    // find existing invoice
-    const existingInvoice = await this.invoicesRepository.findOne({
-      where: { id: existingInvoiceDetail.invoice.id },
-      relations: {
-        invoiceDetails: true,
-      },
-    });
-    if (!existingInvoice) {
-      throw new NotFoundException(
-        `Invoice with id: '${existingInvoiceDetail.invoice.id}' not found.`,
-      );
-    }
-
-    // create booking detail
-    const newBookingDetail = new BookingDetail();
-    newBookingDetail.startDate = createBookingDetailDto.startDate;
-    newBookingDetail.endDate = createBookingDetailDto.endDate;
-    newBookingDetail.guestCount = createBookingDetailDto.guestCount;
     newBookingDetail.hasForeigners =
       createBookingDetailDto.hasForeigners ?? false;
+
     newBookingDetail.room = existingRoom;
-    newBookingDetail.booking = existingBooking;
 
-    const savedBookingDetail =
-      await this.bookingDetailsRepository.save(newBookingDetail);
-
-    // create invoice detail
-    const newInvoiceDetail = new InvoiceDetail();
-    newInvoiceDetail.basePrice = baseDetailPrice;
-    newInvoiceDetail.totalPrice = detailPrice;
-    newInvoiceDetail.dayRent = days;
-    newInvoiceDetail.invoice = existingInvoice;
-    newInvoiceDetail.bookingDetail = savedBookingDetail;
-    await this.invoiceDetailsRepository.save(newInvoiceDetail);
-
-    // update invoice
-    await this.invoicesRepository.update(existingInvoice.id, {
-      basePrice: existingInvoice.basePrice + baseDetailPrice,
-      totalPrice: existingInvoice.totalPrice + detailPrice,
+    const newInvoice = await this.invoicesService.createInvoice({
+      basePrice: baseDetailPrice,
+      totalPrice: detailPrice,
+      dayRent: days,
     });
 
-    return omit(savedBookingDetail, ['booking.user', 'room', 'invoiceDetail']);
+    newBookingDetail.invoice = newInvoice;
+
+    return await this.bookingDetailsRepository.save(newBookingDetail);
   }
 
   async findAll(userId: string) {
-    // find user
-    const existingUser = await this.usersRepository.findOne({
-      where: { id: userId },
-      relations: { role: true },
-    });
-    if (!existingUser) {
-      throw new NotFoundException(`User with email: '${userId}' not found.`);
-    }
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
 
-    // check if user is admin or booking owner
-    if (
-      !(
-        existingUser.role.roleName === RoleEnum.ADMIN ||
-        existingUser.role.roleName === RoleEnum.USER
-      )
-    ) {
-      throw new ForbiddenException(
-        `User does not have permission to view booking details.`,
-      );
+    if (!existingUser) {
+      throw new NotFoundException(`User with id: '${userId}' not found.`);
     }
 
     return this.bookingDetailsRepository.find({
       relations: {
-        booking: true,
+        booking: {
+          user: true,
+        },
         room: true,
-        invoiceDetail: true,
+        invoice: true,
       },
+      where:
+        existingUser.role.roleName === RoleEnum.ADMIN
+          ? {}
+          : {
+              booking: {
+                user: {
+                  id: existingUser.id,
+                },
+              },
+            },
       order: {
         createdAt: 'DESC',
       },
@@ -217,47 +154,248 @@ export class BookingDetailsService {
   }
 
   async findOne(id: string, userId: string) {
-    // find user
-    const existingUser = await this.usersRepository.findOne({
-      where: { id: userId },
-      relations: { role: true },
-    });
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
+
     if (!existingUser) {
       throw new NotFoundException(`User with email: '${userId}' not found.`);
     }
 
-    // check if user is admin or booking owner
-    if (
-      !(
-        existingUser.role.roleName === RoleEnum.ADMIN ||
-        existingUser.role.roleName === RoleEnum.USER
-      )
-    ) {
-      throw new ForbiddenException(
-        `User does not have permission to view booking details.`,
-      );
-    }
-
     const bookingDetail = await this.bookingDetailsRepository.findOne({
-      where: { id },
+      where:
+        existingUser.role.roleName !== RoleEnum.ADMIN
+          ? {
+              id,
+              booking: {
+                user: {
+                  id: existingUser.id,
+                },
+              },
+            }
+          : { id },
       relations: {
-        booking: true,
+        booking: {
+          user: true,
+        },
         room: true,
-        invoiceDetail: true,
+        invoice: true,
       },
     });
+
     if (!bookingDetail) {
-      throw new NotFoundException(
-        `Booking detail with id: '${id}' not found.`,
-      );
+      throw new NotFoundException(`Booking detail with id: '${id}' not found.`);
     }
 
     return bookingDetail;
   }
 
-  async update(id: string, updateBookingDetailDto: UpdateBookingDetailDto, userId: string) {
-    
-  }
+  public updateOne = async (
+    updateBookingDetailDto: UpdateBookingDetailDto,
+    userId: string,
+  ) => {
+    const { bookingDetailId: id } = updateBookingDetailDto;
 
-  async remove() {}
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
+
+    if (!existingUser) {
+      throw new NotFoundException(`User with id: '${userId}' not found.`);
+    }
+
+    const existingBookingDetail = await this.bookingDetailsRepository.findOne({
+      where: {
+        id,
+      },
+      relations: ['room', 'booking', 'booking.user', 'invoice'],
+    });
+
+    if (!existingBookingDetail)
+      throw new NotFoundException(`Booking detail with id '${id}' not found.`);
+
+    if (
+      existingBookingDetail.status === BookingDetailsStatus.CANCELLED ||
+      existingBookingDetail.status === BookingDetailsStatus.CHECKED_OUT
+    ) {
+      throw new ConflictException(
+        `Booking update failed: status is already ${existingBookingDetail.status.toLowerCase()}.`,
+      );
+    }
+
+    if (
+      existingBookingDetail.booking.user.id !== userId &&
+      existingUser.role.roleName !== RoleEnum.ADMIN
+    )
+      throw new ForbiddenException(
+        `You can only update the booking details that belongs to you.`,
+      );
+
+    const { roomId, ...res } = updateBookingDetailDto;
+
+    if (
+      updateBookingDetailDto?.approvalStatus &&
+      existingUser.role.roleName !== RoleEnum.ADMIN
+    )
+      throw new ForbiddenException(
+        `Only admin can have permission to update approval status of the booking detail.`,
+      );
+
+    const { startDate, endDate } = updateBookingDetailDto || {};
+
+    let days: number = 0;
+
+    if (startDate || endDate) {
+      const now = new Date().getTime();
+
+      if (!endDate && startDate) {
+        if (now <= startDate.getTime())
+          throw new BadRequestException(
+            `New start date must be greater than current date.`,
+          );
+
+        if (startDate.getTime() > existingBookingDetail.endDate.getTime())
+          throw new BadRequestException(
+            `New start date can't be greater than end date of the booking detail.`,
+          );
+      }
+
+      if (!startDate && endDate) {
+        if (now <= endDate.getTime())
+          throw new BadRequestException(
+            `New end date must be greater than current date.`,
+          );
+
+        if (endDate.getTime() < existingBookingDetail.startDate.getTime())
+          throw new BadRequestException(
+            `New end date must be greater than start date of the booking detail.`,
+          );
+      }
+
+      if (startDate && endDate && startDate.getTime() > endDate.getTime()) {
+        throw new BadRequestException(
+          `New start date can't be greater than new end date.`,
+        );
+      }
+
+      days =
+        Math.ceil(
+          (endDate ? endDate : existingBookingDetail.endDate).getTime() -
+            (startDate ? startDate : existingBookingDetail.startDate).getTime(),
+        ) /
+          (1000 * 60 * 60 * 24) +
+        1;
+    }
+
+    const maxGuestsPerRoomConfig =
+      await this.configurationsService.handleGetValueByName(
+        MAX_GUESTS_PER_ROOM,
+      );
+
+    if (!maxGuestsPerRoomConfig)
+      throw new NotFoundException(
+        `Configuration for max guests per room not found.`,
+      );
+
+    const guestCount =
+      updateBookingDetailDto?.guestCount ?? existingBookingDetail.guestCount;
+
+    let existingRoom: Room | null = null;
+
+    if (roomId) {
+      existingRoom = await this.roomsService.findOne(roomId);
+
+      if (!existingRoom)
+        throw new NotFoundException(`Room with id: '${roomId}' not found.`);
+
+      if (existingRoom.status === RoomStatusEnum.OCCUPIED)
+        throw new BadRequestException(
+          `Room with id '${roomId}' has been occupied.`,
+        );
+
+      if (
+        roomId !== existingBookingDetail.room.id &&
+        guestCount &&
+        Number(maxGuestsPerRoomConfig.configValue) < guestCount
+      )
+        throw new BadRequestException(
+          `A new room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+        );
+    }
+
+    await this.bookingDetailsRepository.update(
+      {
+        id: existingBookingDetail.id,
+      },
+      res,
+    );
+
+    if (roomId && existingRoom) {
+      existingBookingDetail.room = existingRoom;
+
+      await this.bookingDetailsRepository.save(existingBookingDetail);
+    }
+
+    if (days > 0) {
+      const baseDetailPrice =
+        (existingRoom ? existingRoom : existingBookingDetail.room).roomType
+          .roomPrice * days;
+
+      const foreignUserType = await this.usersService.handleGetUserTypeByName(
+        UserTypeEnum.FOREIGN,
+      );
+
+      const localUserType = await this.usersService.handleGetUserTypeByName(
+        UserTypeEnum.LOCAL,
+      );
+
+      const surcharge_factor = updateBookingDetailDto?.hasForeigners
+        ? foreignUserType.surcharge_factor
+        : localUserType.surcharge_factor;
+
+      const detailPrice =
+        baseDetailPrice *
+        (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
+        surcharge_factor;
+
+      existingBookingDetail.totalPrice = detailPrice;
+
+      await this.invoicesService.updateInvoice(
+        existingBookingDetail.invoice.id,
+        {
+          basePrice: baseDetailPrice,
+          totalPrice: detailPrice,
+          dayRent: days,
+        },
+      );
+    }
+
+    return await this.bookingDetailsRepository.save(existingBookingDetail);
+  };
+
+  public handleAssignBookingDetailsToBooking = async (
+    bookingDetails: BookingDetail[],
+    booking: Booking,
+  ) => {
+    for (const bookingDetail of bookingDetails) {
+      bookingDetail.booking = booking;
+
+      await this.bookingDetailsRepository.save(bookingDetail);
+    }
+  };
+
+  public handleSoftDelete = async (bookingDetailIds: string[]) => {
+    await this.bookingDetailsRepository.update(
+      {
+        id: In(bookingDetailIds),
+      },
+      {
+        status: BookingDetailsStatus.CANCELLED,
+      },
+    );
+
+    await this.bookingDetailsRepository.softDelete(bookingDetailIds);
+  };
 }

@@ -1,6 +1,4 @@
 import { BookingDetail } from 'src/modules/booking-details/entities';
-import { BookingsStatus } from 'src/modules/bookings/enums';
-import { Invoice } from 'src/modules/invoices/entities';
 import { User } from 'src/modules/users/entities';
 import {
   Column,
@@ -19,12 +17,8 @@ export class Booking {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column({
-    type: 'enum',
-    enum: BookingsStatus,
-    default: BookingsStatus.PENDING,
-  })
-  status!: BookingsStatus;
+  @Column({ type: 'decimal', scale: 2, precision: 10 })
+  totalPrice!: number;
 
   @ManyToOne(() => User, (user) => user.bookings, {
     onDelete: 'CASCADE',
