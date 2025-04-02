@@ -1,1 +1,0 @@
-export * from './invoice-detail.entity';

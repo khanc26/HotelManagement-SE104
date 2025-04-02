@@ -14,7 +14,7 @@ import { BookingsModule } from 'src/modules/bookings/bookings.module';
 import { InvoicesModule } from 'src/modules/invoices/invoices.module';
 import { RoomsModule } from 'src/modules/rooms/rooms.module';
 import { UsersModule } from 'src/modules/users/users.module';
-import { InvoiceDetailsModule } from './modules/invoice-details/invoice-details.module';
+import { ConfigurationsModule } from './modules/configurations/configurations.module';
 
 @Module({
   imports: [
@@ -34,8 +34,7 @@ import { InvoiceDetailsModule } from './modules/invoice-details/invoice-details.
         port: configService.get<number>('database.port'),
         host: configService.get<string>('database.host'),
         entities: ['dist/**/*.entity.js'],
-        migrations: ['dist/config/migrations/*.js'],
-        synchronize: false,
+        synchronize: true,
         logging: false,
         namingStrategy: new SnakeNamingStrategy(),
       }),
@@ -47,7 +46,7 @@ import { InvoiceDetailsModule } from './modules/invoice-details/invoice-details.
     InvoicesModule,
     BookingsModule,
     BookingDetailsModule,
-    InvoiceDetailsModule,
+    ConfigurationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],

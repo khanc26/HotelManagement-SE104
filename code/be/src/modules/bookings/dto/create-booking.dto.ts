@@ -1,25 +1,13 @@
-import { Type } from 'class-transformer';
-import { CreateBookingDetailDto } from '../../booking-details/dto/create-booking-detail.dto';
-import {
-  ArrayMinSize,
-  IsArray,
-  IsEnum,
-  IsOptional,
-  ValidateNested,
-} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { BookingsStatus } from '../enums';
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, ValidateNested } from 'class-validator';
+import { CreateBookingDetailDto } from 'src/modules/booking-details/dto';
 
 export class CreateBookingDto {
-  @ApiProperty()
+  @ApiProperty({ type: [CreateBookingDetailDto] })
   @IsArray()
-  @ArrayMinSize(1)
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CreateBookingDetailDto)
-  bookingDetails!: CreateBookingDetailDto[];
-
-  @ApiProperty()
-  @IsEnum(BookingsStatus)
-  @IsOptional()
-  status?: BookingsStatus;
+  readonly createBookingDetailDtos!: CreateBookingDetailDto[];
 }
