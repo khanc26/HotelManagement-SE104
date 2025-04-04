@@ -37,9 +37,12 @@ export class AuthController {
     @Req() request: Request,
     @Res() res: Response,
   ) {
-    const { accessToken } = await this.authService.signIn(signInDto, request);
+    const { accessToken, role } = await this.authService.signIn(
+      signInDto,
+      request,
+    );
 
-    res.status(HttpStatus.OK).json({ accessToken });
+    res.status(HttpStatus.OK).json({ accessToken, role });
   }
 
   @HttpCode(HttpStatus.OK)

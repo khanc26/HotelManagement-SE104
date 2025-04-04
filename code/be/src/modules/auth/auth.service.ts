@@ -55,7 +55,7 @@ export class AuthService {
 
     return {
       accessToken,
-      sessionId: request.sessionID,
+      role: user.role.roleName,
     };
   }
 
