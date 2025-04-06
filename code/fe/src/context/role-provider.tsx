@@ -4,7 +4,7 @@ import { Role } from "@/types/user.type";
 
 export function RoleProvider({
   children,
-  initialRole = Role.GUESS,
+  initialRole = Role.USER,
 }: {
   children: ReactNode;
   initialRole?: Role;

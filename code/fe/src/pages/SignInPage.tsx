@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useRole } from "@/hooks/useRole";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -30,6 +31,8 @@ const formSchema = z.object({
 
 const SignInPage = () => {
   const navigate = useNavigate();
+
+  const { setRole } = useRole();
 
   const [, setAccessTokenValue] = useLocalStorage("access_token", null);
 
@@ -62,6 +65,7 @@ const SignInPage = () => {
       const role = response.data.role;
       setAccessTokenValue(access_token);
       setRoleLocalStorage(role);
+      setRole(role);
 
       toast.success("Sign in successfully!");
       navigate("/");
