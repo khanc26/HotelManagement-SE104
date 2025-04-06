@@ -2,6 +2,7 @@
 export enum Role {
   ADMIN = "admin",
   USER = "user",
+  GUESS = "guess"
 }
 
 // Enum for UserType

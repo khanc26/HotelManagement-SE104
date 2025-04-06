@@ -15,10 +15,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
-import { getUsers } from "@/api/users";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -30,16 +29,17 @@ const formSchema = z.object({
 });
 
 const SignInPage = () => {
-  const [storedValue, setAccessTokenValue] = useLocalStorage(
-    "access_token",
-    null
-  );
+  const navigate = useNavigate();
 
-  const { data, refetch } = useQuery({
-    queryKey: ["users"],
-    queryFn: () => getUsers(storedValue),
-    enabled: false,
-  });
+  const [, setAccessTokenValue] = useLocalStorage("access_token", null);
+
+  const [, setRoleLocalStorage] = useLocalStorage("role", null);
+
+  // const { data, refetch } = useQuery({
+  //   queryKey: ["users"],
+  //   queryFn: () => getUsers(storedValue),
+  //   enabled: false,
+  // });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,13 +56,20 @@ const SignInPage = () => {
         password: values.password,
       });
 
-      const access_token = response.data.access_token;
-      setAccessTokenValue(access_token);
+      console.dir(response);
 
-      refetch();
-      console.log(data);
+      const access_token = response.data.accessToken;
+      const role = response.data.role;
+      setAccessTokenValue(access_token);
+      setRoleLocalStorage(role);
+
+      toast.success("Sign in successfully!");
+      navigate("/");
+      // refetch();
+      // console.log(data);
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      toast.error("An error has occured"!);
     }
   }
 
@@ -111,12 +118,18 @@ const SignInPage = () => {
           <div className="space-y-2 text-center text-sm">
             <p>
               Don't have an account?{" "}
-              <Link to="/auth/sign-up" className="text-blue-600 hover:underline">
+              <Link
+                to="/auth/sign-up"
+                className="text-blue-600 hover:underline"
+              >
                 Sign up here
               </Link>
             </p>
             <p>
-              <Link to="/auth/forgot-password" className="text-blue-600 hover:underline">
+              <Link
+                to="/auth/forgot-password"
+                className="text-blue-600 hover:underline"
+              >
                 Forgot your password?
               </Link>
             </p>
