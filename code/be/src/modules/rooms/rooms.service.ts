@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { RoomType } from 'src/modules/room-types/entities';
 import { RoomTypesService } from 'src/modules/room-types/room-types.service';
 import {
   CreateRoomDto,
@@ -54,9 +55,9 @@ export class RoomsService {
       .leftJoinAndSelect('rooms.roomType', 'roomType');
 
     if (searchRoomsDto) {
-      if (searchRoomsDto?.name) {
-        qb.andWhere('LOWER(rooms.name) LIKE LOWER(:name)', {
-          name: `%${searchRoomsDto.name}%`,
+      if (searchRoomsDto?.roomNumber) {
+        qb.andWhere('LOWER(rooms.roomNumber) LIKE LOWER(:roomNumber)', {
+          name: `%${searchRoomsDto.roomNumber}%`,
         });
       }
 
@@ -106,20 +107,38 @@ export class RoomsService {
 
     const { roomTypeId, ...res } = updateRoomDto;
 
-    await this.roomRepository.update({ id }, res);
-
-    const findRoomType = await this.roomTypeService.findOne(roomTypeId);
-
-    if (!findRoomType)
-      throw new NotFoundException(
-        `Room type with id: '${roomTypeId}' not found.`,
+    if (
+      res?.roomNumber &&
+      (await this.roomRepository.find({
+        where: {
+          roomNumber: res.roomNumber,
+        },
+      }))
+    )
+      throw new BadRequestException(
+        `Room ${res.roomNumber} has existed in the system.`,
       );
 
-    room.roomType = findRoomType;
+    let roomType: RoomType | null = null;
 
-    await this.roomRepository.save(room);
+    if (roomTypeId) {
+      roomType = await this.roomTypeService.findOne(roomTypeId);
 
-    return room;
+      if (!roomType)
+        throw new NotFoundException(
+          `Room type with id: '${roomTypeId}' not found.`,
+        );
+    }
+
+    await this.roomRepository.update(
+      { id },
+      { ...res, ...(roomType && { roomType }) },
+    );
+
+    return this.roomRepository.findOne({
+      where: { id },
+      relations: ['roomType'],
+    });
   }
 
   async removeRoom(id: string) {

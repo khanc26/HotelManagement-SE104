@@ -21,7 +21,7 @@ export class UpdateRoomDto {
   @IsOptional()
   @IsUUID()
   @IsNotEmpty()
-  readonly roomTypeId!: string;
+  readonly roomTypeId?: string;
 
   @IsOptional()
   @IsEnum(RoomStatusEnum)

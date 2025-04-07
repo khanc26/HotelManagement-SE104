@@ -10,13 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { JwtAuthGuard, RoleAuthGuard } from 'src/libs/common/guards';
 import { Roles, UserSession } from 'src/libs/common/decorators';
+import { JwtAuthGuard, RoleAuthGuard } from 'src/libs/common/guards';
 import { JwtPayload } from 'src/libs/common/types';
+import { SignInDto, SignUpDto } from 'src/modules/auth/dto';
 import { RoleEnum as Role } from 'src/modules/users/enums/role.enum';
 import { UsersService } from 'src/modules/users/users.service';
 import { AuthService } from './auth.service';
-import { SignUpDto, SignInDto } from 'src/modules/auth/dto';
 
 @Controller('auth')
 export class AuthController {
