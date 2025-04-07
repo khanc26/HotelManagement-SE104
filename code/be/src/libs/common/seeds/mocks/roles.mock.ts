@@ -1,4 +1,4 @@
-import { RoleEnum } from 'src/users/enums/role.enum';
+import { RoleEnum } from 'src/modules/users/enums/role.enum';
 
 export const roleMockData: Array<{ roleName: RoleEnum; description: string }> =
   [

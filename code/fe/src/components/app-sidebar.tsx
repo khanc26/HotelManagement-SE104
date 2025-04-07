@@ -2,7 +2,16 @@ import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
 import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "./ui/sidebar";
 
 const menuItems = {
   [Role.ADMIN]: [
@@ -20,7 +29,6 @@ const menuItems = {
       title: "Users",
       url: "/users/list",
       icon: BookUser,
-
     },
   ],
   [Role.USER]: [
@@ -39,6 +47,7 @@ const menuItems = {
 
 export function AppSidebar() {
   const { role } = useRole();
+  console.log("THIS IS ROLE", role as string);
   const items = menuItems[role];
 
   return (

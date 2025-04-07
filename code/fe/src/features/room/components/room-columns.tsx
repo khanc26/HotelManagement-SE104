@@ -1,44 +1,26 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Link } from "react-router-dom";
-import { Room } from "../../../types/room.types";
+import { Room } from "@/types/room.type";
+import { RoomActionsCell } from "./room-action-cell";
 
 export const roomColumns: ColumnDef<Room>[] = [
   {
-    accessorKey: "room_name",
+    accessorKey: "roomNumber",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Room Number
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "room_type",
+    accessorKey: "roomType.name",
     header: ({ column }) => {
       return (
         <Button
@@ -52,17 +34,68 @@ export const roomColumns: ColumnDef<Room>[] = [
     },
   },
   {
-    accessorKey: "price",
+    accessorKey: "roomType.roomPrice",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Price( per night )
+          Price (per night)
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
+    },
+    cell: ({ row }) => {
+      const price = row.original.roomType.roomPrice;
+      // Convert string to number and format with 2 decimal places
+      const formattedPrice =
+        typeof price === "string"
+          ? parseFloat(price).toLocaleString("en-US", {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : price.toLocaleString("en-US", {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+      return formattedPrice;
+    },
+  },
+  {
+    accessorKey: "roomType.maxGuests",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Max Guests
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "note",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Note
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const note = row.original.note;
+      return note || "-";
     },
   },
   {
@@ -78,59 +111,104 @@ export const roomColumns: ColumnDef<Room>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            status === "available"
+              ? "bg-green-100 text-green-800"
+              : status === "occupied"
+              ? "bg-red-100 text-red-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Created At
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const date = new Date(row.original.createdAt);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+  {
+    accessorKey: "updatedAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Updated At
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const date = new Date(row.original.updatedAt);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+  {
+    accessorKey: "deletedAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Deleted At
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const deletedAt = row.original.deletedAt;
+      if (!deletedAt) return "-";
+
+      const date = new Date(deletedAt);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
       const room = row.original;
-      console.log(room);
 
-      return (
-        <Dialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link to={`/rooms/edit?id=${room.id}`}>
-                  <p className="text-sm font-normal">Edit</p>
-                </Link>
-              </DropdownMenuItem>
-
-              <DialogTrigger asChild>
-                <DropdownMenuItem
-                  onClick={() => console.log("delete", room.id)}
-                >
-                  Delete
-                </DropdownMenuItem>
-              </DialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Are you absolutely sure?</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. Are you sure you want to
-                permanently delete room{" "}
-                <p className="font-semibold inline text-black underline">
-                  {room.room_name}
-                </p>
-                ?
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button type="submit">Confirm</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      );
+      return <RoomActionsCell room={room} />;
     },
   },
 ];
