@@ -1,7 +1,6 @@
 import {
   SortingState,
   ColumnDef,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -39,9 +38,9 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [globalFilter, setGlobalFilter] = React.useState<any>([]);
+
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
 
@@ -52,13 +51,12 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
-      columnFilters,
       columnVisibility,
+      globalFilter,
     },
   });
 
@@ -66,13 +64,15 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by type..."
-          value={table.getColumn("type")?.getFilterValue() as string}
-          onChange={(event) =>
-            table.getColumn("type")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search for any keyword..."
+          value={globalFilter ?? ""}
+          onChange={(e) => {
+            setGlobalFilter(e.target.value);
+            table.setGlobalFilter(String(e.target.value));
+          }}
           className="max-w-sm"
         />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

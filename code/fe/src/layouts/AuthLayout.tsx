@@ -1,9 +1,9 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from "react-router-dom";
 
 const AuthLayout = () => {
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
-      <div className="w-2/3 max-w-md bg-white p-8 rounded-2xl shadow-lg">
+    <div className="flex min-h-screen w-screen items-center justify-center px-8 md:px-40 lg:px-[20rem] xl:px-[26rem] bg-gray-100">
+      <div className="w-full my-20 bg-white p-8 rounded-2xl shadow-lg">
         <Outlet />
       </div>
     </div>
