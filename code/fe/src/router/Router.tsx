@@ -20,6 +20,7 @@ import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
 import ErrorPage from "@/pages/ErrorPage";
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
+import NotAuthenticated from "@/pages/NotAuthenticated";
 
 const router = createBrowserRouter([
   {
@@ -99,15 +100,16 @@ const router = createBrowserRouter([
         element: <SettingsPage />,
       },
       {
-        path: "",
-      },
-      {
         path: "profile",
         element: <ProfilePage />,
       },
       {
         path: "error",
         element: <ErrorPage />,
+      },
+      {
+        path: "not-authenticated",
+        element: <NotAuthenticated />,
       },
     ],
   },
