@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useRole } from "@/hooks/useRole";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -32,17 +31,9 @@ const formSchema = z.object({
 const SignInPage = () => {
   const navigate = useNavigate();
 
-  const { setRole } = useRole();
-
   const [, setAccessTokenValue] = useLocalStorage("access_token", null);
 
   const [, setRoleLocalStorage] = useLocalStorage("role", null);
-
-  // const { data, refetch } = useQuery({
-  //   queryKey: ["users"],
-  //   queryFn: () => getUsers(storedValue),
-  //   enabled: false,
-  // });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,10 +45,16 @@ const SignInPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await axios.post("http://localhost:3001/auth/sign-in", {
-        email: values.username,
-        password: values.password,
-      });
+      const response = await axios.post(
+        "http://localhost:3001/auth/sign-in",
+        {
+          email: values.username,
+          password: values.password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
       console.dir(response);
 
@@ -65,12 +62,9 @@ const SignInPage = () => {
       const role = response.data.role;
       setAccessTokenValue(access_token);
       setRoleLocalStorage(role);
-      setRole(role);
 
       toast.success("Sign in successfully!");
       navigate("/");
-      // refetch();
-      // console.log(data);
     } catch (error) {
       console.log(error);
       toast.error("An error has occured"!);

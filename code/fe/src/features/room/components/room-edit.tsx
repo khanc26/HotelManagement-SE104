@@ -13,37 +13,108 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useSearchParams } from "react-router-dom";
-
-const ROOM_TYPES = ["A", "B", "C"] as const;
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Room, RoomUpdateRequest } from "@/types/room.type";
+import { updateRoom } from "@/api/rooms";
+import { getRoomTypes } from "@/api/room-types";
+import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
+import { toast } from "sonner";
 
 const roomSchema = z.object({
-  room_name: z
-    .string()
-    .min(2, { message: "Room name must be at least 2 characters." }),
-  room_type: z.enum(["A", "B", "C"]),
-  price: z.coerce
-    .number()
-    .min(0, { message: "Price must be greater than or equal to 0" }),
-  status: z.enum(["available", "occupied", "inactive"]),
+  roomNumber: z.string().optional(),
+  roomTypeId: z.string(),
+  note: z.string().optional(),
+  status: z.enum(["available", "occupied"]).optional(),
 });
 
 export function RoomEdit() {
+  const queryClient = useQueryClient();
+
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("id");
-  console.log(roomId);
+
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
-      room_name: "",
-      room_type: "A",
-      price: 0,
-      status: "available",
+      roomNumber: "",
+      roomTypeId: "",
+      note: "",
+      status: undefined,
+    },
+  });
+
+  const {
+    data: roomTypes,
+    // isLoading: isRoomTypesLoading,
+    isError: isRoomTypesError,
+    error: roomTypesError,
+  } = useQuery({
+    queryKey: ["roomTypes"],
+    queryFn: getRoomTypes,
+  });
+
+  if (isRoomTypesError) {
+    const errorData = GetAPIErrorResponseData(roomTypesError);
+    if (errorData.statusCode === 401) {
+      toast.error("Unauthorized. Navigating to sign-in page in 3 seconds");
+      setTimeout(() => {
+        navigate("/auth/sign-in");
+      }, 3000);
+    } else
+      toast.error(
+        "Error while getting rooms " +
+          errorData.statusCode +
+          " " +
+          errorData.message
+      );
+  }
+
+  const mutation = useMutation({
+    mutationFn: ({
+      id,
+      updatedRoom,
+    }: {
+      id: string;
+      updatedRoom: RoomUpdateRequest;
+    }) => updateRoom(id, updatedRoom),
+    onSuccess: (data: Room) => {
+      console.log("Room updated successfully", data);
+      // Optional: Add success toast
+      toast.success("Room updated successfully");
+      // Optional: Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (error: unknown) => {
+      console.error("Error updating room", error);
+      // Improved error handling
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      // Optional: Add error toast
+      toast.error(`Failed to update room: ${errorMessage}`);
+    },
+    // Optional: Add loading state handling
+    onMutate: () => {
+      console.log("Starting room update...");
     },
   });
 
   function onSubmit(values: z.infer<typeof roomSchema>) {
-    console.log(values);
+    if (!roomId) {
+      // console.error("Room ID is required");
+      toast.error("Room ID is required");
+      return;
+    }
+
+    const updatedRoom: RoomUpdateRequest = {
+      roomNumber: values.roomNumber || undefined,
+      roomTypeId: values.roomTypeId,
+      note: values.note || "",
+      status: values.status || undefined,
+    };
+
+    mutation.mutate({ id: roomId, updatedRoom });
   }
 
   return (
@@ -57,7 +128,7 @@ export function RoomEdit() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="room_name"
+                name="roomNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Room Name</FormLabel>
@@ -73,7 +144,7 @@ export function RoomEdit() {
               />
               <FormField
                 control={form.control}
-                name="room_type"
+                name="roomTypeId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Room Type</FormLabel>
@@ -82,37 +153,28 @@ export function RoomEdit() {
                         {...field}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                       >
-                        <option value="">Select type</option>
-                        {ROOM_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            Type {type}
+                        <option value="">All Types</option>
+                        {roomTypes?.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.name}
                           </option>
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>
-                      Type of the room (e.g. A, B, C)
-                    </FormDescription>
-                    <FormMessage />
+                    <FormDescription>Room types (A, B, C).</FormDescription>
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="price"
+                name="note"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Price</FormLabel>
+                    <FormLabel>Note</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Room Price"
-                        {...field}
-                      />
+                      <Input placeholder="Note ..." {...field} />
                     </FormControl>
-                    <FormDescription>
-                      Price per night for this room.
-                    </FormDescription>
+                    <FormDescription>Short note for this room.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -131,7 +193,6 @@ export function RoomEdit() {
                         <option value="">Select status</option>
                         <option value="available">Available</option>
                         <option value="occupied">Occupied</option>
-                        <option value="inactive">Inactive</option>
                       </select>
                     </FormControl>
                     <FormDescription>

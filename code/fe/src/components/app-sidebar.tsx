@@ -42,11 +42,12 @@ const menuItems = {
       url: "/profile",
       icon: UserCog,
     },
-  ]
+  ],
 };
 
 export function AppSidebar() {
   const { role } = useRole();
+  console.log("THIS IS ROLE", role as string);
   const items = menuItems[role];
 
   return (
