@@ -13,33 +13,81 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-const ROOM_TYPES = ["A", "B", "C"] as const;
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { RoomCreateRequest } from "@/types/room.type";
+import { createRoom } from "@/api/rooms";
+import { getRoomTypes } from "@/api/room-types";
+import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
+import { toast } from "sonner";
 
 const roomSchema = z.object({
-  room_name: z
-    .string()
-    .min(2, { message: "Room name must be at least 2 characters." }),
-  room_type: z.enum(["A", "B", "C"]),
-  price: z.coerce
-    .number()
-    .min(0, { message: "Price must be greater than or equal to 0" }),
-  status: z.enum(["available", "occupied", "inactive"]).optional(),
+  roomNumber: z.string().min(1, { message: "Room number is required" }),
+  roomTypeId: z.string().min(1, { message: "Room type is required" }),
+  note: z.string().optional(),
 });
 
 export function RoomAddNew() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
-      room_name: "",
-      room_type: "A",
-      price: 0,
-      status: "available",
+      roomNumber: "",
+      roomTypeId: "",
+      note: "",
+    },
+  });
+
+  const {
+    data: roomTypes,
+    isError: isRoomTypesError,
+    error: roomTypesError,
+  } = useQuery({
+    queryKey: ["roomTypes"],
+    queryFn: getRoomTypes,
+  });
+
+  if (isRoomTypesError) {
+    const errorData = GetAPIErrorResponseData(roomTypesError);
+    if (errorData.statusCode === 401) {
+      toast.error("Unauthorized. Navigating to sign-in page in 3 seconds");
+      setTimeout(() => {
+        navigate("/auth/sign-in");
+      }, 3000);
+    } else
+      toast.error(
+        "Error while getting room types " +
+          errorData.statusCode +
+          " " +
+          errorData.message
+      );
+  }
+
+  const mutation = useMutation({
+    mutationFn: (newRoom: RoomCreateRequest) => createRoom(newRoom),
+    onSuccess: () => {
+      toast.success("Room created successfully");
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      navigate("/rooms/list");
+    },
+    onError: (error: unknown) => {
+      console.error("Error creating room", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to create room: ${errorMessage}`);
     },
   });
 
   function onSubmit(values: z.infer<typeof roomSchema>) {
-    console.log(values);
+    const newRoom: RoomCreateRequest = {
+      roomNumber: values.roomNumber,
+      roomTypeId: values.roomTypeId,
+      note: values.note || "",
+    };
+
+    mutation.mutate(newRoom);
   }
 
   return (
@@ -53,15 +101,15 @@ export function RoomAddNew() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="room_name"
+                name="roomNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Name</FormLabel>
+                    <FormLabel>Room Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Room Name" {...field} />
+                      <Input placeholder="Room Number" {...field} />
                     </FormControl>
                     <FormDescription>
-                      This is the name of the room.
+                      This is the number of the room.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -69,7 +117,7 @@ export function RoomAddNew() {
               />
               <FormField
                 control={form.control}
-                name="room_type"
+                name="roomTypeId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Room Type</FormLabel>
@@ -79,59 +127,29 @@ export function RoomAddNew() {
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                       >
                         <option value="">Select type</option>
-                        {ROOM_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            Type {type}
+                        {roomTypes?.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.name}
                           </option>
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>
-                      Type of the room (e.g. A, B, C)
-                    </FormDescription>
+                    <FormDescription>Type of the room</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="price"
+                name="note"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Price</FormLabel>
+                    <FormLabel>Note</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Room Price"
-                        {...field}
-                      />
+                      <Input placeholder="Note" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Price per night for this room.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Room Status</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select status</option>
-                        <option value="available">Available</option>
-                        <option value="occupied">Occupied</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </FormControl>
-                    <FormDescription>
-                      Current status of the room
+                      Additional notes about the room
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

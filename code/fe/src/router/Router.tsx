@@ -18,11 +18,17 @@ import SettingsPage from "../pages/SettingsPage";
 import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
+import ErrorPage from "@/pages/ErrorPage";
+import { PrivateRoutes } from "@/features/auth/components/private-routes";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <PrivateRoutes>
+        <MainLayout />
+      </PrivateRoutes>
+    ),
     children: [
       {
         index: true,
@@ -56,7 +62,7 @@ const router = createBrowserRouter([
       },
       {
         path: "users",
-        element: <UsersPage/>,
+        element: <UsersPage />,
         children: [
           {
             path: "list",
@@ -70,7 +76,7 @@ const router = createBrowserRouter([
             path: "edit",
             element: <UserEdit />,
           },
-        ]
+        ],
       },
       {
         path: "rents",
@@ -98,6 +104,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+      },
+      {
+        path: "error",
+        element: <ErrorPage />,
       },
     ],
   },

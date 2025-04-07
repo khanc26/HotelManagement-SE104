@@ -15,9 +15,24 @@ export class RedisProvider implements OnModuleInit, OnModuleDestroy {
       'redis://localhost:6379',
     );
 
-    this.redis = new Redis(redisUrl);
+    const username = this.configService.get<string>('redis.username', '');
+    const password = this.configService.get<string>('redis.password', '');
+
+    this.redis = new Redis(
+      redisUrl,
+      username !== '' && password !== ''
+        ? {
+            username,
+            password,
+          }
+        : {},
+    );
 
     RedisProvider.instance = this.redis;
+
+    this.redis.on('error', (err) => {
+      console.error('Redis error:', err);
+    });
   }
 
   async onModuleDestroy() {
