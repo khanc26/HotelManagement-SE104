@@ -116,6 +116,8 @@ export class BookingDetailsService {
 
     newBookingDetail.invoice = newInvoice;
 
+    newBookingDetail.totalPrice = detailPrice;
+
     return await this.bookingDetailsRepository.save(newBookingDetail);
   }
 

@@ -109,11 +109,13 @@ export class RoomsService {
 
     if (
       res?.roomNumber &&
-      (await this.roomRepository.find({
-        where: {
-          roomNumber: res.roomNumber,
-        },
-      }))
+      (
+        await this.roomRepository.findOne({
+          where: {
+            roomNumber: res.roomNumber,
+          },
+        })
+      )?.id !== id
     )
       throw new BadRequestException(
         `Room ${res.roomNumber} has existed in the system.`,
