@@ -74,8 +74,6 @@ export class RoomsService {
       }
 
       if (searchRoomsDto.status) {
-        console.log(searchRoomsDto.status);
-
         qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
           status: `%${searchRoomsDto.status}%`,
         });
