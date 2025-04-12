@@ -22,5 +22,28 @@ export interface User {
   phone_number: string;
   identity_number: string;
   // password: string | null;
-  dob: string; //
+  dob: Date; //
+}
+
+export interface UserSearchRequest {
+  fullName?: string;
+  roleName?: string;
+  email?: string;
+  address?: string;
+  nationality?: string;
+  userTypeName?: UserType;
+  identifyNumber?: string;
+  status?: "active" | "inactive";
+  dob?: Date;
+}
+
+export interface UserUpdateRequest {
+  email?: string;
+  fullName?: string;
+  nationality?: string;
+  status?: "active" | "inactive";
+  dob?: Date;
+  phoneNumber?: string;
+  address?: string;
+  identityNumber?: string;
 }
