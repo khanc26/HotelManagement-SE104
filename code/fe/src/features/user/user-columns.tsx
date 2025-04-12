@@ -1,25 +1,8 @@
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { User } from "@/types/user.type";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowUpDown } from "lucide-react";
+import { UserActionsCell } from "./user-action-cell";
 
 export const userColumns: ColumnDef<User>[] = [
   {
@@ -149,57 +132,11 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    id: "actions",
-    cell: ({ row }) => {
-      const user = row.original;
-      console.log(user);
-
-      return (
-        <Dialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link to={`/users/edit?id=${user.id}`}>
-                  <p className="text-sm font-normal">Edit</p>
-                </Link>
-              </DropdownMenuItem>
-
-              <DialogTrigger asChild>
-                <DropdownMenuItem
-                  onClick={() => console.log("delete", user.id)}
-                >
-                  Delete
-                </DropdownMenuItem>
-              </DialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Are you absolutely sure?</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. Are you sure you want to
-                permanently delete room{" "}
-                <p className="font-semibold inline text-black underline">
-                  {user.fullname}
-                </p>
-                ?
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button type="submit">Confirm</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      );
+      id: "actions",
+      cell: ({ row }) => {
+        const user = row.original;
+  
+        return <UserActionsCell user={user} />;
+      },
     },
-  },
 ];

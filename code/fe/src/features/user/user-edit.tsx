@@ -1,3 +1,4 @@
+import { updateUser } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,62 +17,100 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Role, UserType } from "@/types/user.type";
+import { User, UserUpdateRequest } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
 
-const USER_TYPES = ["foreign", "local"] as const;
-const USER_ROLE = ["admin", "user"] as const;
 
 const userSchema = z.object({
   fullname: z.string().min(2, "Full name must be at least 2 characters."),
-  role: z.enum(["admin", "user"]),
   email: z.string().email("Invalid email format."),
   address: z.string().min(5, "Address must be at least 5 characters."),
   nationality: z.string().min(2, "Nationality must be specified."),
-  guest_type: z.enum(["foreign", "local"]),
-  phone_number: z.string().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number."),
-  identity_number: z
+  phoneNumber: z.string().min(5, "Phone number must be at least 9 characters."),
+  identityNumber: z
     .string()
     .min(5, "Identity number must be at least 5 characters."),
-  status: z.enum(["active", "deleted"]),
+  status: z.enum(["active", "inactive"]).optional(),
   dob: z.coerce.date().refine((date) => date <= new Date(), {
     message: "Date of birth must be in the past.",
   }),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date(),
-  deleted_at: z.coerce.date().nullable().optional(),
 });
 
 export const UserEdit = () => {
+  const queryClient = useQueryClient();
+
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get("userId");
+  const userId = searchParams.get("id");
   console.log(userId);
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       fullname: "",
-      role: Role.USER,
       email: "",
       address: "",
       nationality: "",
-      guest_type: UserType.LOCAL,
-      phone_number: "",
-      identity_number: "",
-      status: "active",
+      phoneNumber: "",
+      identityNumber: "",
+      status: undefined,
       dob: new Date(),
-      created_at: new Date(),
-      updated_at: new Date(),
-      deleted_at: null,
     },
   });
+
+  const mutation = useMutation({
+    mutationFn: ({
+      id,
+      updatedUser,
+    }: {
+      id: string;
+      updatedUser: UserUpdateRequest;
+    }) => updateUser(id, updatedUser),
+    onSuccess: (data: User) => {
+      console.log("User updated successfully", data);
+      // Optional: Add success toast
+      toast.success("User updated successfully");
+      // Optional: Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (error: unknown) => {
+      console.error("Error updating room", error);
+      // Improved error handling
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      // Optional: Add error toast
+      toast.error(`Failed to update room: ${errorMessage}`);
+    },
+    // Optional: Add loading state handling
+    onMutate: () => {
+      console.log("Starting user update...");
+    },
+  });
+
   function onSubmit(values: z.infer<typeof userSchema>) {
-    console.log(values);
+    if (!userId) {
+      toast.error("User ID is required");
+      return;
+    }
+
+    const updatedUser: UserUpdateRequest = {
+      fullName: values.fullname || undefined,
+      email: values.email || undefined,
+      address: values.address || undefined,
+      nationality: values.nationality || undefined,
+      phoneNumber: values.phoneNumber || undefined,
+      identityNumber: values.identityNumber || undefined,
+      status: values.status || undefined,
+      dob: values.dob || undefined,
+    };
+
+    mutation.mutate({ id: userId, updatedUser });
   }
 
   return (
@@ -97,30 +136,7 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select role</option>
-                        {USER_ROLE.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>Type the role</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -171,33 +187,10 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
-                name="guest_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Guest_type</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select type</option>
-                        {USER_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>Type the guest type</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone_number"
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone_number</FormLabel>
@@ -213,7 +206,7 @@ export const UserEdit = () => {
               />
               <FormField
                 control={form.control}
-                name="identity_number"
+                name="identityNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Identity_number</FormLabel>
