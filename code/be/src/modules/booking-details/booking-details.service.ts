@@ -71,19 +71,23 @@ export class BookingDetailsService {
         `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
       );
 
-    const days =
-      Math.ceil(
-        new Date(createBookingDetailDto.endDate).getTime() -
-          new Date(createBookingDetailDto.startDate).getTime(),
-      ) /
-        (1000 * 60 * 60 * 24) +
-      1;
+    const { startDate, endDate } = createBookingDetailDto;
 
-    if (days <= 0) {
-      throw new NotFoundException(
-        `Booking detail start date must be before end date.`,
+    const now = new Date().getTime();
+
+    const start = new Date(startDate).getTime();
+
+    const end = new Date(endDate).getTime();
+
+    if (start >= end)
+      throw new BadRequestException(
+        `End date must be greater than start date.`,
       );
-    }
+
+    if (start <= now)
+      throw new BadRequestException('Start date must be in the future.');
+
+    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
     const baseDetailPrice = existingRoom.roomType.roomPrice * days;
 
@@ -119,6 +123,11 @@ export class BookingDetailsService {
       dayRent: days,
     });
 
+    await this.roomsService.handleUpdateStatusOfRoom(
+      existingRoom.id,
+      RoomStatusEnum.OCCUPIED,
+    );
+
     newBookingDetail.invoice = newInvoice;
 
     newBookingDetail.totalPrice = detailPrice;
@@ -136,28 +145,30 @@ export class BookingDetailsService {
       throw new NotFoundException(`User with id: '${userId}' not found.`);
     }
 
-    return this.bookingDetailsRepository.find({
-      relations: {
-        booking: {
-          user: true,
+    return (
+      await this.bookingDetailsRepository.find({
+        relations: {
+          booking: {
+            user: true,
+          },
+          room: true,
+          invoice: true,
         },
-        room: true,
-        invoice: true,
-      },
-      where:
-        existingUser.role.roleName === RoleEnum.ADMIN
-          ? {}
-          : {
-              booking: {
-                user: {
-                  id: existingUser.id,
+        where:
+          existingUser.role.roleName === RoleEnum.ADMIN
+            ? {}
+            : {
+                booking: {
+                  user: {
+                    id: existingUser.id,
+                  },
                 },
               },
-            },
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+        order: {
+          createdAt: 'DESC',
+        },
+      })
+    ).map((bd) => omit(bd, ['booking.user.password']));
   }
 
   async findOne(id: string, userId: string) {
