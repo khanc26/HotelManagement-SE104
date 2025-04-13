@@ -82,7 +82,7 @@ export class UsersController {
     @Body() lockAccountDto: LockAccountDto,
     @UserSession('role') role: RoleEnum,
   ) {
-    return this.usersService.handleLockUser(lockAccountDto, role);
+    return this.usersService.handleLockAccount(lockAccountDto, role);
   }
 
   @Post('unlock-account')
@@ -92,6 +92,6 @@ export class UsersController {
     @Body() unlockAccountDto: UnlockAccountDto,
     @UserSession('role') role: RoleEnum,
   ) {
-    return this.usersService.handleUnlockUser(unlockAccountDto, role);
+    return this.usersService.handleUnlockAccount(unlockAccountDto, role);
   }
 }

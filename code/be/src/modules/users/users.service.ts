@@ -15,7 +15,7 @@ import {
   UnlockAccountDto,
   UpdateUserDto,
 } from 'src/modules/users/dto';
-import { Profile, Role, UserType } from 'src/modules/users/entities';
+import { Profile, Role, User, UserType } from 'src/modules/users/entities';
 import {
   ProfileStatusEnum,
   RoleEnum,
@@ -456,7 +456,7 @@ export class UsersService {
     }
   };
 
-  async handleLockUser(lockAccountDto: LockAccountDto, role: RoleEnum) {
+  async handleLockAccount(lockAccountDto: LockAccountDto, role: RoleEnum) {
     const { userIds } = lockAccountDto;
 
     const userRole = await this.roleRepository.findOne({
@@ -482,10 +482,11 @@ export class UsersService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+    const userRepository = queryRunner.manager.getRepository(User);
     try {
       await Promise.all(
         userIds.map(async (userId) => {
-          const user = await this.userRepository.findOne({
+          const user = await userRepository.findOne({
             where: {
               id: userId,
             },
@@ -510,7 +511,7 @@ export class UsersService {
             );
           }
 
-          await this.userRepository.softRemove(user);
+          await userRepository.softRemove(user);
         }),
       );
       await queryRunner.commitTransaction();
@@ -524,7 +525,10 @@ export class UsersService {
     }
   }
 
-  async handleUnlockUser(unlockAccountDto: UnlockAccountDto, role: RoleEnum) {
+  async handleUnlockAccount(
+    unlockAccountDto: UnlockAccountDto,
+    role: RoleEnum,
+  ) {
     const { userIds } = unlockAccountDto;
 
     const userRole = await this.roleRepository.findOne({
@@ -550,10 +554,11 @@ export class UsersService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+    const userRepository = queryRunner.manager.getRepository(User);
     try {
       await Promise.all(
         userIds.map(async (userId) => {
-          const user = await this.userRepository.findOne({
+          const user = await userRepository.findOne({
             withDeleted: true,
             where: {
               id: userId,
@@ -580,7 +585,7 @@ export class UsersService {
             );
           }
 
-          await this.userRepository.recover(user);
+          await userRepository.recover(user);
         }),
       );
       await queryRunner.commitTransaction();
