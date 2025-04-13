@@ -14,11 +14,13 @@ import { Roles, UserSession } from 'src/libs/common/decorators';
 import { JwtAuthGuard, RoleAuthGuard } from 'src/libs/common/guards';
 import {
   AssignRoleDto,
+  LockAccountDto,
   RevokeRoleDto,
   SearchUsersDto,
+  UnlockAccountDto,
   UpdateUserDto,
 } from 'src/modules/users/dto';
-import { RoleEnum as Role } from './enums/role.enum';
+import { RoleEnum as Role, RoleEnum } from './enums/role.enum';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -71,5 +73,25 @@ export class UsersController {
     @UserSession('role') role: string,
   ) {
     return this.usersService.handleRevokeRoleToUsers(revokeRoleDto, role);
+  }
+
+  @Post('lock-account')
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  async lockUser(
+    @Body() lockAccountDto: LockAccountDto,
+    @UserSession('role') role: RoleEnum,
+  ) {
+    return this.usersService.handleLockUser(lockAccountDto, role);
+  }
+
+  @Post('unlock-account')
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  async unlockUser(
+    @Body() unlockAccountDto: UnlockAccountDto,
+    @UserSession('role') role: RoleEnum,
+  ) {
+    return this.usersService.handleUnlockUser(unlockAccountDto, role);
   }
 }
