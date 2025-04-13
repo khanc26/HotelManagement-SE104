@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { isNull, omit } from 'lodash';
+import { omit } from 'lodash';
 import { HashingProvider } from 'src/libs/common/providers';
 import { SignUpDto } from 'src/modules/auth/dto';
 import {
