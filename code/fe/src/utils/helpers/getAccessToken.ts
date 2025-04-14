@@ -1,5 +1,24 @@
 export function getAccessToken() {
-  const access_token = localStorage.getItem("access_token");
+  try {
+    const item = localStorage.getItem("access_token");
+    if (!item) return null;
 
-  return access_token?.replace(/^"|"$/g, "").trim() || null;
+    const parsed = JSON.parse(item);
+
+    // Handle expiring token format ({ value, expiresAt })
+    if (parsed?.value && parsed?.expiresAt) {
+      const now = Date.now();
+      if (now > parsed.expiresAt) {
+        localStorage.removeItem("access_token");
+        return null;
+      }
+      return parsed.value;
+    }
+
+    // Handle non-expiring token (direct value)
+    return parsed ?? null;
+  } catch {
+    console.error("Error parsing access_token from localStorage");
+    return null;
+  }
 }
