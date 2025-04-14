@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Navigate } from "react-router";
+import { Navigate, useLocation } from "react-router-dom";
 
 type PrivateRoutesProps = {
   children: React.ReactNode;
@@ -7,11 +8,13 @@ type PrivateRoutesProps = {
 
 export function PrivateRoutes({ children }: PrivateRoutesProps) {
   const [storedValue] = useLocalStorage("access_token", null);
+  const location = useLocation();
 
-  // Render children only if authenticated, otherwise return null
-  return storedValue !== null ? (
+  useEffect(() => {}, [location.pathname, storedValue]);
+
+  return storedValue !== null && storedValue !== undefined ? (
     <>{children}</>
   ) : (
-    <Navigate to="/not-authenticated" />
+    <Navigate to="/auth/not-authenticated" replace state={{ from: location }} />
   );
 }

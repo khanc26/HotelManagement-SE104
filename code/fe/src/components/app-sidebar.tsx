@@ -1,6 +1,6 @@
 import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
-import { BedDouble, BookUser, Home, UserCog } from "lucide-react";
+import { BedDouble, BookUser, Home, NotebookPen, UserCog } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
 import {
   Sidebar,
@@ -29,6 +29,11 @@ const menuItems = {
       title: "Users",
       url: "/users/list",
       icon: BookUser,
+    },
+    {
+      title: "Bookings",
+      url: "/bookings/list",
+      icon: NotebookPen,
     },
   ],
   [Role.USER]: [

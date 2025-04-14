@@ -90,7 +90,7 @@ export class BookingsService {
       where: {
         id,
       },
-      relations: ['user'],
+      relations: ['user', 'bookingDetails'],
     });
 
     if (!existingBooking) {
