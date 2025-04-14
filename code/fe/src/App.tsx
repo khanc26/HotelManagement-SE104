@@ -1,13 +1,11 @@
 import Router from "./router/Router";
 import "./App.css";
-import { Toaster } from "sonner";
 import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (
     <>
       <Router />
-      <Toaster />
       <ToastContainer
         position="top-right"
         autoClose={5000}
