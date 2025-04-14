@@ -65,16 +65,16 @@ export const updateBooking = async (
   try {
     const access_token = getAccessToken();
 
-    const response = await api.patch<UpdateBookingDetailRequest>(
-      `/${id}`,
-      updatedBookingDetail,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-        withCredentials: true,
-      }
-    );
+    const requestBody = {
+      updateBookingDetailDtos: [updatedBookingDetail],
+    };
+
+    const response = await api.patch(`/${id}`, requestBody, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+      withCredentials: true,
+    });
 
     return response.data;
   } catch (error) {

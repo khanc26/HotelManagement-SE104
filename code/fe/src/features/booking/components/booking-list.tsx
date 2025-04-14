@@ -15,13 +15,15 @@ export function BookingList() {
       <CardHeader>
         <CardTitle className="text-xl font-bold">List of Bookings</CardTitle>
       </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div>Loading...</div>
-        ) : (
-          <DataTable columns={columns} data={data || []} />
-        )}
-      </CardContent>
+      <div className="flex">
+        <CardContent className="flex-1 w-1">
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
+            <DataTable columns={columns} data={data || []} />
+          )}
+        </CardContent>
+      </div>
     </Card>
   );
 }

@@ -240,9 +240,11 @@ export function BookingDetailList() {
         <CardHeader>
           <CardTitle>Booking Detail List</CardTitle>
         </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={booking.bookingDetails || []} />
-        </CardContent>
+        <div className="flex">
+          <CardContent className="flex-1 w-1">
+            <DataTable columns={columns} data={booking.bookingDetails || []} />
+          </CardContent>
+        </div>
       </Card>
     </div>
   );
