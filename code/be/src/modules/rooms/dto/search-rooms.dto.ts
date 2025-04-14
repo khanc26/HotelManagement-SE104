@@ -13,7 +13,7 @@ export class SearchRoomsDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  readonly name?: string;
+  readonly roomNumber?: string;
 
   @IsOptional()
   @IsString()

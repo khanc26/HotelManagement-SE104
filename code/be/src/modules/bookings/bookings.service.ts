@@ -90,7 +90,7 @@ export class BookingsService {
       where: {
         id,
       },
-      relations: ['user'],
+      relations: ['user', 'bookingDetails'],
     });
 
     if (!existingBooking) {
@@ -174,6 +174,11 @@ export class BookingsService {
   }
 
   async create({ createBookingDetailDtos }: CreateBookingDto, userId: string) {
+    const user = await this.usersService.handleGetUserByField('id', userId);
+
+    if (!user)
+      throw new NotFoundException(`User with id '${userId}' not found.`);
+
     const bookingDetails = await Promise.all(
       createBookingDetailDtos.map((dto) =>
         this.bookingDetailsService.create(dto, userId),
@@ -186,6 +191,8 @@ export class BookingsService {
         0,
       ),
     });
+
+    newBooking.user = user;
 
     await this.bookingsRepository.save(newBooking);
 

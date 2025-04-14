@@ -17,7 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { access_token_expired_time } from "@/utils/constraints";
+import { toast } from "react-toastify";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -30,9 +31,7 @@ const formSchema = z.object({
 
 const SignInPage = () => {
   const navigate = useNavigate();
-
   const [, setAccessTokenValue] = useLocalStorage("access_token", null);
-
   const [, setRoleLocalStorage] = useLocalStorage("role", null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,18 +55,15 @@ const SignInPage = () => {
         }
       );
 
-      console.dir(response);
-
       const access_token = response.data.accessToken;
       const role = response.data.role;
-      setAccessTokenValue(access_token);
-      setRoleLocalStorage(role);
+      setAccessTokenValue(access_token, access_token_expired_time);
+      setRoleLocalStorage(role, access_token_expired_time);
 
-      toast.success("Sign in successfully!");
       navigate("/");
     } catch (error) {
       console.log(error);
-      toast.error("An error has occured"!);
+      toast.error("Login Unsuccessfully!");
     }
   }
 

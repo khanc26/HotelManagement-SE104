@@ -51,6 +51,11 @@ export class BookingDetailsService {
       throw new NotFoundException(`Room with id: '${roomId}' not found.`);
     }
 
+    if (existingRoom.status === RoomStatusEnum.OCCUPIED)
+      throw new BadRequestException(
+        `Room '${existingRoom.roomNumber}' has been occupied by another user.`,
+      );
+
     const maxGuestsPerRoomConfig =
       await this.configurationsService.handleGetValueByName(
         MAX_GUESTS_PER_ROOM,
@@ -115,6 +120,8 @@ export class BookingDetailsService {
     });
 
     newBookingDetail.invoice = newInvoice;
+
+    newBookingDetail.totalPrice = detailPrice;
 
     return await this.bookingDetailsRepository.save(newBookingDetail);
   }

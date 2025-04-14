@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 const formSchema = z
   .object({
@@ -276,4 +276,3 @@ const SignUpPage = () => {
 };
 
 export default SignUpPage;
-  
