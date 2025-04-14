@@ -1,12 +1,13 @@
-import Router from "./router/Router";
-import "./App.css";
 import { ToastContainer } from "react-toastify";
+import "./App.css";
+import Router from "./router/Router";
 
 const App = () => {
   return (
     <>
       <Router />
       <ToastContainer
+        aria-label="Notification container"
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
