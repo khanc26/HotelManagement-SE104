@@ -343,12 +343,7 @@ export class BookingDetailsService {
         );
     }
 
-    await this.bookingDetailsRepository.update(
-      {
-        id: existingBookingDetail.id,
-      },
-      res,
-    );
+    Object.assign(existingBookingDetail, omit(res, ['bookingDetailId']));
 
     if (roomId && existingRoom) {
       existingBookingDetail.room = existingRoom;

@@ -152,6 +152,6 @@ export class InvoicesService {
           bookingDetail: true,
         },
       })
-    ).reduce((acc, curr) => acc + curr.totalPrice, 0);
+    ).reduce((acc, curr) => acc + Number(curr.totalPrice), 0);
   };
 }
