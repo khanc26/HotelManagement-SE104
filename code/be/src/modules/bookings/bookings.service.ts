@@ -12,7 +12,7 @@ import { UsersService } from 'src/modules/users/users.service';
 import { RoleEnum } from '../users/enums';
 import { BookingsRepository } from './bookings.repository';
 import { Booking } from './entities';
-import { DeleteBookingDetailsDto } from 'src/modules/booking-details/dto/delete-booking-details.dto';
+import { DeleteBookingDetailsDto } from 'src/modules/booking-details/dto';
 
 @Injectable()
 export class BookingsService {
