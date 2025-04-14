@@ -1,6 +1,5 @@
 import { updateUser } from "@/api/users";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -12,34 +11,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { User, UserUpdateRequest } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 
-
 const userSchema = z.object({
-  fullname: z.string().min(2, "Full name must be at least 2 characters."),
-  email: z.string().email("Invalid email format."),
-  address: z.string().min(5, "Address must be at least 5 characters."),
-  nationality: z.string().min(2, "Nationality must be specified."),
-  phoneNumber: z.string().min(5, "Phone number must be at least 9 characters."),
-  identityNumber: z
-    .string()
-    .min(5, "Identity number must be at least 5 characters."),
+  fullName: z.string().optional(),
+  email: z.string().optional(),
+  address: z.string().optional(),
+  nationality: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  identityNumber: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional(),
-  dob: z.coerce.date().refine((date) => date <= new Date(), {
-    message: "Date of birth must be in the past.",
+  dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Please enter a valid date",
   }),
 });
 
@@ -48,19 +37,19 @@ export const UserEdit = () => {
 
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("id");
-  console.log(userId);
+  console.log("update user id: ", userId);
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      fullname: "",
+      fullName: "",
       email: "",
       address: "",
       nationality: "",
       phoneNumber: "",
       identityNumber: "",
       status: undefined,
-      dob: new Date(),
+      dob: "",
     },
   });
 
@@ -77,7 +66,7 @@ export const UserEdit = () => {
       // Optional: Add success toast
       toast.success("User updated successfully");
       // Optional: Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error: unknown) => {
       console.error("Error updating room", error);
@@ -85,7 +74,7 @@ export const UserEdit = () => {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       // Optional: Add error toast
-      toast.error(`Failed to update room: ${errorMessage}`);
+      toast.error(`Failed to update user: ${errorMessage}`);
     },
     // Optional: Add loading state handling
     onMutate: () => {
@@ -93,21 +82,21 @@ export const UserEdit = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof userSchema>) {
+  async function onSubmit(values: z.infer<typeof userSchema>) {
     if (!userId) {
       toast.error("User ID is required");
       return;
     }
 
     const updatedUser: UserUpdateRequest = {
-      fullName: values.fullname || undefined,
+      fullName: values.fullName || undefined,
       email: values.email || undefined,
       address: values.address || undefined,
       nationality: values.nationality || undefined,
       phoneNumber: values.phoneNumber || undefined,
       identityNumber: values.identityNumber || undefined,
       status: values.status || undefined,
-      dob: values.dob || undefined,
+      dob: new Date(values.dob),
     };
 
     mutation.mutate({ id: userId, updatedUser });
@@ -117,14 +106,14 @@ export const UserEdit = () => {
     <div className="flex justify-center items-center">
       <Card className="w-full h-full">
         <CardHeader>
-          <CardTitle>Add New User</CardTitle>
+          <CardTitle>Update User</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="fullname"
+                name="fullName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>User Name</FormLabel>
@@ -187,7 +176,7 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -236,7 +225,7 @@ export const UserEdit = () => {
                       >
                         <option value="">Select status</option>
                         <option value="active">active</option>
-                        <option value="deleted">deleted</option>
+                        <option value="deleted">inactive</option>
                       </select>
                     </FormControl>
                     <FormDescription>
@@ -246,40 +235,16 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="dob"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Date of Birth</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className="w-full pl-3 text-left font-normal"
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

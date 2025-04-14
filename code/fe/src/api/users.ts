@@ -31,6 +31,7 @@ export const getUsers = async (params?: UserSearchRequest) => {
     withCredentials: true,
   });
   
+  console.log("Response Data User:", response.data);
   return response.data;
 };
 
