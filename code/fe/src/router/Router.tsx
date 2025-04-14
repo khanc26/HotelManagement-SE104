@@ -19,6 +19,12 @@ import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
 import ErrorPage from "@/pages/ErrorPage";
+import NotAuthenticated from "@/pages/NotAuthenticated";
+import BookingsPage from "@/pages/BookingsPage";
+import { BookingList } from "@/features/booking/components/booking-list";
+import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
+import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
+import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
 
 const router = createBrowserRouter([
@@ -53,6 +59,32 @@ const router = createBrowserRouter([
           {
             path: "edit",
             element: <RoomEdit />,
+          },
+        ],
+      },
+      {
+        path: "bookings",
+        element: <BookingsPage />,
+        children: [
+          {
+            index: true,
+            element: <BookingList />,
+          },
+          {
+            path: "list",
+            element: <BookingList />,
+          },
+          {
+            path: ":id",
+            element: <BookingDetailList />,
+          },
+          {
+            path: ":id/:detailId",
+            element: <BookingDetail />,
+          },
+          {
+            path: ":id/:detailId/edit",
+            element: <BookingDetailEdit />,
           },
         ],
       },
@@ -99,9 +131,6 @@ const router = createBrowserRouter([
         element: <SettingsPage />,
       },
       {
-        path: "",
-      },
-      {
         path: "profile",
         element: <ProfilePage />,
       },
@@ -115,6 +144,10 @@ const router = createBrowserRouter([
     path: "/auth",
     element: <AuthLayout />,
     children: [
+      {
+        path: "not-authenticated",
+        element: <NotAuthenticated />,
+      },
       {
         path: "sign-in",
         element: <SignInPage />,

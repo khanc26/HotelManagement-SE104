@@ -6,16 +6,21 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { HashingProvider } from 'src/libs/common/providers';
-import { Repository } from 'typeorm';
-import { UsersRepository } from './users.repository';
-import { Profile, Role, UserType } from 'src/modules/users/entities';
 import { SignUpDto } from 'src/modules/auth/dto';
-import { SearchUsersDto, UpdateUserDto } from 'src/modules/users/dto';
 import {
-  RoleEnum,
+  AssignRoleDto,
+  RevokeRoleDto,
+  SearchUsersDto,
+  UpdateUserDto,
+} from 'src/modules/users/dto';
+import { Profile, Role, UserType } from 'src/modules/users/entities';
+import {
   ProfileStatusEnum,
+  RoleEnum,
   UserTypeEnum,
 } from 'src/modules/users/enums';
+import { Repository } from 'typeorm';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
@@ -99,7 +104,7 @@ export class UsersService {
     );
   }
 
-  async findAll(searchUsersDto?: SearchUsersDto) {
+  async findAll(role: string, searchUsersDto?: SearchUsersDto) {
     const qb = this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.profile', 'profile')
@@ -157,7 +162,11 @@ export class UsersService {
       }
     }
 
-    qb.andWhere('role.roleName != :roleName', { roleName: 'admin' });
+    if (role === 'admin') {
+      qb.andWhere('role.roleName = :roleName', { roleName: 'user' });
+    } else if (role === 'superadmin') {
+      qb.andWhere('role.roleName != :roleName', { roleName: 'superadmin' });
+    }
 
     return await qb.getMany();
   }
@@ -194,7 +203,7 @@ export class UsersService {
     });
   }
 
-  public handleDeleteUser = async (userId: string) => {
+  public handleDeleteUser = async (userId: string, role: string) => {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['profile'],
@@ -209,7 +218,7 @@ export class UsersService {
 
     await this.userRepository.save(user);
 
-    return this.findAll();
+    return this.findAll(role);
   };
 
   public handleGetProfileByUserId = async (userId: string) => {
@@ -342,5 +351,105 @@ export class UsersService {
       },
       relations: ['role'],
     });
+  };
+
+  public handleAssignRoleToUsers = async (
+    assignRoleDto: AssignRoleDto,
+    role: string,
+  ) => {
+    try {
+      const { userIds } = assignRoleDto;
+
+      const adminRole = await this.roleRepository.findOne({
+        where: {
+          roleName: RoleEnum.ADMIN,
+        },
+      });
+
+      if (!adminRole)
+        throw new NotFoundException(`Role admin not found in the system.`);
+
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await this.userRepository.findOne({
+            where: {
+              id: userId,
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user)
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system.`,
+            );
+
+          if (user.role.roleName === RoleEnum.ADMIN)
+            throw new BadRequestException(
+              `User with id '${user.id}' already has ADMIN privileges.`,
+            );
+
+          user.role = adminRole;
+
+          await this.userRepository.save(user);
+        }),
+      );
+
+      return this.findAll(role);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  public handleRevokeRoleToUsers = async (
+    revokeRoleDto: RevokeRoleDto,
+    role: string,
+  ) => {
+    try {
+      const { userIds } = revokeRoleDto;
+
+      const userRole = await this.roleRepository.findOne({
+        where: {
+          roleName: RoleEnum.USER,
+        },
+      });
+
+      if (!userRole)
+        throw new NotFoundException(`Role user not found in the system.`);
+
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await this.userRepository.findOne({
+            where: {
+              id: userId,
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user)
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system.`,
+            );
+
+          if (user.role.roleName === RoleEnum.USER)
+            throw new BadRequestException(
+              `User with id '${user.id}' already has USER privileges.`,
+            );
+
+          user.role = userRole;
+
+          await this.userRepository.save(user);
+        }),
+      );
+
+      return this.findAll(role);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   };
 }

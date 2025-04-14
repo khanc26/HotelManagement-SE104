@@ -13,27 +13,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Room, RoomUpdateRequest } from "@/types/room.type";
-import { updateRoom } from "@/api/rooms";
+import { RoomCreateRequest } from "@/types/room.type";
+import { createRoom } from "@/api/rooms";
 import { getRoomTypes } from "@/api/room-types";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { toast } from "react-toastify";
 
 const roomSchema = z.object({
-  roomNumber: z.string().optional(),
-  roomTypeId: z.string(),
+  roomNumber: z.string().min(1, { message: "Room number is required" }),
+  roomTypeId: z.string().min(1, { message: "Room type is required" }),
   note: z.string().optional(),
-  status: z.enum(["available", "occupied"]).optional(),
 });
 
-export function RoomEdit() {
-  const queryClient = useQueryClient();
-
+export function BookingAddNew() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const roomId = searchParams.get("id");
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
@@ -41,13 +37,11 @@ export function RoomEdit() {
       roomNumber: "",
       roomTypeId: "",
       note: "",
-      status: undefined,
     },
   });
 
   const {
     data: roomTypes,
-    // isLoading: isRoomTypesLoading,
     isError: isRoomTypesError,
     error: roomTypesError,
   } = useQuery({
@@ -64,7 +58,7 @@ export function RoomEdit() {
       }, 3000);
     } else
       toast.error(
-        "Error while getting rooms " +
+        "Error while getting room types " +
           errorData.statusCode +
           " " +
           errorData.message
@@ -72,49 +66,28 @@ export function RoomEdit() {
   }
 
   const mutation = useMutation({
-    mutationFn: ({
-      id,
-      updatedRoom,
-    }: {
-      id: string;
-      updatedRoom: RoomUpdateRequest;
-    }) => updateRoom(id, updatedRoom),
-    onSuccess: (data: Room) => {
-      console.log("Room updated successfully", data);
-      // Optional: Add success toast
-      toast.success("Room updated successfully");
-      // Optional: Invalidate related queries
+    mutationFn: (newRoom: RoomCreateRequest) => createRoom(newRoom),
+    onSuccess: () => {
+      toast.success("Room created successfully");
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      navigate("/rooms/list");
     },
     onError: (error: unknown) => {
-      console.error("Error updating room", error);
-      // Improved error handling
+      console.error("Error creating room", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      // Optional: Add error toast
-      toast.error(`Failed to update room: ${errorMessage}`);
-    },
-    // Optional: Add loading state handling
-    onMutate: () => {
-      console.log("Starting room update...");
+      toast.error(`Failed to create room: ${errorMessage}`);
     },
   });
 
   function onSubmit(values: z.infer<typeof roomSchema>) {
-    if (!roomId) {
-      // console.error("Room ID is required");
-      toast.error("Room ID is required");
-      return;
-    }
-
-    const updatedRoom: RoomUpdateRequest = {
-      roomNumber: values.roomNumber || undefined,
+    const newRoom: RoomCreateRequest = {
+      roomNumber: values.roomNumber,
       roomTypeId: values.roomTypeId,
       note: values.note || "",
-      status: values.status || undefined,
     };
 
-    mutation.mutate({ id: roomId, updatedRoom });
+    mutation.mutate(newRoom);
   }
 
   return (
@@ -131,12 +104,12 @@ export function RoomEdit() {
                 name="roomNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room Name</FormLabel>
+                    <FormLabel>Room Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Room Name" {...field} />
+                      <Input placeholder="Room Number" {...field} />
                     </FormControl>
                     <FormDescription>
-                      This is the name of the room.
+                      This is the number of the room.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -153,7 +126,7 @@ export function RoomEdit() {
                         {...field}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                       >
-                        <option value="">All Types</option>
+                        <option value="">Select type</option>
                         {roomTypes?.map((type) => (
                           <option key={type.id} value={type.id}>
                             {type.name}
@@ -161,7 +134,8 @@ export function RoomEdit() {
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>Room types (A, B, C).</FormDescription>
+                    <FormDescription>Type of the room</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -172,38 +146,17 @@ export function RoomEdit() {
                   <FormItem>
                     <FormLabel>Note</FormLabel>
                     <FormControl>
-                      <Input placeholder="Note ..." {...field} />
-                    </FormControl>
-                    <FormDescription>Short note for this room.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Room Status</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select status</option>
-                        <option value="available">Available</option>
-                        <option value="occupied">Occupied</option>
-                      </select>
+                      <Input placeholder="Note" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Current status of the room
+                      Additional notes about the room
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full">
-                Update Room
+                Add Room
               </Button>
             </form>
           </Form>

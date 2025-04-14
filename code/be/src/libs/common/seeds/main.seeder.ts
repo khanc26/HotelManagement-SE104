@@ -1,10 +1,12 @@
 import { Logger, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { IUser } from 'src/libs/common/constants';
 import {
+  ADMIN_USER,
   ConfigurationMockData,
   roleMockData,
   RoomTypeMock,
-  UserMockData,
+  SUPER_ADMIN_USER,
   UserTypeMockData,
 } from 'src/libs/common/seeds/mocks';
 import { Configuration } from 'src/modules/configurations/entities';
@@ -13,9 +15,8 @@ import { Profile } from 'src/modules/users/entities/profile.entity';
 import { Role } from 'src/modules/users/entities/role.entity';
 import { UserType } from 'src/modules/users/entities/user-type.entity';
 import { User } from 'src/modules/users/entities/user.entity';
-import { RoleEnum } from 'src/modules/users/enums/role.enum';
-import { UserTypeEnum } from 'src/modules/users/enums/user-type.enum';
-import { DataSource, QueryRunner } from 'typeorm';
+import { RoleEnum, UserTypeEnum } from 'src/modules/users/enums';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
 export class MainSeeder implements Seeder {
@@ -36,7 +37,6 @@ export class MainSeeder implements Seeder {
       const userTypeRepository = entityManager.getRepository(UserType);
       const userTypeFactory = factoryManager.get(UserType);
       const userRepository = entityManager.getRepository(User);
-      const userFactory = factoryManager.get(User);
       const profileRepository = entityManager.getRepository(Profile);
       const configurationRepository =
         entityManager.getRepository(Configuration);
@@ -81,54 +81,25 @@ export class MainSeeder implements Seeder {
         }
       }
 
+      this.logger.log('Seeding super base admin data...');
+
+      await this.handleGenerateCreateAdminUser(
+        SUPER_ADMIN_USER,
+        userRepository,
+        profileRepository,
+        userTypeRepository,
+        roleRepository,
+      );
+
       this.logger.log('Seeding user admin data...');
 
-      if (
-        !(await userRepository.findOne({
-          where: {
-            role: {
-              roleName: RoleEnum.ADMIN,
-            },
-          },
-          relations: ['role'],
-        }))
-      ) {
-        const { password, email, ...res } = UserMockData;
-
-        const hashedPassword = await bcrypt.hash(
-          password,
-          bcrypt.genSaltSync(),
-        );
-
-        const newUserAdmin = await userFactory.make({
-          email,
-          password: hashedPassword,
-        });
-
-        const newProfile = profileRepository.create(res);
-
-        await profileRepository.save(newProfile);
-
-        const userType = await userTypeRepository.findOneBy({
-          typeName: UserTypeEnum.LOCAL,
-        });
-
-        if (!userType)
-          throw new NotFoundException('User type local not found in database.');
-
-        const adminRole = await roleRepository.findOneBy({
-          roleName: RoleEnum.ADMIN,
-        });
-
-        if (!adminRole)
-          throw new NotFoundException(`Admin role not found in database.`);
-
-        newUserAdmin.profile = newProfile;
-        newUserAdmin.userType = userType;
-        newUserAdmin.role = adminRole;
-
-        await userRepository.save(newUserAdmin);
-      }
+      await this.handleGenerateCreateAdminUser(
+        ADMIN_USER,
+        userRepository,
+        profileRepository,
+        userTypeRepository,
+        roleRepository,
+      );
 
       this.logger.log('Seeding configuration data...');
 
@@ -177,4 +148,66 @@ export class MainSeeder implements Seeder {
       await queryRunner.release();
     }
   }
+
+  private handleGenerateCreateAdminUser = async (
+    data: IUser,
+    userRepository: Repository<User>,
+    profileRepository: Repository<Profile>,
+    userTypeRepository: Repository<UserType>,
+    roleRepository: Repository<Role>,
+  ) => {
+    const { email, type, password, ...res } = data;
+
+    const existingUserWithEmail = await userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!existingUserWithEmail) {
+      const userLocalType = await userTypeRepository.findOne({
+        where: {
+          typeName: UserTypeEnum.LOCAL,
+        },
+      });
+
+      if (!userLocalType)
+        throw new NotFoundException('User local type not found.');
+
+      const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
+
+      let role: Role | null = null;
+
+      if (type === 'admin') {
+        role = await roleRepository.findOne({
+          where: {
+            roleName: RoleEnum.ADMIN,
+          },
+        });
+      } else if (type == 'superadmin') {
+        role = await roleRepository.findOne({
+          where: {
+            roleName: RoleEnum.SUPER_ADMIN,
+          },
+        });
+      }
+
+      const newUser = userRepository.create({
+        password: hashedPassword,
+        email,
+      });
+
+      newUser.userType = userLocalType;
+
+      if (role) newUser.role = role;
+
+      await userRepository.save(newUser);
+
+      const profile = profileRepository.create(res);
+
+      profile.user = newUser;
+
+      await profileRepository.save(profile);
+    }
+  };
 }
