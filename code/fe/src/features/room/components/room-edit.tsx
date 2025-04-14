@@ -19,7 +19,7 @@ import { Room, RoomUpdateRequest } from "@/types/room.type";
 import { updateRoom } from "@/api/rooms";
 import { getRoomTypes } from "@/api/room-types";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 const roomSchema = z.object({
   roomNumber: z.string().optional(),

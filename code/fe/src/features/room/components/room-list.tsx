@@ -20,7 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getRooms } from "@/api/rooms";
 import { getRoomTypes } from "@/api/room-types";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { RoomRequest } from "@/types/room.type";
 import { useNavigate } from "react-router-dom";
 
