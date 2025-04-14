@@ -31,7 +31,7 @@ export class UpdateUserDto {
   readonly status?: ProfileStatusEnum;
 
   @IsOptional()
-  @Transform(() => Date)
+  @Transform(({ value }) => new Date(value as string))
   @IsDate()
   @IsNotEmpty()
   readonly dob?: Date;

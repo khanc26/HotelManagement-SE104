@@ -1,4 +1,4 @@
-import { deleteRoom } from "@/api/rooms";
+import { deleteUser } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,10 +27,10 @@ export function UserActionsCell({ user }: { user: User }) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: (userId: string) => deleteRoom(userId),
+    mutationFn: (id: string) => deleteUser(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      console.log(`User ${user.fullname} deleted successfully`);
+      console.log(`User ${user.id} deleted successfully`);
     },
     onError: (error: unknown) => {
       const errorMessage =
@@ -76,7 +76,7 @@ export function UserActionsCell({ user }: { user: User }) {
             This action cannot be undone. Are you sure you want to permanently
             delete user{" "}
             <span className="font-semibold inline text-black underline">
-              {user.fullname}
+              {user.profile.fullName}
             </span>
             ?
           </DialogDescription>

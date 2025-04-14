@@ -6,7 +6,7 @@ import { UserActionsCell } from "./user-action-cell";
 
 export const userColumns: ColumnDef<User>[] = [
   {
-    accessorKey: "fullname",
+    accessorKey: "profile.fullName",
     header: ({ column }) => {
       return (
         <Button
@@ -20,7 +20,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "role",
+    accessorKey: "role.roleName",
     header: ({ column }) => {
       return (
         <Button
@@ -48,7 +48,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "address",
+    accessorKey: "profile.address",
     header: ({ column }) => {
       return (
         <Button
@@ -62,7 +62,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "nationality",
+    accessorKey: "profile.nationality",
     header: ({ column }) => {
       return (
         <Button
@@ -76,7 +76,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "user_type",
+    accessorKey: "userType.typeName",
     header: ({ column }) => {
       return (
         <Button
@@ -90,7 +90,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "dob",
+    accessorKey: "profile.dob",
     header: ({ column }) => {
       return (
         <Button
@@ -104,7 +104,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "phone_number",
+    accessorKey: "profile.phoneNumber",
     header: ({ column }) => {
       return (
         <Button
@@ -118,7 +118,7 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "identity_number",
+    accessorKey: "profile.identityNumber",
     header: ({ column }) => {
       return (
         <Button
