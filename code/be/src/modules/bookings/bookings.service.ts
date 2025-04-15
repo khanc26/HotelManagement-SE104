@@ -258,11 +258,20 @@ export class BookingsService {
       ),
     );
 
-    booking.totalPrice =
+    const newTotalPrice =
       await this.invoicesService.handleCalculatePriceOfInvoicesByBookingDetailIds(
         booking.bookingDetails.map((bd) => bd.id),
       );
 
-    return await this.bookingsRepository.save(booking);
+    await this.bookingsRepository.update(
+      {
+        id: booking.id,
+      },
+      {
+        totalPrice: newTotalPrice,
+      },
+    );
+
+    return this.findOne(bookingId, userId);
   };
 }
