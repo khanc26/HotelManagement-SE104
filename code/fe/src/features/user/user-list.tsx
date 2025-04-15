@@ -1,3 +1,4 @@
+import { getUsers } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -11,110 +12,43 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Role, User, UserType } from "@/types/user.type";
+import { Role, UserSearchRequest, UserType } from "@/types/user.type";
+import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
 import { userColumns } from "./user-columns";
 
-const usersData: User[] = [
-  {
-    id: "1",
-    fullname: "Minh Nguyen",
-    role: Role.ADMIN,
-    email: "minh@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Vietnam",
-    user_type: UserType.LOCAL,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  },
-  {
-    id: "2",
-    fullname: "Nguyen Nguyen",
-    role: Role.ADMIN,
-    email: "minh@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Vietnam",
-    user_type: UserType.LOCAL,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  },
-  {
-    id: "3",
-    fullname: "An Nguyen",
-    role: Role.ADMIN,
-    email: "minh@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Vietnam",
-    user_type: UserType.LOCAL,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  },
-  {
-    id: "4",
-    fullname: "Tung Nguyen",
-    role: Role.ADMIN,
-    email: "minh@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Han quoc",
-    user_type: UserType.LOCAL,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  },
-  {
-    id: "5",
-    fullname: "Lionel Messi",
-    role: Role.ADMIN,
-    email: "messi@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Argentina",
-    user_type: UserType.FOREIGN,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  },
-  {
-    id: "6",
-    fullname: "Bruno Mars",
-    role: Role.ADMIN,
-    email: "minh@gmail.com",
-    address: "tp hcm, quan 10",
-    nationality: "Mars",
-    user_type: UserType.FOREIGN,
-    dob: new Date("1995-07-15").toLocaleDateString(),
-    phone_number: "09234234324",
-    identity_number: "12345522342",
-  },
-];
-
 const userSchema = z.object({
-  fullname: z.string().min(2, "Full name must be at least 2 characters."),
-  role: z.enum(["admin", "user"]),
-  email: z.string().email("Invalid email format."),
-  address: z.string().min(5, "Address must be at least 5 characters."),
-  nationality: z.string().min(2, "Nationality must be specified."),
-  guest_type: z.enum(["foreign", "local"]),
-  phone_number: z.string().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number."),
-  identity_number: z
+  fullname: z.string().optional(),
+  role: z.enum(["admin", "user"]).optional(),
+  email: z.string().optional(),
+  address: z.string().optional(),
+  nationality: z.string().optional(),
+  guest_type: z.enum(["local", "foreign"]).optional(),
+  identity_number: z.string().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+  dob: z
     .string()
-    .min(5, "Identity number must be at least 5 characters."),
-  status: z.enum(["active", "deleted"]),
-  dob: z.coerce.date().refine((date) => date <= new Date(), {
-    message: "Date of birth must be in the past.",
-  }),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date(),
-  deleted_at: z.coerce.date().nullable().optional(),
+    .refine(
+      (val) => {
+        // Kiểm tra chuỗi có phải là ngày hợp lệ không (ví dụ: "YYYY-MM-DD")
+        return !isNaN(new Date(val).getTime());
+      },
+      {
+        message: "Invalid date format (expected YYYY-MM-DD)",
+      }
+    )
+    .optional(),
 });
 
 export function UserList() {
-  const [data, setData] = useState(usersData);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useState<UserSearchRequest>({});
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
@@ -125,30 +59,70 @@ export function UserList() {
       address: "",
       nationality: "",
       guest_type: UserType.LOCAL,
-      phone_number: "",
       identity_number: "",
       status: "active",
-      dob: new Date(),
-      created_at: new Date(),
-      updated_at: new Date(),
-      deleted_at: null,
+      dob: undefined,
     },
   });
 
-  function onSearch(values: z.infer<typeof userSchema>) {
-    const filteredUsers = usersData.filter((user) => {
-      return (
-        (values.fullname
-          ? user.fullname.toLowerCase().includes(values.fullname.toLowerCase())
-          : true) &&
-        (values.role
-          ? user.email.toLowerCase().includes(values.email.toLowerCase())
-          : true)
-      );
-    });
+  const {
+    data: users,
+    isLoading: isUsersLoading,
+    isError: isUsersError,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => getUsers(searchParams),
+  });
 
-    setData(filteredUsers);
+  if (isUsersError) {
+    const errorData = GetAPIErrorResponseData(usersError);
+    if (errorData.statusCode === 401) {
+      toast.error("Unauthorized. Navigating to sign-in page in 3 seconds");
+      setTimeout(() => {
+        navigate("/auth/sign-in");
+      }, 3000);
+    } else
+      toast.error(
+        "Error while getting rooms " +
+          errorData.statusCode +
+          " " +
+          errorData.message
+      );
   }
+
+  async function onSearch(values: z.infer<typeof userSchema>) {
+    const params: UserSearchRequest = {
+      fullName: values.fullname || undefined,
+      roleName: values.role || undefined,
+      email: values.email || undefined,
+      address: values.address || undefined,
+      nationality: values.nationality || undefined,
+      userTypeName: (values.guest_type as UserType) || undefined,
+      status: values.status || undefined,
+      identifyNumber: values.identity_number || undefined,
+      dob: values.dob || undefined,
+    };
+    setSearchParams({ ...params });
+    refetchUsers();
+  }
+
+  const clearFilters = () => {
+    form.reset({
+      fullname: "",
+      role: Role.USER,
+      email: "",
+      address: "",
+      nationality: "",
+      guest_type: UserType.LOCAL,
+      identity_number: "",
+      status: "active",
+      dob: undefined,
+    });
+    setSearchParams({});
+    refetchUsers();
+  };
 
   return (
     <div>
@@ -162,199 +136,189 @@ export function UserList() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSearch)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="fullname"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>FullName</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Fullname" {...field} />
-                    </FormControl>
-                    <FormDescription>This is the user name.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">All Role</option>
-                        {Object.values(Role).map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>This is the user role.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Enter your email address"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Valid email address</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the address" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The address must include the city, district, and street
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="nationality"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nationality</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the nationality" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The nationality must be specified
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="guest_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Guest_type</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select type</option>
-                        {Object.values(UserType).map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>Type the guest type</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone_number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the phone_number" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The phone number must be in the format +84..
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="identity_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Identity_number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter the identity_number"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The identity_number is important
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>User Status</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select status</option>
-                        <option value="active">active</option>
-                        <option value="deleted">deleted</option>
-                      </select>
-                    </FormControl>
-                    <FormDescription>
-                      Current status of the user
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="fullname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>FullName</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Fullname" {...field} />
+                      </FormControl>
+                      <FormDescription>This is the user name.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        >
+                          <option value="">All Role</option>
+                          {Object.values(Role).map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormDescription>This is the user role.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email address"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>Valid email address</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the address" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The address must include the city, district, and street
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nationality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nationality</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the nationality" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The nationality must be specified
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="guest_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guest_type</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        >
+                          <option value="">Select type</option>
+                          {Object.values(UserType).map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormDescription>Type the guest type</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="identity_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Identity_number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter the identity_number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        The identity_number is important
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>User Status</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        >
+                          <option value="">Select status</option>
+                          <option value="active">active</option>
+                          <option value="inactive">inactive</option>
+                        </select>
+                      </FormControl>
+                      <FormDescription>
+                        Current status of the user
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
                 control={form.control}
                 name="dob"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date of Birth</FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value?.toISOString().split("T")[0]}
-                        onChange={(e) =>
-                          field.onChange(new Date(e.target.value))
-                        }
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              </div>
 
-              <Button type="submit" className="w-full">
-                Search
-              </Button>
+              <div className="flex gap-4">
+                <Button type="submit" className="flex-1">
+                  Search
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={clearFilters}
+                >
+                  Clear Filters
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
@@ -362,14 +326,20 @@ export function UserList() {
 
       <Card className="w-full h-full mb-4">
         <CardHeader>
-          <CardTitle className="text-xl font-bold">List of room</CardTitle>
+          <CardTitle className="text-xl font-bold">List of user</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex">
-            <div className="w-1 flex-1">
-              <DataTable columns={userColumns} data={data} />
+          {isUsersLoading ? (
+            <div>Loading...</div>
+          ) : isUsersError ? (
+            <div>An error has occurred!</div>
+          ) : (
+            <div className="flex">
+              <div className="w-1 flex-1">
+                <DataTable columns={userColumns} data={users || []} />
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
