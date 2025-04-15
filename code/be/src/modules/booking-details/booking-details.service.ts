@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { MAX_GUESTS_PER_ROOM } from 'src/libs/common/constants';
 import { BookingDetail } from 'src/modules/booking-details/entities';
@@ -17,7 +17,7 @@ import { Room } from 'src/modules/rooms/entities';
 import { RoomStatusEnum } from 'src/modules/rooms/enums';
 import { RoomsService } from 'src/modules/rooms/rooms.service';
 import { UsersService } from 'src/modules/users/users.service';
-import { In } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { RoleEnum, UserTypeEnum } from '../users/enums';
 import { BookingDetailsRepository } from './booking-details.repository';
 import { CreateBookingDetailDto, UpdateBookingDetailDto } from './dto';
@@ -31,6 +31,7 @@ export class BookingDetailsService {
     private readonly invoicesService: InvoicesService,
     private readonly configurationsService: ConfigurationsService,
     private readonly roomsService: RoomsService,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async create(createBookingDetailDto: CreateBookingDetailDto, userId: string) {
@@ -228,7 +229,13 @@ export class BookingDetailsService {
       where: {
         id,
       },
-      relations: ['room', 'booking', 'booking.user', 'invoice'],
+      relations: [
+        'room',
+        'booking',
+        'booking.user',
+        'invoice',
+        'room.roomType',
+      ],
     });
 
     if (!existingBookingDetail)
@@ -320,7 +327,12 @@ export class BookingDetailsService {
     const guestCount =
       updateBookingDetailDto?.guestCount ?? existingBookingDetail.guestCount;
 
-    let existingRoom: Room | null = null;
+    if (guestCount > maxGuestsPerRoomConfig.configValue)
+      throw new BadRequestException(
+        `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+      );
+
+    let existingRoom: Room | null = existingBookingDetail.room;
 
     if (roomId) {
       existingRoom = await this.roomsService.findOne(roomId);
@@ -343,18 +355,23 @@ export class BookingDetailsService {
         );
     }
 
-    Object.assign(existingBookingDetail, omit(res, ['bookingDetailId']));
+    await this.bookingDetailsRepository.update(
+      {
+        id: existingBookingDetail.id,
+      },
+      omit(res, ['bookingDetailId']),
+    );
 
-    if (roomId && existingRoom) {
-      existingBookingDetail.room = existingRoom;
-
-      await this.bookingDetailsRepository.save(existingBookingDetail);
-    }
+    if (roomId && existingRoom)
+      await this.dataSource
+        .createQueryBuilder()
+        .relation('BookingDetails', 'room')
+        .of(existingBookingDetail.id)
+        .set(existingRoom.id);
 
     if (days > 0) {
       const baseDetailPrice =
-        (existingRoom ? existingRoom : existingBookingDetail.room).roomType
-          .roomPrice * days;
+        existingBookingDetail.room.roomType.roomPrice * days;
 
       const foreignUserType = await this.usersService.handleGetUserTypeByName(
         UserTypeEnum.FOREIGN,
@@ -373,7 +390,14 @@ export class BookingDetailsService {
         (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
         surcharge_factor;
 
-      existingBookingDetail.totalPrice = detailPrice;
+      await this.bookingDetailsRepository.update(
+        {
+          id: existingBookingDetail.id,
+        },
+        {
+          totalPrice: detailPrice,
+        },
+      );
 
       await this.invoicesService.updateInvoice(
         existingBookingDetail.invoice.id,
@@ -384,8 +408,6 @@ export class BookingDetailsService {
         },
       );
     }
-
-    return await this.bookingDetailsRepository.save(existingBookingDetail);
   };
 
   public handleAssignBookingDetailsToBooking = async (
