@@ -36,12 +36,14 @@ export class UpdateBookingDetailDto {
 
   @ApiProperty()
   @IsOptional()
+  @Transform(({ value }) => new Date(value as string))
   @IsDate()
   @Transform(({ value }) => new Date(value as string))
   readonly startDate?: Date;
 
   @ApiProperty()
   @IsOptional()
+  @Transform(({ value }) => new Date(value as string))
   @IsDate()
   @Transform(({ value }) => new Date(value as string))
   readonly endDate?: Date;
