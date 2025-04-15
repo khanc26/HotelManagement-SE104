@@ -12,7 +12,7 @@ import { UsersService } from 'src/modules/users/users.service';
 import { RoleEnum } from '../users/enums';
 import { BookingsRepository } from './bookings.repository';
 import { Booking } from './entities';
-import { DeleteBookingDetailsDto } from 'src/modules/booking-details/dto/delete-booking-details.dto';
+import { DeleteBookingDetailsDto } from 'src/modules/booking-details/dto';
 
 @Injectable()
 export class BookingsService {
@@ -137,13 +137,25 @@ export class BookingsService {
         id,
       },
       relations: {
-        user: true,
+        user: {
+          role: true,
+        },
         bookingDetails: true,
       },
     });
 
     if (!existingBooking) {
       throw new NotFoundException(`Booking with id '${id}' not found.`);
+    }
+
+    if (
+      existingBooking.user.role.roleName !==
+        (RoleEnum.ADMIN || RoleEnum.SUPER_ADMIN) &&
+      existingBooking.user.id !== userId
+    ) {
+      throw new ForbiddenException(
+        'You are only allowed to delete a booking that belongs to you.',
+      );
     }
 
     const countBookingDetailIds =
@@ -154,6 +166,19 @@ export class BookingsService {
       existingBooking.bookingDetails.map((bd) => bd.id);
 
     await this.bookingDetailsService.handleSoftDelete(bookingIds);
+
+    const newTotalPrice = parseFloat(
+      (
+        existingBooking.totalPrice -
+        (await this.invoicesService.handleCalculatePriceOfInvoicesByBookingDetailIds(
+          bookingIds,
+        ))
+      ).toFixed(2),
+    );
+
+    existingBooking.totalPrice = newTotalPrice;
+
+    await this.bookingsRepository.save(existingBooking);
 
     return omit(
       !countBookingDetailIds
