@@ -131,6 +131,18 @@ export class UsersService {
       ]);
 
     if (searchUsersDto) {
+      if (searchUsersDto?.roleName && role === 'superadmin') {
+        qb.andWhere('role.roleName = :roleName', {
+          roleName: searchUsersDto.roleName,
+        });
+      }
+
+      if (searchUsersDto?.userTypeName) {
+        qb.andWhere('userType.typeName = :userTypeName', {
+          userTypeName: searchUsersDto.userTypeName,
+        });
+      }
+
       if (searchUsersDto?.address) {
         qb.andWhere('LOWER(profile.address) LIKE LOWER(:address)', {
           address: `%${searchUsersDto.address}%`,
@@ -160,18 +172,14 @@ export class UsersService {
 
       if (searchUsersDto?.status) {
         qb.andWhere('profile.status = :status', {
-          status: `%${searchUsersDto.status}%`,
+          status: searchUsersDto.status,
         });
       }
     }
 
-    if (role === 'admin') {
-      qb.andWhere('role.roleName = :roleName', { roleName: 'user' });
-    } else if (role === 'superadmin') {
-      qb.andWhere('role.roleName != :roleName', { roleName: 'superadmin' });
-    }
-
-    return await qb.getMany();
+    return (await qb.getMany()).filter(
+      (user) => user.role.roleName !== RoleEnum.SUPER_ADMIN,
+    );
   }
 
   async findOne(email: string) {
