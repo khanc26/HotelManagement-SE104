@@ -31,7 +31,7 @@ const userSchema = z.object({
   nationality: z.string().optional(),
   guest_type: z.enum(["local", "foreign"]).optional(),
   identity_number: z.string().optional(),
-  status: z.enum(["active", "deleted"]).optional(),
+  status: z.enum(["active", "inactive"]).optional(),
   dob: z
     .string()
     .refine(
@@ -60,7 +60,7 @@ export function UserList() {
       nationality: "",
       guest_type: UserType.LOCAL,
       identity_number: "",
-      status: undefined,
+      status: "active",
       dob: undefined,
     },
   });
@@ -100,6 +100,7 @@ export function UserList() {
       address: values.address || undefined,
       nationality: values.nationality || undefined,
       userTypeName: (values.guest_type as UserType) || undefined,
+      status: values.status || undefined,
       identifyNumber: values.identity_number || undefined,
       dob: values.dob || undefined,
     };
@@ -280,7 +281,7 @@ export function UserList() {
                         >
                           <option value="">Select status</option>
                           <option value="active">active</option>
-                          <option value="deleted">deleted</option>
+                          <option value="inactive">inactive</option>
                         </select>
                       </FormControl>
                       <FormDescription>
