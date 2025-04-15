@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
@@ -38,14 +38,14 @@ export class UpdateBookingDetailDto {
   @IsOptional()
   @Transform(({ value }) => new Date(value as string))
   @IsDate()
-  @Type(() => Date)
+  @Transform(({ value }) => new Date(value as string))
   readonly startDate?: Date;
 
   @ApiProperty()
   @IsOptional()
   @Transform(({ value }) => new Date(value as string))
   @IsDate()
-  @Type(() => Date)
+  @Transform(({ value }) => new Date(value as string))
   readonly endDate?: Date;
 
   @ApiProperty()
