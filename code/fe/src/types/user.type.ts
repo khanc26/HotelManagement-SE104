@@ -23,7 +23,7 @@ export interface User {
   id: string;
   email: string;
   profile: Profile;
-  Role: RoleInterface;
+  role: RoleInterface;
   userType: UserTypeInterface;
 }
 export interface Profile {

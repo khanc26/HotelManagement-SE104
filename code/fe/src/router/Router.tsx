@@ -1,9 +1,19 @@
+import { PrivateRoutes } from "@/features/auth/components/private-routes";
+import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
+import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
+import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
+import { BookingList } from "@/features/booking/components/booking-list";
+import { ProfileEdit } from "@/features/profile/profile-edit";
+import { MyProfile } from "@/features/profile/profile-my-profile";
 import { RoomAddNew } from "@/features/room/components/room-add";
 import { RoomEdit } from "@/features/room/components/room-edit";
 import { RoomList } from "@/features/room/components/room-list";
 import { UserAddNew } from "@/features/user/user-add";
 import { UserEdit } from "@/features/user/user-edit";
 import { UserList } from "@/features/user/user-list";
+import BookingsPage from "@/pages/BookingsPage";
+import ErrorPage from "@/pages/ErrorPage";
+import NotAuthenticated from "@/pages/NotAuthenticated";
 import UsersPage from "@/pages/UsersPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
@@ -18,14 +28,6 @@ import SettingsPage from "../pages/SettingsPage";
 import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
-import ErrorPage from "@/pages/ErrorPage";
-import NotAuthenticated from "@/pages/NotAuthenticated";
-import BookingsPage from "@/pages/BookingsPage";
-import { BookingList } from "@/features/booking/components/booking-list";
-import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
-import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
-import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
-import { PrivateRoutes } from "@/features/auth/components/private-routes";
 
 const router = createBrowserRouter([
   {
@@ -89,10 +91,6 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "profile",
-        element: <ProfilePage />,
-      },
-      {
         path: "users",
         element: <UsersPage />,
         children: [
@@ -133,6 +131,16 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+        children: [
+          {
+            path: "my-profile",
+            element: <MyProfile />,
+          },
+          {
+            path: "edit",
+            element: <ProfileEdit />,
+          }
+        ]
       },
       {
         path: "error",
