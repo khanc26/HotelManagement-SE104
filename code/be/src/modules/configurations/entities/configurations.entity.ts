@@ -5,7 +5,7 @@ export class Configuration {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column()
+  @Column({ unique: true })
   configName!: string;
 
   @Column({ type: 'float' })

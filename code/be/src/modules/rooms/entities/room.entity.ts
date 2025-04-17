@@ -1,3 +1,5 @@
+import { transformDateTime } from 'src/libs/common/helpers';
+import { BookingDetail } from 'src/modules/booking-details/entities/booking-detail.entity';
 import {
   Column,
   CreateDateColumn,
@@ -10,7 +12,6 @@ import {
 } from 'typeorm';
 import { RoomType } from '../../room-types/entities/room-type.entity';
 import { RoomStatusEnum } from '../enums/room-status.enum';
-import { BookingDetail } from 'src/modules/booking-details/entities/booking-detail.entity';
 
 @Entity()
 export class Room {
@@ -42,12 +43,22 @@ export class Room {
   })
   bookingDetails!: BookingDetail[];
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

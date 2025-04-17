@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ProfileStatusEnum } from '../enums/profile-status.enum';
+import { transformDateTime } from 'src/libs/common/helpers';
 
 @Entity()
 export class Profile {
@@ -48,12 +49,16 @@ export class Profile {
   @JoinColumn()
   user!: User;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

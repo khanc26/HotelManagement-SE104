@@ -104,9 +104,17 @@ export class BookingDetailsService {
       ? foreignUserType.surcharge_factor
       : localUserType.surcharge_factor;
 
+    const surchargeRate =
+      await this.configurationsService.handleGetValueByName('surcharge_rate');
+
+    if (!surchargeRate)
+      throw new NotFoundException(
+        `Configuration for surcharge rate not found.`,
+      );
+
     const detailPrice =
       baseDetailPrice *
-      (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
+      (1 + surchargeRate.configValue * (guestCount > 2 ? 1 : 0)) *
       surcharge_factor;
 
     const newBookingDetail = this.bookingDetailsRepository.create(
@@ -272,47 +280,45 @@ export class BookingDetailsService {
 
     let days: number = 0;
 
-    if (startDate || endDate) {
-      const now = new Date().getTime();
+    const now = new Date().getTime();
 
-      if (!endDate && startDate) {
-        if (now <= startDate.getTime())
-          throw new BadRequestException(
-            `New start date must be greater than current date.`,
-          );
-
-        if (startDate.getTime() > existingBookingDetail.endDate.getTime())
-          throw new BadRequestException(
-            `New start date can't be greater than end date of the booking detail.`,
-          );
-      }
-
-      if (!startDate && endDate) {
-        if (now <= endDate.getTime())
-          throw new BadRequestException(
-            `New end date must be greater than current date.`,
-          );
-
-        if (endDate.getTime() < existingBookingDetail.startDate.getTime())
-          throw new BadRequestException(
-            `New end date must be greater than start date of the booking detail.`,
-          );
-      }
-
-      if (startDate && endDate && startDate.getTime() > endDate.getTime()) {
+    if (!endDate && startDate) {
+      if (now <= startDate.getTime())
         throw new BadRequestException(
-          `New start date can't be greater than new end date.`,
+          `New start date must be greater than current date.`,
         );
-      }
 
-      days =
-        Math.ceil(
-          (endDate ? endDate : existingBookingDetail.endDate).getTime() -
-            (startDate ? startDate : existingBookingDetail.startDate).getTime(),
-        ) /
-          (1000 * 60 * 60 * 24) +
-        1;
+      if (startDate.getTime() > existingBookingDetail.endDate.getTime())
+        throw new BadRequestException(
+          `New start date can't be greater than end date of the booking detail.`,
+        );
     }
+
+    if (!startDate && endDate) {
+      if (now <= endDate.getTime())
+        throw new BadRequestException(
+          `New end date must be greater than current date.`,
+        );
+
+      if (endDate.getTime() < existingBookingDetail.startDate.getTime())
+        throw new BadRequestException(
+          `New end date must be greater than start date of the booking detail.`,
+        );
+    }
+
+    if (startDate && endDate && startDate.getTime() > endDate.getTime()) {
+      throw new BadRequestException(
+        `New start date can't be greater than new end date.`,
+      );
+    }
+
+    days =
+      Math.ceil(
+        (endDate ? endDate : existingBookingDetail.endDate).getTime() -
+          (startDate ? startDate : existingBookingDetail.startDate).getTime(),
+      ) /
+        (1000 * 60 * 60 * 24) +
+      1;
 
     const maxGuestsPerRoomConfig =
       await this.configurationsService.handleGetValueByName(
@@ -355,11 +361,16 @@ export class BookingDetailsService {
         );
     }
 
+    const dataToUpdate = Object.fromEntries(
+      Object.entries(res).filter(
+        ([key, value]) =>
+          key !== 'bookingDetailId' && value !== null && value !== undefined,
+      ),
+    );
+
     await this.bookingDetailsRepository.update(
-      {
-        id: existingBookingDetail.id,
-      },
-      omit(res, ['bookingDetailId']),
+      { id: existingBookingDetail.id },
+      dataToUpdate,
     );
 
     if (roomId && existingRoom)
@@ -369,45 +380,46 @@ export class BookingDetailsService {
         .of(existingBookingDetail.id)
         .set(existingRoom.id);
 
-    if (days > 0) {
-      const baseDetailPrice =
-        existingBookingDetail.room.roomType.roomPrice * days;
+    const baseDetailPrice =
+      existingBookingDetail.room.roomType.roomPrice * days;
 
-      const foreignUserType = await this.usersService.handleGetUserTypeByName(
-        UserTypeEnum.FOREIGN,
-      );
+    const foreignUserType = await this.usersService.handleGetUserTypeByName(
+      UserTypeEnum.FOREIGN,
+    );
 
-      const localUserType = await this.usersService.handleGetUserTypeByName(
-        UserTypeEnum.LOCAL,
-      );
+    const localUserType = await this.usersService.handleGetUserTypeByName(
+      UserTypeEnum.LOCAL,
+    );
 
-      const surcharge_factor = updateBookingDetailDto?.hasForeigners
-        ? foreignUserType.surcharge_factor
-        : localUserType.surcharge_factor;
+    const surcharge_factor = updateBookingDetailDto?.hasForeigners
+      ? foreignUserType.surcharge_factor
+      : localUserType.surcharge_factor;
 
-      const detailPrice =
-        baseDetailPrice *
-        (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
-        surcharge_factor;
+    const surchargeRate =
+      await this.configurationsService.handleGetValueByName('surcharge_rate');
 
-      await this.bookingDetailsRepository.update(
-        {
-          id: existingBookingDetail.id,
-        },
-        {
-          totalPrice: detailPrice,
-        },
-      );
+    if (!surchargeRate)
+      throw new NotFoundException(`Configuration for surchare rate not found.`);
 
-      await this.invoicesService.updateInvoice(
-        existingBookingDetail.invoice.id,
-        {
-          basePrice: baseDetailPrice,
-          totalPrice: detailPrice,
-          dayRent: days,
-        },
-      );
-    }
+    const detailPrice =
+      baseDetailPrice *
+      (1 + surchargeRate.configValue * (guestCount > 2 ? 1 : 0)) *
+      surcharge_factor;
+
+    await this.bookingDetailsRepository.update(
+      {
+        id: existingBookingDetail.id,
+      },
+      {
+        totalPrice: detailPrice,
+      },
+    );
+
+    await this.invoicesService.updateInvoice(existingBookingDetail.invoice.id, {
+      basePrice: baseDetailPrice,
+      totalPrice: detailPrice,
+      dayRent: days,
+    });
   };
 
   public handleAssignBookingDetailsToBooking = async (
@@ -433,4 +445,53 @@ export class BookingDetailsService {
 
     await this.bookingDetailsRepository.softDelete(bookingDetailIds);
   };
+
+  public async getRevenueByRoomTypeInMonth(
+    month: string,
+  ): Promise<Array<{ roomType: string; revenue: number; percent: string }>> {
+    const totalRevenueResult: { totalRevenue: string } | undefined =
+      await this.dataSource
+        .getRepository(BookingDetail)
+        .createQueryBuilder('bd')
+        .innerJoin('bd.booking', 'booking')
+        .innerJoin('bd.room', 'room')
+        .innerJoin('room.roomType', 'roomType')
+        .select('SUM(bd.totalPrice)', 'totalRevenue')
+        .where("DATE_FORMAT(booking.createdAt, '%Y-%m') = :month", { month })
+        .andWhere('booking.deletedAt IS NULL')
+        .getRawOne();
+
+    const totalRevenue = parseFloat(totalRevenueResult?.totalRevenue ?? '0');
+
+    const roomTypeRevenues: Array<{
+      revenue: string;
+      roomType: string;
+    }> = await this.dataSource
+      .getRepository(BookingDetail)
+      .createQueryBuilder('bd')
+      .innerJoin('bd.booking', 'booking')
+      .innerJoin('bd.room', 'room')
+      .innerJoin('room.roomType', 'roomType')
+      .select('roomType.name', 'roomType')
+      .addSelect('SUM(bd.totalPrice)', 'revenue')
+      .where("DATE_FORMAT(booking.createdAt, '%Y-%m') = :month", { month })
+      .andWhere('booking.deletedAt IS NULL')
+      .groupBy('roomType.name')
+      .orderBy('revenue', 'DESC')
+      .getRawMany();
+
+    return roomTypeRevenues.map((item) => {
+      const revenue = parseFloat(item.revenue);
+
+      const percent = totalRevenue
+        ? ((revenue / totalRevenue) * 100).toFixed(2)
+        : '0.00';
+
+      return {
+        roomType: item.roomType,
+        revenue,
+        percent: `${percent}`,
+      };
+    });
+  }
 }

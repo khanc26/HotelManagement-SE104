@@ -3,17 +3,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { CreateInvoiceDto, UpdateInvoiceDto } from 'src/modules/invoices/dto';
 import { Invoice } from 'src/modules/invoices/entities';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
+import { format } from 'date-fns';
+import { MonthlyRevenue } from 'src/modules/reports/entities';
 
 @Injectable()
 export class InvoicesService {
   constructor(
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   public createInvoice = async (createInvoiceDto: CreateInvoiceDto) => {

@@ -15,6 +15,7 @@ import { InvoicesModule } from 'src/modules/invoices/invoices.module';
 import { RoomsModule } from 'src/modules/rooms/rooms.module';
 import { UsersModule } from 'src/modules/users/users.module';
 import { ConfigurationsModule } from './modules/configurations/configurations.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ConfigurationsModule } from './modules/configurations/configurations.mo
     BookingsModule,
     BookingDetailsModule,
     ConfigurationsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],

@@ -87,11 +87,10 @@ export class RoomsService {
   async findOne(id: string) {
     const findRoom = await this.roomRepository.findOne({
       where: { id },
-      relations: ['roomType'],
+      relations: {
+        roomType: true,
+      },
     });
-
-    if (!findRoom)
-      throw new NotFoundException(`Room with id: '${id}' not found.`);
 
     return findRoom;
   }
