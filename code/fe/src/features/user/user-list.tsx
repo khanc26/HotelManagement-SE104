@@ -54,13 +54,13 @@ export function UserList() {
     resolver: zodResolver(userSchema),
     defaultValues: {
       fullname: "",
-      role: Role.USER,
+      role: undefined,
       email: "",
       address: "",
       nationality: "",
-      guest_type: UserType.LOCAL,
+      guest_type: undefined,
       identity_number: "",
-      status: "active",
+      status: undefined,
       dob: undefined,
     },
   });
@@ -72,7 +72,7 @@ export function UserList() {
     error: usersError,
     refetch: refetchUsers,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users", searchParams],
     queryFn: () => getUsers(searchParams),
   });
 
@@ -105,19 +105,18 @@ export function UserList() {
       dob: values.dob || undefined,
     };
     setSearchParams({ ...params });
-    refetchUsers();
   }
 
   const clearFilters = () => {
     form.reset({
       fullname: "",
-      role: Role.USER,
+      role: undefined,
       email: "",
       address: "",
       nationality: "",
-      guest_type: UserType.LOCAL,
+      guest_type: undefined,
       identity_number: "",
-      status: "active",
+      status: undefined,
       dob: undefined,
     });
     setSearchParams({});
