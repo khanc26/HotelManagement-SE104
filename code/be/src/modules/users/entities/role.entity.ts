@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { RoleEnum } from '../enums/role.enum';
+import { transformDateTime } from 'src/libs/common/helpers';
 
 @Entity()
 export class Role {
@@ -19,6 +20,7 @@ export class Role {
     type: 'enum',
     enum: RoleEnum,
     default: RoleEnum.USER,
+    unique: true,
   })
   roleName!: RoleEnum;
 
@@ -31,12 +33,16 @@ export class Role {
   })
   users!: User[];
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

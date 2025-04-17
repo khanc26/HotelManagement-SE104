@@ -1,3 +1,4 @@
+import { transformDateTime } from 'src/libs/common/helpers';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
@@ -19,6 +20,7 @@ export class UserType {
     type: 'enum',
     enum: UserTypeEnum,
     default: UserTypeEnum.LOCAL,
+    unique: true,
   })
   typeName!: UserTypeEnum;
 
@@ -34,12 +36,22 @@ export class UserType {
   })
   users!: User[];
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

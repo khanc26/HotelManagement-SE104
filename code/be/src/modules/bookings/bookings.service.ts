@@ -13,6 +13,8 @@ import { RoleEnum } from '../users/enums';
 import { BookingsRepository } from './bookings.repository';
 import { Booking } from './entities';
 import { DeleteBookingDetailsDto } from 'src/modules/booking-details/dto';
+import { format } from 'date-fns';
+import { ReportsService } from 'src/modules/reports/reports.service';
 
 @Injectable()
 export class BookingsService {
@@ -22,6 +24,7 @@ export class BookingsService {
     private readonly usersService: UsersService,
     private readonly bookingDetailsService: BookingDetailsService,
     private readonly invoicesService: InvoicesService,
+    private readonly reportsService: ReportsService,
   ) {}
 
   async findAll(userId: string) {
@@ -158,9 +161,6 @@ export class BookingsService {
       );
     }
 
-    const countBookingDetailIds =
-      deleteBookingDetailsDto?.bookingDetailIds?.length;
-
     const bookingIds =
       deleteBookingDetailsDto?.bookingDetailIds ??
       existingBooking.bookingDetails.map((bd) => bd.id);
@@ -176,12 +176,21 @@ export class BookingsService {
       ).toFixed(2),
     );
 
+    const yearMonth = format(new Date(), 'yyyy-MM');
+
+    await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
+      yearMonth,
+      newTotalPrice === 0
+        ? existingBooking.totalPrice * -1
+        : newTotalPrice * -1,
+    );
+
     existingBooking.totalPrice = newTotalPrice;
 
     await this.bookingsRepository.save(existingBooking);
 
     return omit(
-      !countBookingDetailIds
+      newTotalPrice === 0
         ? await this.bookingsRepository.softRemove(existingBooking)
         : existingBooking,
       [
@@ -210,11 +219,20 @@ export class BookingsService {
       ),
     );
 
+    const totalPrice = bookingDetails.reduce(
+      (acc, curr) => acc + Number(curr.totalPrice),
+      0,
+    );
+
+    const yearMonth = format(new Date(), 'yyyy-MM');
+
+    await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
+      yearMonth,
+      totalPrice,
+    );
+
     const newBooking = this.bookingsRepository.create({
-      totalPrice: bookingDetails.reduce(
-        (acc, curr) => acc + curr.totalPrice,
-        0,
-      ),
+      totalPrice,
     });
 
     newBooking.user = user;
@@ -242,6 +260,8 @@ export class BookingsService {
     userId: string,
     bookingId: string,
   ) => {
+    console.log(await this.reportsService.handleGetMonthlyRevenue());
+
     const booking = await this.bookingsRepository.findOne({
       where: { id: bookingId },
       relations: {
@@ -259,8 +279,19 @@ export class BookingsService {
     );
 
     const newTotalPrice =
-      await this.invoicesService.handleCalculatePriceOfInvoicesByBookingDetailIds(
+      (await this.invoicesService.handleCalculatePriceOfInvoicesByBookingDetailIds(
         booking.bookingDetails.map((bd) => bd.id),
+      )) ?? 0;
+
+    const monthYear = format(new Date(), 'yyyy-MM');
+
+    const distanceTotalPrice =
+      parseFloat(booking.totalPrice as unknown as string) - newTotalPrice;
+
+    if (distanceTotalPrice)
+      await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
+        monthYear,
+        distanceTotalPrice * -1,
       );
 
     await this.bookingsRepository.update(
