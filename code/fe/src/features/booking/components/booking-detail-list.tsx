@@ -85,7 +85,11 @@ function BookingDetailActionCell({
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogTitle>
+            Are you sure you want to soft delete this booking detail (if no
+            booking detail left in this booking after that, the booking will be
+            deleted as well)?
+          </DialogTitle>
         </DialogHeader>
         <DialogFooter>
           <Button

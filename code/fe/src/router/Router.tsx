@@ -26,6 +26,9 @@ import { BookingDetailList } from "@/features/booking/components/booking-detail-
 import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
 import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
+import InvoicePage from "@/pages/InvoicesPage";
+import { InvoiceList } from "@/features/invoice/components/invoice-list";
+import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
 
 const router = createBrowserRouter([
   {
@@ -85,6 +88,24 @@ const router = createBrowserRouter([
           {
             path: ":id/:detailId/edit",
             element: <BookingDetailEdit />,
+          },
+        ],
+      },
+      {
+        path: "invoices",
+        element: <InvoicePage />,
+        children: [
+          {
+            index: true,
+            element: <InvoiceList />,
+          },
+          {
+            path: "list",
+            element: <InvoiceList />,
+          },
+          {
+            path: ":id",
+            element: <InvoiceDetail />,
           },
         ],
       },

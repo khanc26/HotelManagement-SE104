@@ -68,6 +68,7 @@ export class InvoicesService {
           'bookingDetail',
           'bookingDetail.booking',
           'bookingDetail.booking.user',
+          'bookingDetail.room',
         ],
       })
     ).map((invoice) => ({

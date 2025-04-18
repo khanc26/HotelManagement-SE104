@@ -35,6 +35,11 @@ const menuItems = {
       url: "/bookings/list",
       icon: NotebookPen,
     },
+    {
+      title: "Invoices",
+      url: "/invoices/list",
+      icon: NotebookPen,
+    },
   ],
   [Role.USER]: [
     {

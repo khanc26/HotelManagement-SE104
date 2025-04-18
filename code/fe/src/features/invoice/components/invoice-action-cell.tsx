@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +8,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useMutation } from "@tanstack/react-query";
+import { deleteInvoice } from "@/api/invoices"; // Ensure this API function is defined
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,29 +21,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Room } from "@/types/room.type";
-import { deleteRoom } from "@/api/rooms";
 
-// Create a separate component for the actions cell
-export function RoomActionsCell({ room }: { room: Room }) {
-  const queryClient = useQueryClient();
-
+export function InvoiceActionsCell({ invoiceId }: { invoiceId: string }) {
   const deleteMutation = useMutation({
-    mutationFn: (roomId: string) => deleteRoom(roomId),
+    mutationFn: (id: string) => deleteInvoice(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
-      console.log(`Room ${room.roomNumber} deleted successfully`);
+      // queryClient.invalidateQueries(["invoices"]);
+      toast.success("Invoice deleted successfully");
     },
-    onError: (error: unknown) => {
+    onError: (error) => {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.error("Error deleting room:", errorMessage);
+      toast.error(`Error deleting invoice: ${errorMessage}`);
     },
   });
 
   const handleDelete = () => {
-    deleteMutation.mutate(room.id);
+    deleteMutation.mutate(invoiceId);
   };
 
   return (
@@ -56,13 +53,15 @@ export function RoomActionsCell({ room }: { room: Room }) {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <Link to={`/rooms/edit?id=${room.id}`}>
-              <p className="text-sm font-normal">Edit</p>
+            <Link to={`/invoices/${invoiceId}`}>
+              <p className="text-sm font-normal">View</p>
             </Link>
           </DropdownMenuItem>
-
           <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="hover:cursor-pointer"
+            >
               Delete
             </DropdownMenuItem>
           </DialogTrigger>
@@ -73,11 +72,7 @@ export function RoomActionsCell({ room }: { room: Room }) {
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <DialogDescription>
-            Are you sure you want to soft delete room{" "}
-            <span className="font-semibold inline text-black underline">
-              {room.roomNumber}
-            </span>
-            ?
+            Are you sure you want to soft delete this invoice ?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
