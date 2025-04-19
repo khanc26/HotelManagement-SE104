@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { getBookingDetailById } from "@/api/booking-details";
 import { format } from "date-fns";
@@ -49,6 +49,7 @@ const bookingDetailSchema = z.object({
 
 export function BookingDetailEdit() {
   const { id, detailId } = useParams();
+  const queryClient = useQueryClient();
 
   // Fetch booking detail data
   const {
@@ -101,6 +102,7 @@ export function BookingDetailEdit() {
     }) => updateBooking(id, updatedBookingDetail),
     onSuccess: () => {
       toast.success("Booking updated successfully.");
+      queryClient.invalidateQueries({ queryKey: ["booking-detail", id] });
     },
     onError: (error: unknown) => {
       console.error("Update failed:", error);

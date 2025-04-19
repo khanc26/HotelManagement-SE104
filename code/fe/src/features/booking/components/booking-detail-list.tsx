@@ -47,7 +47,7 @@ function BookingDetailActionCell({
     mutationFn: (bookingDetailId: string) =>
       deleteBookingDetail(id!, [bookingDetailId]),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["booking", id] });
+      queryClient.invalidateQueries({ queryKey: ["booking"] });
       toast.success("Delete booking detail successfully!");
     },
     onError: (error: unknown) => {

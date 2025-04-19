@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteInvoice } from "@/api/invoices"; // Ensure this API function is defined
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -23,10 +23,12 @@ import {
 import { MoreHorizontal } from "lucide-react";
 
 export function InvoiceActionsCell({ invoiceId }: { invoiceId: string }) {
+  const queryClient = useQueryClient();
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteInvoice(id),
     onSuccess: () => {
-      // queryClient.invalidateQueries(["invoices"]);
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
       toast.success("Invoice deleted successfully");
     },
     onError: (error) => {

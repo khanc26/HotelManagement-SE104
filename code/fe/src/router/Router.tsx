@@ -52,6 +52,10 @@ const router = createBrowserRouter([
         element: <RoomsPage />,
         children: [
           {
+            index: true,
+            element: <RoomList />,
+          },
+          {
             path: "list",
             element: <RoomList />,
           },

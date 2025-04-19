@@ -13,27 +13,28 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Room, RoomUpdateRequest } from "@/types/room.type";
-import { updateRoom } from "@/api/rooms";
+import { getRoom, updateRoom } from "@/api/rooms";
 import { getRoomTypes } from "@/api/room-types";
-import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
+import React from "react";
+import { CardContentSkeleton } from "@/components/card-content-skeleton";
+import { CardContentError } from "@/components/card-content-error";
 
 const roomSchema = z.object({
   roomNumber: z.string().optional(),
-  roomTypeId: z.string(),
+  roomTypeId: z.string().min(1, { message: "Please select a room type." }),
   note: z.string().optional(),
   status: z.enum(["available", "occupied"]).optional(),
 });
 
 export function RoomEdit() {
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const roomId = searchParams.get("id");
 
   const form = useForm<z.infer<typeof roomSchema>>({
@@ -48,29 +49,33 @@ export function RoomEdit() {
 
   const {
     data: roomTypes,
-    // isLoading: isRoomTypesLoading,
+    isLoading: isRoomTypesLoading,
     isError: isRoomTypesError,
-    error: roomTypesError,
   } = useQuery({
     queryKey: ["roomTypes"],
     queryFn: getRoomTypes,
   });
 
-  if (isRoomTypesError) {
-    const errorData = GetAPIErrorResponseData(roomTypesError);
-    if (errorData.statusCode === 401) {
-      toast.error("Unauthorized. Navigating to sign-in page in 3 seconds");
-      setTimeout(() => {
-        navigate("/auth/sign-in");
-      }, 3000);
-    } else
-      toast.error(
-        "Error while getting rooms " +
-          errorData.statusCode +
-          " " +
-          errorData.message
-      );
-  }
+  const {
+    data: room,
+    isLoading: isRoomLoading,
+    isError: isRoomError,
+  } = useQuery({
+    queryKey: ["room", roomId],
+    queryFn: () => getRoom(roomId!),
+  });
+
+  React.useEffect(() => {
+    console.log(room);
+    if (room) {
+      form.reset({
+        roomNumber: room.roomNumber || "",
+        roomTypeId: room.roomType?.id || "",
+        note: room.note || "",
+        status: room.status || undefined,
+      });
+    }
+  }, [room, form]);
 
   const mutation = useMutation({
     mutationFn: ({
@@ -82,17 +87,13 @@ export function RoomEdit() {
     }) => updateRoom(id, updatedRoom),
     onSuccess: (data: Room) => {
       console.log("Room updated successfully", data);
-      // Optional: Add success toast
       toast.success("Room updated successfully");
-      // Optional: Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["rooms", roomId] });
     },
     onError: (error: unknown) => {
       console.error("Error updating room", error);
-      // Improved error handling
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      // Optional: Add error toast
       toast.error(`Failed to update room: ${errorMessage}`);
     },
     // Optional: Add loading state handling
@@ -116,6 +117,38 @@ export function RoomEdit() {
     };
 
     mutation.mutate({ id: roomId, updatedRoom });
+  }
+
+  // Loading state
+  if (isRoomLoading || isRoomTypesLoading) {
+    return (
+      <div className="flex justify-center items-center">
+        <Card className="w-full h-full">
+          <CardHeader>
+            <CardTitle>Edit Room</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardContentSkeleton />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isRoomError || isRoomTypesError) {
+    return (
+      <div className="flex justify-center items-center">
+        <Card className="w-full h-full">
+          <CardHeader>
+            <CardTitle>Edit Room</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardContentError errorMessage={`Error loading room data.`} />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
