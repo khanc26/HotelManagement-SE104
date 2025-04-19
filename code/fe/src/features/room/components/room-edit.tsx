@@ -20,6 +20,7 @@ import { updateRoom } from "@/api/rooms";
 import { getRoomTypes } from "@/api/room-types";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { toast } from "react-toastify";
+import { Loader2 } from "lucide-react";
 
 const roomSchema = z.object({
   roomNumber: z.string().optional(),
@@ -202,8 +203,19 @@ export function RoomEdit() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Update Room
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Room"
+                )}
               </Button>
             </form>
           </Form>

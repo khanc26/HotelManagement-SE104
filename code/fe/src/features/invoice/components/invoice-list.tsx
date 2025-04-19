@@ -3,8 +3,9 @@ import { invoiceColumns } from "./invoice-columns"; // Create this file for colu
 import { useQuery } from "@tanstack/react-query";
 import { getInvoices } from "@/api/invoices"; // Ensure this API function is defined
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "react-toastify";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
 
 export function InvoiceList() {
   const {
@@ -17,10 +18,9 @@ export function InvoiceList() {
     queryFn: getInvoices,
   });
 
-  if (isError) {
-    const errorData = GetAPIErrorResponseData(error);
-    toast.error(`Error fetching invoices: ${errorData.message}`);
-  }
+  const errorMessage = isError
+    ? `Error fetching invoices: ${GetAPIErrorResponseData(error).message}`
+    : "Error fetching invoices";
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4">
@@ -28,13 +28,17 @@ export function InvoiceList() {
         <CardHeader>
           <CardTitle>Invoice Management</CardTitle>
         </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div>Loading...</div>
-          ) : (
-            <DataTable columns={invoiceColumns} data={invoices || []} />
-          )}
-        </CardContent>
+        <div className="flex">
+          <CardContent className="flex-1 w-1">
+            {isLoading ? (
+              <TableSkeleton />
+            ) : isError ? (
+              <TableError errorMessage={`${errorMessage}`} />
+            ) : (
+              <DataTable columns={invoiceColumns} data={invoices || []} />
+            )}
+          </CardContent>
+        </div>
       </Card>
     </div>
   );

@@ -23,6 +23,8 @@ import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData
 import { toast } from "react-toastify";
 import { RoomRequest } from "@/types/room.type";
 import { useNavigate } from "react-router-dom";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
 
 const roomSchema = z.object({
   roomNumber: z.string().optional(),
@@ -234,9 +236,9 @@ export function RoomList() {
         <div className="flex">
           <CardContent className="flex-1 w-1">
             {isRoomsLoading || isRoomTypesLoading ? (
-              <div>Loading...</div>
+              <TableSkeleton />
             ) : isRoomsError || isRoomTypesError ? (
-              <div>An error has occurred!</div>
+              <TableError />
             ) : (
               <DataTable columns={roomColumns} data={rooms || []} />
             )}
