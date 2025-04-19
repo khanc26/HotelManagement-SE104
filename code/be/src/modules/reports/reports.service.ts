@@ -1,4 +1,3 @@
-import { T } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
