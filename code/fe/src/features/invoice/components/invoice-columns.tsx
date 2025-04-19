@@ -2,6 +2,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { InvoiceActionsCell } from "./invoice-action-cell";
 import { Invoice } from "@/types/invoice.type";
 import { format } from "date-fns";
+import { InvoiceStatusBadge } from "./invoice-status-badge";
+import { formatCurrency } from "@/utils/helpers/formatCurrency";
 
 interface RowData {
   original: Invoice;
@@ -19,14 +21,25 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
     accessorKey: "basePrice",
     header: "Base Price",
+    cell: ({ row }: { row: RowData }) => {
+      return formatCurrency(row.original.basePrice);
+    },
   },
   {
     accessorKey: "totalPrice",
     header: "Total Price",
+    cell: ({ row }: { row: RowData }) => {
+      return formatCurrency(row.original.totalPrice);
+    },
   },
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }: { row: RowData }) => {
+      const status = row.original.status;
+
+      return <InvoiceStatusBadge status={status} />;
+    },
   },
   {
     accessorKey: "createdAt",

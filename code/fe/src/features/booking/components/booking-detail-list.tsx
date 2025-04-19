@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-toastify";
+import { formatCurrency } from "@/utils/helpers/formatCurrency";
 
 // DataTable columns
 interface RowData {
@@ -155,7 +156,7 @@ const columns = [
     accessorKey: "totalPrice",
     header: "Total Price",
     cell: ({ row }: { row: RowData }) => {
-      return `$${row.original.totalPrice}`;
+      return formatCurrency(row.original.totalPrice);
     },
   },
   {

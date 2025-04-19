@@ -3,6 +3,7 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Room } from "@/types/room.type";
 import { RoomActionsCell } from "./room-action-cell";
+import { formatCurrency } from "@/utils/helpers/formatCurrency";
 
 export const roomColumns: ColumnDef<Room>[] = [
   {
@@ -48,22 +49,8 @@ export const roomColumns: ColumnDef<Room>[] = [
     },
     cell: ({ row }) => {
       const price = row.original.roomType.roomPrice;
-      // Convert string to number and format with 2 decimal places
-      const formattedPrice =
-        typeof price === "string"
-          ? parseFloat(price).toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
-          : price.toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
-      return formattedPrice;
+
+      return formatCurrency(price);
     },
   },
   {

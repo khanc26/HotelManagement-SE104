@@ -86,91 +86,95 @@ export function InvoiceDetail() {
         <CardContent>
           <Form {...form}>
             <form className="space-y-4">
-              <FormField
-                control={form.control}
-                name="id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Invoice ID</FormLabel>
-                    <Input {...field} disabled />
-                    <FormDescription>
-                      Unique identifier for the invoice
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="basePrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Base Price</FormLabel>
-                    <Input type="number" {...field} disabled />
-                    <FormDescription>Base price of the invoice</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="totalPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Price</FormLabel>
-                    <Input type="number" {...field} disabled />
-                    <FormDescription>Total amount due</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dayRent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Day Rent</FormLabel>
-                    <Input type="number" {...field} disabled />
-                    <FormDescription>Daily rental price</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Input {...field} disabled />
-                    <FormDescription>
-                      Current status of the invoice
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="createdAt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Created At</FormLabel>
-                    <Input type="date" {...field} disabled />
-                    <FormDescription>
-                      Date the invoice was created
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="updatedAt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Updated At</FormLabel>
-                    <Input type="date" {...field} disabled />
-                    <FormDescription>
-                      Date the invoice was last updated
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Invoice ID</FormLabel>
+                      <Input {...field} disabled />
+                      <FormDescription>
+                        Unique identifier for the invoice
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="basePrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Base Price</FormLabel>
+                      <Input type="number" {...field} disabled />
+                      <FormDescription>
+                        Base price of the invoice
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="totalPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Price</FormLabel>
+                      <Input type="number" {...field} disabled />
+                      <FormDescription>Total amount due</FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dayRent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Day Rent</FormLabel>
+                      <Input type="number" {...field} disabled />
+                      <FormDescription>Daily rental price</FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Input {...field} disabled />
+                      <FormDescription>
+                        Current status of the invoice
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="createdAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Created At</FormLabel>
+                      <Input type="date" {...field} disabled />
+                      <FormDescription>
+                        Date the invoice was created
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="updatedAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Updated At</FormLabel>
+                      <Input type="date" {...field} disabled />
+                      <FormDescription>
+                        Date the invoice was last updated
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </form>
           </Form>
         </CardContent>
