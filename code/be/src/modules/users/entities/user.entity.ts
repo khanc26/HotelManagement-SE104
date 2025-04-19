@@ -1,3 +1,4 @@
+import { transformDateTime } from 'src/libs/common/helpers';
 import { Booking } from 'src/modules/bookings/entities';
 import { Profile } from 'src/modules/users/entities/profile.entity';
 import { Role } from 'src/modules/users/entities/role.entity';
@@ -49,12 +50,16 @@ export class User {
   })
   bookings!: Booking[];
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

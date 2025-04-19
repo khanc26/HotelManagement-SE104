@@ -1,3 +1,4 @@
+import { updateUser } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,74 +11,109 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Role, UserType } from "@/types/user.type";
+import { User, UserUpdateRequest } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
 
-const USER_TYPES = ["foreign", "local"] as const;
-const USER_ROLE = ["admin", "user"] as const;
-
 const userSchema = z.object({
-  fullname: z.string().min(2, "Full name must be at least 2 characters."),
-  role: z.enum(["admin", "user"]),
-  email: z.string().email("Invalid email format."),
-  address: z.string().min(5, "Address must be at least 5 characters."),
-  nationality: z.string().min(2, "Nationality must be specified."),
-  guest_type: z.enum(["foreign", "local"]),
-  phone_number: z.string().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number."),
-  identity_number: z
-    .string()
-    .min(5, "Identity number must be at least 5 characters."),
-  status: z.enum(["active", "deleted"]),
-  dob: z.coerce.date().refine((date) => date <= new Date(), {
-    message: "Date of birth must be in the past.",
+  fullName: z.string().optional(),
+  email: z.string().optional(),
+  address: z.string().optional(),
+  nationality: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  identityNumber: z.string().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+  dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Please enter a valid date",
   }),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date(),
-  deleted_at: z.coerce.date().nullable().optional(),
 });
 
 export const UserEdit = () => {
+  const queryClient = useQueryClient();
+
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get('userId');
-  console.log(userId);
+  const userId = searchParams.get("id");
+  console.log("update user id: ", userId);
 
   const form = useForm<z.infer<typeof userSchema>>({
-      resolver: zodResolver(userSchema),
-      defaultValues: {
-        fullname: "",
-        role: Role.USER,
-        email: "",
-        address: "",
-        nationality: "",
-        guest_type: UserType.LOCAL,
-        phone_number: "",
-        identity_number: "",
-        status: "active",
-        dob: new Date(),
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-      },
-    });
-  function onSubmit(values: z.infer<typeof userSchema>) {
-    console.log(values);
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      address: "",
+      nationality: "",
+      phoneNumber: "",
+      identityNumber: "",
+      status: undefined,
+      dob: "",
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: ({
+      id,
+      updatedUser,
+    }: {
+      id: string;
+      updatedUser: UserUpdateRequest;
+    }) => updateUser(id, updatedUser),
+    onSuccess: (data: User) => {
+      console.log("User updated successfully", data);
+      // Optional: Add success toast
+      toast.success("User updated successfully");
+      // Optional: Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error: unknown) => {
+      console.error("Error updating room", error);
+      // Improved error handling
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      // Optional: Add error toast
+      toast.error(`Failed to update user: ${errorMessage}`);
+    },
+    // Optional: Add loading state handling
+    onMutate: () => {
+      console.log("Starting user update...");
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof userSchema>) {
+    if (!userId) {
+      toast.error("User ID is required");
+      return;
+    }
+
+    const updatedUser: UserUpdateRequest = {
+      fullName: values.fullName || undefined,
+      email: values.email || undefined,
+      address: values.address || undefined,
+      nationality: values.nationality || undefined,
+      phoneNumber: values.phoneNumber || undefined,
+      identityNumber: values.identityNumber || undefined,
+      status: values.status || undefined,
+      dob: new Date(values.dob),
+    };
+
+    mutation.mutate({ id: userId, updatedUser });
   }
 
   return (
     <div className="flex justify-center items-center">
       <Card className="w-full h-full">
         <CardHeader>
-          <CardTitle>Add New User</CardTitle>
+          <CardTitle>Update User</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="fullname"
+                name="fullName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>User Name</FormLabel>
@@ -89,30 +125,7 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select role</option>
-                        {USER_ROLE.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>Type the role</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -163,33 +176,10 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="guest_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Guest_type</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select type</option>
-                        {USER_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>Type the guest type</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone_number"
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone_number</FormLabel>
@@ -205,7 +195,7 @@ export const UserEdit = () => {
               />
               <FormField
                 control={form.control}
-                name="identity_number"
+                name="identityNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Identity_number</FormLabel>
@@ -235,7 +225,7 @@ export const UserEdit = () => {
                       >
                         <option value="">Select status</option>
                         <option value="active">active</option>
-                        <option value="deleted">deleted</option>
+                        <option value="deleted">inactive</option>
                       </select>
                     </FormControl>
                     <FormDescription>
@@ -245,6 +235,7 @@ export const UserEdit = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="dob"
@@ -252,109 +243,7 @@ export const UserEdit = () => {
                   <FormItem>
                     <FormLabel>Date of Birth</FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value?.toISOString().split("T")[0]}
-                        onChange={(e) =>
-                          field.onChange(new Date(e.target.value))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="created_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Created At</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        value={
-                          field.value
-                            ? new Date(
-                                field.value.getTime() -
-                                  field.value.getTimezoneOffset() * 60000
-                              )
-                                .toISOString()
-                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date
-                          const date = value ? new Date(value) : null;
-                          field.onChange(date);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="updated_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Updated At</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        value={
-                          field.value
-                            ? new Date(
-                                field.value.getTime() -
-                                  field.value.getTimezoneOffset() * 60000
-                              )
-                                .toISOString()
-                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date
-                          const date = value ? new Date(value) : null;
-                          field.onChange(date);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deleted_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deleted At</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        value={
-                          field.value
-                            ? new Date(
-                                field.value.getTime() -
-                                  field.value.getTimezoneOffset() * 60000
-                              )
-                                .toISOString()
-                                .slice(0, 16) // Định dạng YYYY-MM-DDTHH:mm
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Chuyển đổi từ chuỗi YYYY-MM-DDTHH:mm sang đối tượng Date hoặc null
-                          const date = value ? new Date(value) : null;
-                          field.onChange(date);
-                        }}
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

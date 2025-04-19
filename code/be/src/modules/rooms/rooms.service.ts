@@ -12,6 +12,7 @@ import {
   UpdateRoomDto,
 } from 'src/modules/rooms/dto';
 import { Room } from 'src/modules/rooms/entities/room.entity';
+import { RoomStatusEnum } from 'src/modules/rooms/enums';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -86,11 +87,10 @@ export class RoomsService {
   async findOne(id: string) {
     const findRoom = await this.roomRepository.findOne({
       where: { id },
-      relations: ['roomType'],
+      relations: {
+        roomType: true,
+      },
     });
-
-    if (!findRoom)
-      throw new NotFoundException(`Room with id: '${id}' not found.`);
 
     return findRoom;
   }
@@ -151,4 +151,29 @@ export class RoomsService {
 
     return await this.roomRepository.find({ relations: ['roomType'] });
   }
+
+  public handleUpdateStatusOfRoom = async (
+    roomId: string,
+    status: RoomStatusEnum,
+  ) => {
+    try {
+      const room = await this.roomRepository.findOne({
+        where: {
+          id: roomId,
+        },
+      });
+
+      if (!room)
+        throw new BadRequestException(
+          `Room with id '${roomId}' not found in the system.`,
+        );
+
+      room.status = status;
+
+      await this.roomRepository.save(room);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
 }

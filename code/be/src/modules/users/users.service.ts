@@ -9,17 +9,19 @@ import { HashingProvider } from 'src/libs/common/providers';
 import { SignUpDto } from 'src/modules/auth/dto';
 import {
   AssignRoleDto,
+  LockAccountDto,
   RevokeRoleDto,
   SearchUsersDto,
+  UnlockAccountDto,
   UpdateUserDto,
 } from 'src/modules/users/dto';
-import { Profile, Role, UserType } from 'src/modules/users/entities';
+import { Profile, Role, User, UserType } from 'src/modules/users/entities';
 import {
   ProfileStatusEnum,
   RoleEnum,
   UserTypeEnum,
 } from 'src/modules/users/enums';
-import { Repository } from 'typeorm';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { UsersRepository } from './users.repository';
 
 @Injectable()
@@ -33,6 +35,7 @@ export class UsersService {
     @InjectRepository(UserType)
     private readonly userTypeRepository: Repository<UserType>,
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createUser(signUpDto: SignUpDto) {
@@ -128,6 +131,18 @@ export class UsersService {
       ]);
 
     if (searchUsersDto) {
+      if (searchUsersDto?.roleName && role === 'superadmin') {
+        qb.andWhere('role.roleName = :roleName', {
+          roleName: searchUsersDto.roleName,
+        });
+      }
+
+      if (searchUsersDto?.userTypeName) {
+        qb.andWhere('userType.typeName = :userTypeName', {
+          userTypeName: searchUsersDto.userTypeName,
+        });
+      }
+
       if (searchUsersDto?.address) {
         qb.andWhere('LOWER(profile.address) LIKE LOWER(:address)', {
           address: `%${searchUsersDto.address}%`,
@@ -157,18 +172,14 @@ export class UsersService {
 
       if (searchUsersDto?.status) {
         qb.andWhere('profile.status = :status', {
-          status: `%${searchUsersDto.status}%`,
+          status: searchUsersDto.status,
         });
       }
     }
 
-    if (role === 'admin') {
-      qb.andWhere('role.roleName = :roleName', { roleName: 'user' });
-    } else if (role === 'superadmin') {
-      qb.andWhere('role.roleName != :roleName', { roleName: 'superadmin' });
-    }
-
-    return await qb.getMany();
+    return (await qb.getMany()).filter(
+      (user) => user.role.roleName !== RoleEnum.SUPER_ADMIN,
+    );
   }
 
   async findOne(email: string) {
@@ -452,4 +463,147 @@ export class UsersService {
       throw err;
     }
   };
+
+  async handleLockAccount(lockAccountDto: LockAccountDto, role: RoleEnum) {
+    const { userIds } = lockAccountDto;
+
+    const userRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.USER,
+      },
+    });
+
+    if (!userRole) {
+      throw new NotFoundException(`Role user not found in the system.`);
+    }
+
+    const adminRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.ADMIN,
+      },
+    });
+
+    if (!adminRole) {
+      throw new NotFoundException(`Role admin not found in the system.`);
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    const userRepository = queryRunner.manager.getRepository(User);
+    try {
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await userRepository.findOne({
+            where: {
+              id: userId,
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user) {
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system or already locked.`,
+            );
+          }
+
+          const isAllowed =
+            user.role.roleName !== RoleEnum.ADMIN ||
+            role === RoleEnum.SUPER_ADMIN;
+
+          if (!isAllowed) {
+            throw new BadRequestException(
+              `User with id '${userId}' cannot be locked as they have ADMIN privileges.`,
+            );
+          }
+
+          await userRepository.softRemove(user);
+        }),
+      );
+      await queryRunner.commitTransaction();
+
+      return this.findAll(role);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async handleUnlockAccount(
+    unlockAccountDto: UnlockAccountDto,
+    role: RoleEnum,
+  ) {
+    const { userIds } = unlockAccountDto;
+
+    const userRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.USER,
+      },
+    });
+
+    if (!userRole) {
+      throw new NotFoundException(`Role user not found in the system.`);
+    }
+
+    const adminRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.ADMIN,
+      },
+    });
+
+    if (!adminRole) {
+      throw new NotFoundException(`Role admin not found in the system.`);
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    const userRepository = queryRunner.manager.getRepository(User);
+    try {
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await userRepository.findOne({
+            withDeleted: true,
+            where: {
+              id: userId,
+              deletedAt: Not(IsNull()),
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user) {
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system or already unlocked.`,
+            );
+          }
+
+          const isAllowed =
+            user.role.roleName !== RoleEnum.ADMIN ||
+            role === RoleEnum.SUPER_ADMIN;
+
+          if (!isAllowed) {
+            throw new BadRequestException(
+              `User with id '${userId}' cannot be unlocked as they have ADMIN privileges.`,
+            );
+          }
+
+          await userRepository.recover(user);
+        }),
+      );
+      await queryRunner.commitTransaction();
+
+      return this.findAll(role);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }
