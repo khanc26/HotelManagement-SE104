@@ -1,4 +1,11 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles } from 'src/libs/common/decorators';
 import { JwtAuthGuard, RoleAuthGuard } from 'src/libs/common/guards';
 import { SearchMonthlyRevenueDto } from 'src/modules/reports/dto';
@@ -16,5 +23,10 @@ export class ReportsController {
     @Query() searchMonthlyRevenueDto?: SearchMonthlyRevenueDto,
   ) {
     return this.reportsService.handleGetMonthlyRevenue(searchMonthlyRevenueDto);
+  }
+
+  @Get(':id')
+  async getMonthlyRevenueDetails(@Param('id', ParseUUIDPipe) id: string) {
+    return this.reportsService.handleGetMonthlyRevenueDetails(id);
   }
 }
