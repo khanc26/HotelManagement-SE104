@@ -1,3 +1,5 @@
+import { ProfileEdit } from "@/features/profile/profile-edit";
+import { MyProfile } from "@/features/profile/profile-my-profile";
 import { RoomAddNew } from "@/features/room/components/room-add";
 import { RoomEdit } from "@/features/room/components/room-edit";
 import { RoomList } from "@/features/room/components/room-list";
@@ -158,6 +160,16 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+        children: [
+          {
+            path: "my-profile",
+            element: <MyProfile />,
+          },
+          {
+            path: "edit",
+            element: <ProfileEdit />,
+          }
+        ]
       },
       {
         path: "error",

@@ -57,7 +57,7 @@ const menuItems = {
     },
     {
       title: "Profile",
-      url: "/profile",
+      url: "/profile/my-profile",
       icon: UserCog,
     },
   ],
