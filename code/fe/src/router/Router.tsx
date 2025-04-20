@@ -1,9 +1,19 @@
+import { PrivateRoutes } from "@/features/auth/components/private-routes";
+import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
+import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
+import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
+import { BookingList } from "@/features/booking/components/booking-list";
+import { ProfileEdit } from "@/features/profile/profile-edit";
+import { MyProfile } from "@/features/profile/profile-my-profile";
 import { RoomAddNew } from "@/features/room/components/room-add";
 import { RoomEdit } from "@/features/room/components/room-edit";
 import { RoomList } from "@/features/room/components/room-list";
 import { UserAddNew } from "@/features/user/user-add";
 import { UserEdit } from "@/features/user/user-edit";
 import { UserList } from "@/features/user/user-list";
+import BookingsPage from "@/pages/BookingsPage";
+import ErrorPage from "@/pages/ErrorPage";
+import NotAuthenticated from "@/pages/NotAuthenticated";
 import UsersPage from "@/pages/UsersPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
@@ -18,9 +28,9 @@ import SettingsPage from "../pages/SettingsPage";
 import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
-import ErrorPage from "@/pages/ErrorPage";
-import { PrivateRoutes } from "@/features/auth/components/private-routes";
-import NotAuthenticated from "@/pages/NotAuthenticated";
+//import ErrorPage from "@/pages/ErrorPage";
+//import { PrivateRoutes } from "@/features/auth/components/private-routes";
+//import NotAuthenticated from "@/pages/NotAuthenticated";
 import RoomTypePage from "@/pages/RoomTypePage";
 import { RoomTypeAdd }  from "@/features/roomtype/room-type-add";
 import  RoomTypeList from "@/features/roomtype/room-type-list";
@@ -77,6 +87,33 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+        
+      },
+      {
+        path: "bookings",
+        element: <BookingsPage />,
+        children: [
+          {
+            index: true,
+            element: <BookingList />,
+          },
+          {
+            path: "list",
+            element: <BookingList />,
+          },
+          {
+            path: ":id",
+            element: <BookingDetailList />,
+          },
+          {
+            path: ":id/:detailId",
+            element: <BookingDetail />,
+          },
+          {
+            path: ":id/:detailId/edit",
+            element: <BookingDetailEdit />,
+          },
+        ],
       },
       {
         path: "users",
@@ -119,14 +156,20 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+        children: [
+          {
+            path: "my-profile",
+            element: <MyProfile />,
+          },
+          {
+            path: "edit",
+            element: <ProfileEdit />,
+          }
+        ]
       },
       {
         path: "error",
         element: <ErrorPage />,
-      },
-      {
-        path: "not-authenticated",
-        element: <NotAuthenticated />,
       },
     ],
   },
@@ -134,6 +177,10 @@ const router = createBrowserRouter([
     path: "/auth",
     element: <AuthLayout />,
     children: [
+      {
+        path: "not-authenticated",
+        element: <NotAuthenticated />,
+      },
       {
         path: "sign-in",
         element: <SignInPage />,

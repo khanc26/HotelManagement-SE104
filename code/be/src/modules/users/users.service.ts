@@ -6,16 +6,23 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { HashingProvider } from 'src/libs/common/providers';
-import { Repository } from 'typeorm';
-import { UsersRepository } from './users.repository';
-import { Profile, Role, UserType } from 'src/modules/users/entities';
 import { SignUpDto } from 'src/modules/auth/dto';
-import { SearchUsersDto, UpdateUserDto } from 'src/modules/users/dto';
 import {
-  RoleEnum,
+  AssignRoleDto,
+  LockAccountDto,
+  RevokeRoleDto,
+  SearchUsersDto,
+  UnlockAccountDto,
+  UpdateUserDto,
+} from 'src/modules/users/dto';
+import { Profile, Role, User, UserType } from 'src/modules/users/entities';
+import {
   ProfileStatusEnum,
+  RoleEnum,
   UserTypeEnum,
 } from 'src/modules/users/enums';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +35,7 @@ export class UsersService {
     @InjectRepository(UserType)
     private readonly userTypeRepository: Repository<UserType>,
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createUser(signUpDto: SignUpDto) {
@@ -99,7 +107,7 @@ export class UsersService {
     );
   }
 
-  async findAll(searchUsersDto?: SearchUsersDto) {
+  async findAll(role: string, searchUsersDto?: SearchUsersDto) {
     const qb = this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.profile', 'profile')
@@ -123,6 +131,18 @@ export class UsersService {
       ]);
 
     if (searchUsersDto) {
+      if (searchUsersDto?.roleName && role === 'superadmin') {
+        qb.andWhere('role.roleName = :roleName', {
+          roleName: searchUsersDto.roleName,
+        });
+      }
+
+      if (searchUsersDto?.userTypeName) {
+        qb.andWhere('userType.typeName = :userTypeName', {
+          userTypeName: searchUsersDto.userTypeName,
+        });
+      }
+
       if (searchUsersDto?.address) {
         qb.andWhere('LOWER(profile.address) LIKE LOWER(:address)', {
           address: `%${searchUsersDto.address}%`,
@@ -152,14 +172,14 @@ export class UsersService {
 
       if (searchUsersDto?.status) {
         qb.andWhere('profile.status = :status', {
-          status: `%${searchUsersDto.status}%`,
+          status: searchUsersDto.status,
         });
       }
     }
 
-    qb.andWhere('role.roleName != :roleName', { roleName: 'admin' });
-
-    return await qb.getMany();
+    return (await qb.getMany()).filter(
+      (user) => user.role.roleName !== RoleEnum.SUPER_ADMIN,
+    );
   }
 
   async findOne(email: string) {
@@ -194,7 +214,7 @@ export class UsersService {
     });
   }
 
-  public handleDeleteUser = async (userId: string) => {
+  public handleDeleteUser = async (userId: string, role: string) => {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['profile'],
@@ -209,7 +229,7 @@ export class UsersService {
 
     await this.userRepository.save(user);
 
-    return this.findAll();
+    return this.findAll(role);
   };
 
   public handleGetProfileByUserId = async (userId: string) => {
@@ -343,4 +363,247 @@ export class UsersService {
       relations: ['role'],
     });
   };
+
+  public handleAssignRoleToUsers = async (
+    assignRoleDto: AssignRoleDto,
+    role: string,
+  ) => {
+    try {
+      const { userIds } = assignRoleDto;
+
+      const adminRole = await this.roleRepository.findOne({
+        where: {
+          roleName: RoleEnum.ADMIN,
+        },
+      });
+
+      if (!adminRole)
+        throw new NotFoundException(`Role admin not found in the system.`);
+
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await this.userRepository.findOne({
+            where: {
+              id: userId,
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user)
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system.`,
+            );
+
+          if (user.role.roleName === RoleEnum.ADMIN)
+            throw new BadRequestException(
+              `User with id '${user.id}' already has ADMIN privileges.`,
+            );
+
+          user.role = adminRole;
+
+          await this.userRepository.save(user);
+        }),
+      );
+
+      return this.findAll(role);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  public handleRevokeRoleToUsers = async (
+    revokeRoleDto: RevokeRoleDto,
+    role: string,
+  ) => {
+    try {
+      const { userIds } = revokeRoleDto;
+
+      const userRole = await this.roleRepository.findOne({
+        where: {
+          roleName: RoleEnum.USER,
+        },
+      });
+
+      if (!userRole)
+        throw new NotFoundException(`Role user not found in the system.`);
+
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await this.userRepository.findOne({
+            where: {
+              id: userId,
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user)
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system.`,
+            );
+
+          if (user.role.roleName === RoleEnum.USER)
+            throw new BadRequestException(
+              `User with id '${user.id}' already has USER privileges.`,
+            );
+
+          user.role = userRole;
+
+          await this.userRepository.save(user);
+        }),
+      );
+
+      return this.findAll(role);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  async handleLockAccount(lockAccountDto: LockAccountDto, role: RoleEnum) {
+    const { userIds } = lockAccountDto;
+
+    const userRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.USER,
+      },
+    });
+
+    if (!userRole) {
+      throw new NotFoundException(`Role user not found in the system.`);
+    }
+
+    const adminRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.ADMIN,
+      },
+    });
+
+    if (!adminRole) {
+      throw new NotFoundException(`Role admin not found in the system.`);
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    const userRepository = queryRunner.manager.getRepository(User);
+    try {
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await userRepository.findOne({
+            where: {
+              id: userId,
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user) {
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system or already locked.`,
+            );
+          }
+
+          const isAllowed =
+            user.role.roleName !== RoleEnum.ADMIN ||
+            role === RoleEnum.SUPER_ADMIN;
+
+          if (!isAllowed) {
+            throw new BadRequestException(
+              `User with id '${userId}' cannot be locked as they have ADMIN privileges.`,
+            );
+          }
+
+          await userRepository.softRemove(user);
+        }),
+      );
+      await queryRunner.commitTransaction();
+
+      return this.findAll(role);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async handleUnlockAccount(
+    unlockAccountDto: UnlockAccountDto,
+    role: RoleEnum,
+  ) {
+    const { userIds } = unlockAccountDto;
+
+    const userRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.USER,
+      },
+    });
+
+    if (!userRole) {
+      throw new NotFoundException(`Role user not found in the system.`);
+    }
+
+    const adminRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.ADMIN,
+      },
+    });
+
+    if (!adminRole) {
+      throw new NotFoundException(`Role admin not found in the system.`);
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    const userRepository = queryRunner.manager.getRepository(User);
+    try {
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await userRepository.findOne({
+            withDeleted: true,
+            where: {
+              id: userId,
+              deletedAt: Not(IsNull()),
+            },
+            relations: {
+              role: true,
+            },
+          });
+
+          if (!user) {
+            throw new BadRequestException(
+              `User with id '${userId}' not found in the system or already unlocked.`,
+            );
+          }
+
+          const isAllowed =
+            user.role.roleName !== RoleEnum.ADMIN ||
+            role === RoleEnum.SUPER_ADMIN;
+
+          if (!isAllowed) {
+            throw new BadRequestException(
+              `User with id '${userId}' cannot be unlocked as they have ADMIN privileges.`,
+            );
+          }
+
+          await userRepository.recover(user);
+        }),
+      );
+      await queryRunner.commitTransaction();
+
+      return this.findAll(role);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }

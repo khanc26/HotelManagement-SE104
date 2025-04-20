@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { MAX_GUESTS_PER_ROOM } from 'src/libs/common/constants';
 import { BookingDetail } from 'src/modules/booking-details/entities';
@@ -17,7 +17,7 @@ import { Room } from 'src/modules/rooms/entities';
 import { RoomStatusEnum } from 'src/modules/rooms/enums';
 import { RoomsService } from 'src/modules/rooms/rooms.service';
 import { UsersService } from 'src/modules/users/users.service';
-import { In } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { RoleEnum, UserTypeEnum } from '../users/enums';
 import { BookingDetailsRepository } from './booking-details.repository';
 import { CreateBookingDetailDto, UpdateBookingDetailDto } from './dto';
@@ -31,6 +31,7 @@ export class BookingDetailsService {
     private readonly invoicesService: InvoicesService,
     private readonly configurationsService: ConfigurationsService,
     private readonly roomsService: RoomsService,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async create(createBookingDetailDto: CreateBookingDetailDto, userId: string) {
@@ -51,6 +52,11 @@ export class BookingDetailsService {
       throw new NotFoundException(`Room with id: '${roomId}' not found.`);
     }
 
+    if (existingRoom.status === RoomStatusEnum.OCCUPIED)
+      throw new BadRequestException(
+        `Room '${existingRoom.roomNumber}' has been occupied by another user.`,
+      );
+
     const maxGuestsPerRoomConfig =
       await this.configurationsService.handleGetValueByName(
         MAX_GUESTS_PER_ROOM,
@@ -66,19 +72,23 @@ export class BookingDetailsService {
         `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
       );
 
-    const days =
-      Math.ceil(
-        new Date(createBookingDetailDto.endDate).getTime() -
-          new Date(createBookingDetailDto.startDate).getTime(),
-      ) /
-        (1000 * 60 * 60 * 24) +
-      1;
+    const { startDate, endDate } = createBookingDetailDto;
 
-    if (days <= 0) {
-      throw new NotFoundException(
-        `Booking detail start date must be before end date.`,
+    const now = new Date().getTime();
+
+    const start = new Date(startDate).getTime();
+
+    const end = new Date(endDate).getTime();
+
+    if (start >= end)
+      throw new BadRequestException(
+        `End date must be greater than start date.`,
       );
-    }
+
+    if (start <= now)
+      throw new BadRequestException('Start date must be in the future.');
+
+    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
     const baseDetailPrice = existingRoom.roomType.roomPrice * days;
 
@@ -94,9 +104,17 @@ export class BookingDetailsService {
       ? foreignUserType.surcharge_factor
       : localUserType.surcharge_factor;
 
+    const surchargeRate =
+      await this.configurationsService.handleGetValueByName('surcharge_rate');
+
+    if (!surchargeRate)
+      throw new NotFoundException(
+        `Configuration for surcharge rate not found.`,
+      );
+
     const detailPrice =
       baseDetailPrice *
-      (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
+      (1 + surchargeRate.configValue * (guestCount > 2 ? 1 : 0)) *
       surcharge_factor;
 
     const newBookingDetail = this.bookingDetailsRepository.create(
@@ -113,6 +131,11 @@ export class BookingDetailsService {
       totalPrice: detailPrice,
       dayRent: days,
     });
+
+    await this.roomsService.handleUpdateStatusOfRoom(
+      existingRoom.id,
+      RoomStatusEnum.OCCUPIED,
+    );
 
     newBookingDetail.invoice = newInvoice;
 
@@ -131,28 +154,30 @@ export class BookingDetailsService {
       throw new NotFoundException(`User with id: '${userId}' not found.`);
     }
 
-    return this.bookingDetailsRepository.find({
-      relations: {
-        booking: {
-          user: true,
+    return (
+      await this.bookingDetailsRepository.find({
+        relations: {
+          booking: {
+            user: true,
+          },
+          room: true,
+          invoice: true,
         },
-        room: true,
-        invoice: true,
-      },
-      where:
-        existingUser.role.roleName === RoleEnum.ADMIN
-          ? {}
-          : {
-              booking: {
-                user: {
-                  id: existingUser.id,
+        where:
+          existingUser.role.roleName === RoleEnum.ADMIN
+            ? {}
+            : {
+                booking: {
+                  user: {
+                    id: existingUser.id,
+                  },
                 },
               },
-            },
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+        order: {
+          createdAt: 'DESC',
+        },
+      })
+    ).map((bd) => omit(bd, ['booking.user.password']));
   }
 
   async findOne(id: string, userId: string) {
@@ -212,7 +237,13 @@ export class BookingDetailsService {
       where: {
         id,
       },
-      relations: ['room', 'booking', 'booking.user', 'invoice'],
+      relations: [
+        'room',
+        'booking',
+        'booking.user',
+        'invoice',
+        'room.roomType',
+      ],
     });
 
     if (!existingBookingDetail)
@@ -249,47 +280,45 @@ export class BookingDetailsService {
 
     let days: number = 0;
 
-    if (startDate || endDate) {
-      const now = new Date().getTime();
+    const now = new Date().getTime();
 
-      if (!endDate && startDate) {
-        if (now <= startDate.getTime())
-          throw new BadRequestException(
-            `New start date must be greater than current date.`,
-          );
-
-        if (startDate.getTime() > existingBookingDetail.endDate.getTime())
-          throw new BadRequestException(
-            `New start date can't be greater than end date of the booking detail.`,
-          );
-      }
-
-      if (!startDate && endDate) {
-        if (now <= endDate.getTime())
-          throw new BadRequestException(
-            `New end date must be greater than current date.`,
-          );
-
-        if (endDate.getTime() < existingBookingDetail.startDate.getTime())
-          throw new BadRequestException(
-            `New end date must be greater than start date of the booking detail.`,
-          );
-      }
-
-      if (startDate && endDate && startDate.getTime() > endDate.getTime()) {
+    if (!endDate && startDate) {
+      if (now <= startDate.getTime())
         throw new BadRequestException(
-          `New start date can't be greater than new end date.`,
+          `New start date must be greater than current date.`,
         );
-      }
 
-      days =
-        Math.ceil(
-          (endDate ? endDate : existingBookingDetail.endDate).getTime() -
-            (startDate ? startDate : existingBookingDetail.startDate).getTime(),
-        ) /
-          (1000 * 60 * 60 * 24) +
-        1;
+      if (startDate.getTime() > existingBookingDetail.endDate.getTime())
+        throw new BadRequestException(
+          `New start date can't be greater than end date of the booking detail.`,
+        );
     }
+
+    if (!startDate && endDate) {
+      if (now <= endDate.getTime())
+        throw new BadRequestException(
+          `New end date must be greater than current date.`,
+        );
+
+      if (endDate.getTime() < existingBookingDetail.startDate.getTime())
+        throw new BadRequestException(
+          `New end date must be greater than start date of the booking detail.`,
+        );
+    }
+
+    if (startDate && endDate && startDate.getTime() > endDate.getTime()) {
+      throw new BadRequestException(
+        `New start date can't be greater than new end date.`,
+      );
+    }
+
+    days =
+      Math.ceil(
+        (endDate ? endDate : existingBookingDetail.endDate).getTime() -
+          (startDate ? startDate : existingBookingDetail.startDate).getTime(),
+      ) /
+        (1000 * 60 * 60 * 24) +
+      1;
 
     const maxGuestsPerRoomConfig =
       await this.configurationsService.handleGetValueByName(
@@ -304,7 +333,12 @@ export class BookingDetailsService {
     const guestCount =
       updateBookingDetailDto?.guestCount ?? existingBookingDetail.guestCount;
 
-    let existingRoom: Room | null = null;
+    if (guestCount > maxGuestsPerRoomConfig.configValue)
+      throw new BadRequestException(
+        `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+      );
+
+    let existingRoom: Room | null = existingBookingDetail.room;
 
     if (roomId) {
       existingRoom = await this.roomsService.findOne(roomId);
@@ -327,54 +361,65 @@ export class BookingDetailsService {
         );
     }
 
+    const dataToUpdate = Object.fromEntries(
+      Object.entries(res).filter(
+        ([key, value]) =>
+          key !== 'bookingDetailId' && value !== null && value !== undefined,
+      ),
+    );
+
+    await this.bookingDetailsRepository.update(
+      { id: existingBookingDetail.id },
+      dataToUpdate,
+    );
+
+    if (roomId && existingRoom)
+      await this.dataSource
+        .createQueryBuilder()
+        .relation('BookingDetails', 'room')
+        .of(existingBookingDetail.id)
+        .set(existingRoom.id);
+
+    const baseDetailPrice =
+      existingBookingDetail.room.roomType.roomPrice * days;
+
+    const foreignUserType = await this.usersService.handleGetUserTypeByName(
+      UserTypeEnum.FOREIGN,
+    );
+
+    const localUserType = await this.usersService.handleGetUserTypeByName(
+      UserTypeEnum.LOCAL,
+    );
+
+    const surcharge_factor = updateBookingDetailDto?.hasForeigners
+      ? foreignUserType.surcharge_factor
+      : localUserType.surcharge_factor;
+
+    const surchargeRate =
+      await this.configurationsService.handleGetValueByName('surcharge_rate');
+
+    if (!surchargeRate)
+      throw new NotFoundException(`Configuration for surchare rate not found.`);
+
+    const detailPrice =
+      baseDetailPrice *
+      (1 + surchargeRate.configValue * (guestCount > 2 ? 1 : 0)) *
+      surcharge_factor;
+
     await this.bookingDetailsRepository.update(
       {
         id: existingBookingDetail.id,
       },
-      res,
+      {
+        totalPrice: detailPrice,
+      },
     );
 
-    if (roomId && existingRoom) {
-      existingBookingDetail.room = existingRoom;
-
-      await this.bookingDetailsRepository.save(existingBookingDetail);
-    }
-
-    if (days > 0) {
-      const baseDetailPrice =
-        (existingRoom ? existingRoom : existingBookingDetail.room).roomType
-          .roomPrice * days;
-
-      const foreignUserType = await this.usersService.handleGetUserTypeByName(
-        UserTypeEnum.FOREIGN,
-      );
-
-      const localUserType = await this.usersService.handleGetUserTypeByName(
-        UserTypeEnum.LOCAL,
-      );
-
-      const surcharge_factor = updateBookingDetailDto?.hasForeigners
-        ? foreignUserType.surcharge_factor
-        : localUserType.surcharge_factor;
-
-      const detailPrice =
-        baseDetailPrice *
-        (1 + 0.25 * (guestCount > 2 ? 1 : 0)) *
-        surcharge_factor;
-
-      existingBookingDetail.totalPrice = detailPrice;
-
-      await this.invoicesService.updateInvoice(
-        existingBookingDetail.invoice.id,
-        {
-          basePrice: baseDetailPrice,
-          totalPrice: detailPrice,
-          dayRent: days,
-        },
-      );
-    }
-
-    return await this.bookingDetailsRepository.save(existingBookingDetail);
+    await this.invoicesService.updateInvoice(existingBookingDetail.invoice.id, {
+      basePrice: baseDetailPrice,
+      totalPrice: detailPrice,
+      dayRent: days,
+    });
   };
 
   public handleAssignBookingDetailsToBooking = async (
@@ -400,4 +445,53 @@ export class BookingDetailsService {
 
     await this.bookingDetailsRepository.softDelete(bookingDetailIds);
   };
+
+  public async getRevenueByRoomTypeInMonth(
+    month: string,
+  ): Promise<Array<{ roomType: string; revenue: number; percent: string }>> {
+    const totalRevenueResult: { totalRevenue: string } | undefined =
+      await this.dataSource
+        .getRepository(BookingDetail)
+        .createQueryBuilder('bd')
+        .innerJoin('bd.booking', 'booking')
+        .innerJoin('bd.room', 'room')
+        .innerJoin('room.roomType', 'roomType')
+        .select('SUM(bd.totalPrice)', 'totalRevenue')
+        .where("DATE_FORMAT(booking.createdAt, '%Y-%m') = :month", { month })
+        .andWhere('booking.deletedAt IS NULL')
+        .getRawOne();
+
+    const totalRevenue = parseFloat(totalRevenueResult?.totalRevenue ?? '0');
+
+    const roomTypeRevenues: Array<{
+      revenue: string;
+      roomType: string;
+    }> = await this.dataSource
+      .getRepository(BookingDetail)
+      .createQueryBuilder('bd')
+      .innerJoin('bd.booking', 'booking')
+      .innerJoin('bd.room', 'room')
+      .innerJoin('room.roomType', 'roomType')
+      .select('roomType.name', 'roomType')
+      .addSelect('SUM(bd.totalPrice)', 'revenue')
+      .where("DATE_FORMAT(booking.createdAt, '%Y-%m') = :month", { month })
+      .andWhere('booking.deletedAt IS NULL')
+      .groupBy('roomType.name')
+      .orderBy('revenue', 'DESC')
+      .getRawMany();
+
+    return roomTypeRevenues.map((item) => {
+      const revenue = parseFloat(item.revenue);
+
+      const percent = totalRevenue
+        ? ((revenue / totalRevenue) * 100).toFixed(2)
+        : '0.00';
+
+      return {
+        roomType: item.roomType,
+        revenue,
+        percent: `${percent}`,
+      };
+    });
+  }
 }

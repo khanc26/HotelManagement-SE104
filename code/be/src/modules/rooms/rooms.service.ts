@@ -12,6 +12,7 @@ import {
   UpdateRoomDto,
 } from 'src/modules/rooms/dto';
 import { Room } from 'src/modules/rooms/entities/room.entity';
+import { RoomStatusEnum } from 'src/modules/rooms/enums';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -74,8 +75,6 @@ export class RoomsService {
       }
 
       if (searchRoomsDto.status) {
-        console.log(searchRoomsDto.status);
-
         qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
           status: `%${searchRoomsDto.status}%`,
         });
@@ -88,11 +87,10 @@ export class RoomsService {
   async findOne(id: string) {
     const findRoom = await this.roomRepository.findOne({
       where: { id },
-      relations: ['roomType'],
+      relations: {
+        roomType: true,
+      },
     });
-
-    if (!findRoom)
-      throw new NotFoundException(`Room with id: '${id}' not found.`);
 
     return findRoom;
   }
@@ -153,4 +151,89 @@ export class RoomsService {
 
     return await this.roomRepository.find({ relations: ['roomType'] });
   }
+
+  public handleUpdateStatusOfRoom = async (
+    roomId: string,
+    status: RoomStatusEnum,
+  ) => {
+    try {
+      const room = await this.roomRepository.findOne({
+        where: {
+          id: roomId,
+        },
+      });
+
+      if (!room)
+        throw new BadRequestException(
+          `Room with id '${roomId}' not found in the system.`,
+        );
+
+      room.status = status;
+
+      await this.roomRepository.save(room);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  public handleGetRoomStatusPercentageByType = async (
+    status: RoomStatusEnum,
+  ) => {
+    const totalByType: Array<{ roomType: string; total: string }> =
+      await this.roomRepository
+        .createQueryBuilder('room')
+        .leftJoin('room.roomType', 'roomType')
+        .select('roomType.name', 'roomType')
+        .addSelect('COUNT(*)', 'total')
+        .groupBy('roomType.name')
+        .getRawMany();
+
+    const countByStatus: Array<{
+      roomType: string;
+      status: RoomStatusEnum;
+      count: string;
+    }> = await this.roomRepository
+      .createQueryBuilder('room')
+      .leftJoin('room.roomType', 'roomType')
+      .select('roomType.name', 'roomType')
+      .addSelect('room.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('roomType.name')
+      .addGroupBy('room.status')
+      .getRawMany();
+
+    const statusMap = new Map<string, { [key in RoomStatusEnum]?: number }>();
+
+    for (const row of countByStatus) {
+      const { roomType, status, count } = row;
+
+      if (!statusMap.has(roomType)) {
+        statusMap.set(roomType, {});
+      }
+
+      statusMap.get(roomType)![status] = Number(count);
+    }
+
+    return totalByType.map((t) => {
+      const roomType = t.roomType;
+
+      const total = Number(t.total);
+
+      const statusCounts = statusMap.get(roomType) || {};
+
+      const statusCount = statusCounts[status] || 0;
+
+      const percentage =
+        total === 0 ? 0 : +((statusCount / total) * 100).toFixed(2);
+
+      return {
+        roomType,
+        percentage,
+        totalRooms: total,
+        available: statusCounts[RoomStatusEnum.AVAILABLE] || 0,
+        occupied: statusCounts[RoomStatusEnum.OCCUPIED] || 0,
+      };
+    });
+  };
 }

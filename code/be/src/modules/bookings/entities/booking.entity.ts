@@ -1,3 +1,4 @@
+import { transformDateTime } from 'src/libs/common/helpers';
 import { BookingDetail } from 'src/modules/booking-details/entities';
 import { User } from 'src/modules/users/entities';
 import {
@@ -17,7 +18,15 @@ export class Booking {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column({ type: 'decimal', scale: 2, precision: 10 })
+  @Column({
+    type: 'decimal',
+    scale: 2,
+    precision: 10,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   totalPrice!: number;
 
   @ManyToOne(() => User, (user) => user.bookings, {
@@ -33,12 +42,22 @@ export class Booking {
   })
   bookingDetails!: BookingDetail[];
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

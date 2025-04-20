@@ -1,3 +1,4 @@
+import { transformDateTime } from 'src/libs/common/helpers';
 import { BookingDetail } from 'src/modules/booking-details/entities';
 import { InvoicesStatus } from 'src/modules/invoices/enums/invoices-status.enum';
 import {
@@ -16,10 +17,26 @@ export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column({ type: 'decimal', scale: 2, precision: 10 })
+  @Column({
+    type: 'decimal',
+    scale: 2,
+    precision: 10,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   basePrice!: number;
 
-  @Column({ type: 'decimal', scale: 2, precision: 10 })
+  @Column({
+    type: 'decimal',
+    scale: 2,
+    precision: 10,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   totalPrice!: number;
 
   @Column({ type: 'int' })
@@ -40,12 +57,22 @@ export class Invoice {
   @JoinColumn()
   bookingDetail!: BookingDetail;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    transformer: transformDateTime,
+  })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

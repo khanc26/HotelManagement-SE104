@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
@@ -37,13 +37,35 @@ export class UpdateBookingDetailDto {
   @ApiProperty()
   @IsOptional()
   @IsDate()
-  @Type(() => Date)
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+
+    return undefined;
+  })
   readonly startDate?: Date;
 
   @ApiProperty()
   @IsOptional()
   @IsDate()
-  @Type(() => Date)
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+
+    return undefined;
+  })
   readonly endDate?: Date;
 
   @ApiProperty()

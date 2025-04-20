@@ -26,7 +26,7 @@ export class BookingsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RoleAuthGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.USER)
   async createBooking(
     @Body() createBookingDto: CreateBookingDto,
     @UserSession('userId') userId: string,

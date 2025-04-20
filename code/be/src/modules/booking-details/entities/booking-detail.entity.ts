@@ -1,3 +1,4 @@
+import { transformDateTime } from 'src/libs/common/helpers';
 import {
   BookingDetailsApprovalStatus,
   BookingDetailsStatus,
@@ -28,10 +29,10 @@ export class BookingDetail {
   @Column({ type: 'boolean', default: false })
   hasForeigners!: boolean;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', transformer: transformDateTime })
   startDate!: Date;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', transformer: transformDateTime })
   endDate!: Date;
 
   @Column({
@@ -52,6 +53,10 @@ export class BookingDetail {
     type: 'decimal',
     scale: 2,
     precision: 10,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
   })
   totalPrice!: number;
 
@@ -72,12 +77,16 @@ export class BookingDetail {
   @OneToOne(() => Invoice, (invoice) => invoice.bookingDetail)
   invoice!: Invoice;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', transformer: transformDateTime })
   readonly updatedAt!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime,
+  })
   readonly deletedAt?: Date;
 }

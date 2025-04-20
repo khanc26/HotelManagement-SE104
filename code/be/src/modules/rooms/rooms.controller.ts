@@ -15,6 +15,7 @@ import { JwtAuthGuard, RoleAuthGuard } from 'src/libs/common/guards';
 import {
   CreateRoomDto,
   SearchRoomsDto,
+  SearchStatusRoomsDto,
   UpdateRoomDto,
 } from 'src/modules/rooms/dto';
 import { RoleEnum } from 'src/modules/users/enums';
@@ -35,6 +36,14 @@ export class RoomsController {
   @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   async findAll(@Query() searchRoomsDto?: SearchRoomsDto) {
     return this.roomsService.findAll(searchRoomsDto);
+  }
+
+  @Get('percentage-by-status')
+  @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
+  async getPercentsByStatusGroupByRoomTypes(
+    @Query() { status }: SearchStatusRoomsDto,
+  ) {
+    return this.roomsService.handleGetRoomStatusPercentageByType(status);
   }
 
   @Get(':id')
