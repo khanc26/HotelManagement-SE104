@@ -29,6 +29,11 @@ import { TableSkeleton } from "@/components/table-skeleton";
 import { TableError } from "@/components/table-error";
 import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { CardContentError } from "@/components/card-content-error";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  approvalStatusStyleMap,
+  bookingStatusStyleMap,
+} from "./booking-status-map";
 
 // DataTable columns
 interface RowData {
@@ -139,22 +144,22 @@ const columns = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }: { row: RowData }) => {
-      return (
-        row.original.status.charAt(0).toUpperCase() +
-        row.original.status.slice(1)
-      );
-    },
+    cell: ({ row }: { row: RowData }) => (
+      <StatusBadge
+        status={row.original.status}
+        statusStyleMap={bookingStatusStyleMap}
+      />
+    ),
   },
   {
     accessorKey: "approvalStatus",
     header: "Approval Status",
-    cell: ({ row }: { row: RowData }) => {
-      return (
-        row.original.approvalStatus.charAt(0).toUpperCase() +
-        row.original.approvalStatus.slice(1)
-      );
-    },
+    cell: ({ row }: { row: RowData }) => (
+      <StatusBadge
+        status={row.original.approvalStatus}
+        statusStyleMap={approvalStatusStyleMap}
+      />
+    ),
   },
   {
     accessorKey: "totalPrice",
@@ -239,7 +244,15 @@ export function BookingDetailList() {
               </div>
               <div>
                 <p className="font-semibold">Created At</p>
-                <p>{format(new Date(booking.createdAt), "MMM dd, yyyy")}</p>
+                <p>
+                  {new Date(booking.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
               </div>
             </div>
           )}
