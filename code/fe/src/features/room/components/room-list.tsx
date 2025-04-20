@@ -19,10 +19,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { getRooms } from "@/api/rooms";
 import { getRoomTypes } from "@/api/room-types";
-import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
-import { toast } from "react-toastify";
 import { RoomRequest } from "@/types/room.type";
-import { useNavigate } from "react-router-dom";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
 
 const roomSchema = z.object({
   roomNumber: z.string().optional(),
@@ -32,7 +31,6 @@ const roomSchema = z.object({
 });
 
 export function RoomList() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState<RoomRequest>({});
 
   const form = useForm<z.infer<typeof roomSchema>>({
@@ -49,7 +47,6 @@ export function RoomList() {
     data: rooms,
     isLoading: isRoomsLoading,
     isError: isRoomsError,
-    error: roomsError,
     refetch: refetchRooms,
   } = useQuery({
     queryKey: ["rooms"],
@@ -60,37 +57,10 @@ export function RoomList() {
     data: roomTypes,
     isLoading: isRoomTypesLoading,
     isError: isRoomTypesError,
-    error: roomTypesError,
   } = useQuery({
     queryKey: ["roomTypes"],
     queryFn: getRoomTypes,
   });
-
-  if (isRoomsError) {
-    const errorData = GetAPIErrorResponseData(roomsError);
-    if (errorData.statusCode === 401) {
-      toast.error("Unauthorized. Navigating to sign-in page in 3 seconds");
-      setTimeout(() => {
-        navigate("/auth/sign-in");
-      }, 3000);
-    } else
-      toast.error(
-        "Error while getting rooms " +
-          errorData.statusCode +
-          " " +
-          errorData.message
-      );
-  }
-
-  if (isRoomTypesError) {
-    const errorData = GetAPIErrorResponseData(roomTypesError);
-    toast.error(
-      "Error while getting room types " +
-        errorData.statusCode +
-        " " +
-        errorData.message
-    );
-  }
 
   async function onSearch(values: z.infer<typeof roomSchema>) {
     const params: RoomRequest = {
@@ -115,7 +85,7 @@ export function RoomList() {
   };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4">
+    <div className="w-full max-w-[1400px] mx-auto">
       <Card className="w-full mb-4">
         <CardHeader>
           <CardTitle>Room Management</CardTitle>
@@ -234,9 +204,9 @@ export function RoomList() {
         <div className="flex">
           <CardContent className="flex-1 w-1">
             {isRoomsLoading || isRoomTypesLoading ? (
-              <div>Loading...</div>
+              <TableSkeleton />
             ) : isRoomsError || isRoomTypesError ? (
-              <div>An error has occurred!</div>
+              <TableError />
             ) : (
               <DataTable columns={roomColumns} data={rooms || []} />
             )}

@@ -2,15 +2,16 @@ import { Logger, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { IUser } from 'src/libs/common/constants';
 import {
-  ADMIN_USER,
   ConfigurationMockData,
   roleMockData,
   RoomTypeMock,
-  SUPER_ADMIN_USER,
+  usersAdminMock,
   UserTypeMockData,
 } from 'src/libs/common/seeds/mocks';
+import { generateRoomsMockData } from 'src/libs/common/seeds/mocks/rooms.mock';
 import { Configuration } from 'src/modules/configurations/entities';
 import { RoomType } from 'src/modules/room-types/entities';
+import { Room } from 'src/modules/rooms/entities';
 import { Profile } from 'src/modules/users/entities/profile.entity';
 import { Role } from 'src/modules/users/entities/role.entity';
 import { UserType } from 'src/modules/users/entities/user-type.entity';
@@ -33,110 +34,117 @@ export class MainSeeder implements Seeder {
       const entityManager = queryRunner.manager;
 
       const roleRepository = entityManager.getRepository(Role);
-      const roleFactory = factoryManager.get(Role);
       const userTypeRepository = entityManager.getRepository(UserType);
-      const userTypeFactory = factoryManager.get(UserType);
       const userRepository = entityManager.getRepository(User);
       const profileRepository = entityManager.getRepository(Profile);
       const configurationRepository =
         entityManager.getRepository(Configuration);
-      const configurationFactory = factoryManager.get(Configuration);
       const roomTypeRepository = entityManager.getRepository(RoomType);
-      const roomTypeFactory = factoryManager.get(RoomType);
+      const roomRepository = entityManager.getRepository(Room);
 
       this.logger.log('Starting seeding role data...');
 
-      for (const roleData of roleMockData) {
-        if (
-          !(await roleRepository.findOne({
-            where: { roleName: roleData.roleName },
-          }))
-        ) {
-          const role = await roleFactory.make({
-            roleName: roleData.roleName,
-            description: roleData.description,
-          });
-
-          await roleRepository.save(role);
-        }
-      }
+      await Promise.all(
+        roleMockData.map(async ({ roleName, description }) => {
+          await roleRepository.upsert(
+            {
+              roleName,
+              description,
+            },
+            ['roleName'],
+          );
+        }),
+      );
 
       this.logger.log('Starting seeding user type data...');
 
-      for (const userTypeData of UserTypeMockData) {
-        if (
-          !(await userTypeRepository.findOne({
-            where: {
-              typeName: userTypeData.typeName,
-            },
-          }))
-        ) {
-          const newUserType = await userTypeFactory.make({
-            typeName: userTypeData.typeName,
-            description: userTypeData.description,
-            surcharge_factor: userTypeData.surcharge_factor,
-          });
-
-          await userTypeRepository.save(newUserType);
-        }
-      }
-
-      this.logger.log('Seeding super base admin data...');
-
-      await this.handleGenerateCreateAdminUser(
-        SUPER_ADMIN_USER,
-        userRepository,
-        profileRepository,
-        userTypeRepository,
-        roleRepository,
+      await Promise.all(
+        UserTypeMockData.map(
+          async ({ typeName, description, surcharge_factor }) => {
+            await userTypeRepository.upsert(
+              {
+                typeName,
+                description,
+                surcharge_factor,
+              },
+              ['typeName'],
+            );
+          },
+        ),
       );
 
-      this.logger.log('Seeding user admin data...');
+      this.logger.log('Seeding admin and superadmin data...');
 
-      await this.handleGenerateCreateAdminUser(
-        ADMIN_USER,
-        userRepository,
-        profileRepository,
-        userTypeRepository,
-        roleRepository,
+      await Promise.all(
+        usersAdminMock.map(async (data) => {
+          await this.handleGenerateCreateAdminUser(
+            data,
+            userRepository,
+            profileRepository,
+            userTypeRepository,
+            roleRepository,
+          );
+        }),
       );
 
       this.logger.log('Seeding configuration data...');
 
-      for (const configurationData of ConfigurationMockData) {
-        if (
-          !(await configurationRepository.findOne({
-            where: {
-              configName: configurationData.config_name,
+      await Promise.all(
+        ConfigurationMockData.map(async ({ config_name, config_value }) => {
+          await configurationRepository.upsert(
+            {
+              configName: config_name,
+              configValue: config_value,
             },
-          }))
-        ) {
-          const { config_name, config_value } = configurationData;
-
-          const newConfig = await configurationFactory.make({
-            configName: config_name,
-            configValue: config_value,
-          });
-
-          await configurationRepository.save(newConfig);
-        }
-      }
+            ['configName'],
+          );
+        }),
+      );
 
       this.logger.log('Seeding room type data...');
 
-      for (const roomTypeData of RoomTypeMock) {
-        if (
-          !(await roomTypeRepository.findOne({
-            where: {
-              name: roomTypeData.name,
-            },
-          }))
-        ) {
-          const newRoomType = await roomTypeFactory.make(roomTypeData);
+      await Promise.all(
+        RoomTypeMock.map(
+          async ({ name, description, roomPrice, maxGuests }) => {
+            await roomTypeRepository.upsert(
+              {
+                name,
+                description,
+                roomPrice,
+                maxGuests,
+              },
+              ['name'],
+            );
+          },
+        ),
+      );
 
-          await roomTypeRepository.save(newRoomType);
-        }
-      }
+      this.logger.log('Seeding rooms data...');
+
+      const roomTypeA = await this.handleGetRoomType('A', roomTypeRepository);
+      const roomTypeB = await this.handleGetRoomType('B', roomTypeRepository);
+      const roomTypeC = await this.handleGetRoomType('C', roomTypeRepository);
+
+      const roomTypeMap = {
+        [roomTypeA.id]: roomTypeA,
+        [roomTypeB.id]: roomTypeB,
+        [roomTypeC.id]: roomTypeC,
+      };
+
+      const fakeRooms = await generateRoomsMockData(roomTypeRepository);
+
+      await Promise.all(
+        fakeRooms.map(async ({ roomNumber, roomTypeId, note }) => {
+          await roomRepository.upsert(
+            {
+              roomNumber,
+              note,
+              roomType: roomTypeMap[roomTypeId],
+            },
+            ['roomNumber'],
+          );
+        }),
+      );
 
       this.logger.log('Seeding finished successfully.');
 
@@ -158,56 +166,74 @@ export class MainSeeder implements Seeder {
   ) => {
     const { email, type, password, ...res } = data;
 
-    const existingUserWithEmail = await userRepository.findOne({
+    let role: Role | null = null;
+
+    if (type === 'admin') {
+      role = await roleRepository.findOne({
+        where: {
+          roleName: RoleEnum.ADMIN,
+        },
+      });
+    } else if (type == 'superadmin') {
+      role = await roleRepository.findOne({
+        where: {
+          roleName: RoleEnum.SUPER_ADMIN,
+        },
+      });
+    }
+
+    if (!role)
+      throw new Error(`Role for type ${type} not found in the system.`);
+
+    const userLocalType = await userTypeRepository.findOne({
+      where: {
+        typeName: UserTypeEnum.LOCAL,
+      },
+    });
+
+    if (!userLocalType)
+      throw new NotFoundException('User local type not found.');
+
+    await userRepository.upsert(
+      {
+        email,
+        password: bcrypt.hashSync(password, bcrypt.genSaltSync()),
+        userType: userLocalType,
+        role,
+      },
+      ['email'],
+    );
+
+    const findUser = await userRepository.findOne({
       where: {
         email,
       },
     });
 
-    if (!existingUserWithEmail) {
-      const userLocalType = await userTypeRepository.findOne({
-        where: {
-          typeName: UserTypeEnum.LOCAL,
-        },
-      });
+    if (!findUser) throw new Error(`User with email '${email}' not found.`);
 
-      if (!userLocalType)
-        throw new NotFoundException('User local type not found.');
+    await profileRepository.upsert(
+      {
+        ...res,
+        user: findUser,
+      },
+      ['user'],
+    );
+  };
 
-      const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
+  private handleGetRoomType = async (
+    name: string,
+    roomTypeRepository: Repository<RoomType>,
+  ) => {
+    const roomType = await roomTypeRepository.findOne({
+      where: {
+        name,
+      },
+    });
 
-      let role: Role | null = null;
+    if (!roomType)
+      throw new Error(`Room type '${name}' not found in the system.`);
 
-      if (type === 'admin') {
-        role = await roleRepository.findOne({
-          where: {
-            roleName: RoleEnum.ADMIN,
-          },
-        });
-      } else if (type == 'superadmin') {
-        role = await roleRepository.findOne({
-          where: {
-            roleName: RoleEnum.SUPER_ADMIN,
-          },
-        });
-      }
-
-      const newUser = userRepository.create({
-        password: hashedPassword,
-        email,
-      });
-
-      newUser.userType = userLocalType;
-
-      if (role) newUser.role = role;
-
-      await userRepository.save(newUser);
-
-      const profile = profileRepository.create(res);
-
-      profile.user = newUser;
-
-      await profileRepository.save(profile);
-    }
+    return roomType;
   };
 }

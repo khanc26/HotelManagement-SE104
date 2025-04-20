@@ -10,17 +10,54 @@ export enum UserType {
   LOCAL = "local",
 }
 
+export interface RoleInterface {
+  roleName: Role;
+}
+
+export interface UserTypeInterface {
+  typeName: UserType;
+}
+
 // Type for User
 export interface User {
   id: string;
-  fullname: string;
-  role: Role;
   email: string;
-  address: string;
+  profile: Profile;
+  role: RoleInterface;
+  userType: UserTypeInterface;
+}
+export interface Profile {
+  id: string;
+  fullName: string;
   nationality: string;
-  user_type: UserType;
-  phone_number: string;
-  identity_number: string;
-  // password: string | null;
-  dob: string; //
+  status: "active" | "inactive";
+  dob: string | Date; 
+  phoneNumber: string;
+  address: string;
+  identityNumber: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface UserSearchRequest {
+  fullName?: string;
+  roleName?: string;
+  email?: string;
+  address?: string;
+  nationality?: string;
+  userTypeName?: UserType;
+  identifyNumber?: string;
+  status?: "active" | "inactive";
+  dob?: string | Date; 
+}
+
+export interface UserUpdateRequest {
+  email?: string;
+  fullName?: string;
+  nationality?: string;
+  status?: "active" | "inactive";
+  dob?: Date;
+  phoneNumber?: string;
+  address?: string;
+  identityNumber?: string;
 }

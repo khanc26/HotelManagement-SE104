@@ -17,6 +17,8 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { BookingsController } from './bookings.controller';
 import { BookingsRepository } from './bookings.repository';
 import { BookingsService } from './bookings.service';
+import { ReportsService } from 'src/modules/reports/reports.service';
+import { MonthlyRevenue } from 'src/modules/reports/entities';
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { BookingsService } from './bookings.service';
       Configuration,
       Room,
       RoomType,
+      MonthlyRevenue,
     ]),
     UsersModule,
   ],
@@ -43,6 +46,7 @@ import { BookingsService } from './bookings.service';
     RoomsService,
     InvoicesRepository,
     RoomTypesService,
+    ReportsService,
   ],
 })
 export class BookingsModule {}

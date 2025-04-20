@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
-  IsISO8601,
+  IsDate,
   IsNotEmpty,
   IsOptional,
   IsPositive,
@@ -21,13 +22,37 @@ export class CreateBookingDetailDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsISO8601()
-  readonly startDate!: string;
+  @IsDate()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+
+    return undefined;
+  })
+  readonly startDate!: Date;
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsISO8601()
-  readonly endDate!: string;
+  @IsDate()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+
+    return undefined;
+  })
+  readonly endDate!: Date;
 
   @ApiPropertyOptional()
   @IsBoolean()

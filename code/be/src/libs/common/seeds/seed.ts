@@ -1,16 +1,10 @@
 import AppDataSource from 'src/config/typeorm.config';
-import {
-  RoleFactory,
-  UserFactory,
-  UserTypeFactory,
-} from 'src/libs/common/seeds/factories';
 import { MainSeeder } from 'src/libs/common/seeds/main.seeder';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { runSeeders, SeederOptions } from 'typeorm-extension';
 
 const options: DataSourceOptions & SeederOptions = {
   ...AppDataSource.options,
-  factories: [RoleFactory, UserTypeFactory, UserFactory],
   seeds: [MainSeeder],
 };
 
