@@ -30,6 +30,11 @@ const menuItems = {
       url: "/users/list",
       icon: BookUser,
     },
+    /*{
+      title:"Room Types",
+      url:"/room-types/list",
+      icon: BookUser,
+    },*/
   ],
   [Role.USER]: [
     {
