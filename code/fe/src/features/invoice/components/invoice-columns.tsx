@@ -26,6 +26,20 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     },
   },
   {
+    accessorKey: "bookingDetail.booking.user.email",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          User
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
     accessorKey: "dayRent",
     header: ({ column }) => {
       return (

@@ -18,6 +18,11 @@ interface ResponseError extends Error {
 }
 
 const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+    },
+  },
   queryCache: new QueryCache({
     onError: (error) => {
       const typedError = error as ResponseError;
@@ -27,9 +32,9 @@ const queryClient = new QueryClient({
             <p>Your session has expired. Return to login page?</p>
             <Button
               onClick={() => {
-                // Redirect to login page
                 window.location.href = "/auth/sign-in";
               }}
+              className="mt-2"
             >
               Go to Login
             </Button>
@@ -58,6 +63,7 @@ const queryClient = new QueryClient({
               onClick={() => {
                 window.location.href = "/auth/sign-in";
               }}
+              className="mt-2"
             >
               Go to Login
             </Button>
