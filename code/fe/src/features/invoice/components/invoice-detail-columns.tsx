@@ -1,92 +1,171 @@
+import { Button } from "@/components/ui/button";
+import { BookingDetail } from "@/types/booking-detail";
+import { formatCurrency } from "@/utils/helpers/formatCurrency";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Room } from "@/types/room.type";
-import { RoomActionsCell } from "./room-action-cell";
-import { formatCurrency } from "@/utils/helpers/formatCurrency";
+import { InvoiceStatusBadge } from "./invoice-status-badge";
 
-export const roomColumns: ColumnDef<Room>[] = [
-  {
-    accessorKey: "roomNumber",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Room Number
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "roomType.name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Type
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "roomType.roomPrice",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Price (per night)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const price = row.original.roomType.roomPrice;
+interface RowData {
+  original: BookingDetail;
+}
 
-      return formatCurrency(price);
-    },
-  },
+export const invoiceDetailColumns: ColumnDef<BookingDetail>[] = [
   {
-    accessorKey: "roomType.maxGuests",
+    accessorKey: "stt",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Max Guests
+          Index
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
+    cell: ({ row }) => row.index + 1,
   },
   {
-    accessorKey: "note",
+    accessorKey: "room.roomNumber",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Note
+          Room
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
-    cell: ({ row }) => {
-      const note = row.original.note;
-      return note || "-";
+  },
+  {
+    accessorKey: "invoice.dayRent",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Day Rent
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
     },
   },
   {
-    accessorKey: "status",
+    accessorKey: "startDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Start Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }: { row: RowData }) => {
+      const date = new Date(row.original.startDate);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+  {
+    accessorKey: "endDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          End Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }: { row: RowData }) => {
+      const date = new Date(row.original.endDate);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+  {
+    accessorKey: "invoice.basePrice",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Unit Price
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }: { row: RowData }) => {
+      return formatCurrency(row.original.invoice!.basePrice);
+    },
+  },
+  {
+    accessorKey: "invoice.totalPrice",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Total Price
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }: { row: RowData }) => {
+      return formatCurrency(row.original.invoice!.totalPrice);
+    },
+  },
+  {
+    accessorKey: "guestCount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Guest Count
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "hasForeigners",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Has Foreigners
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (row.original.hasForeigners ? "Yes" : "No"),
+  },
+  {
+    accessorKey: "invoice.status",
     header: ({ column }) => {
       return (
         <Button
@@ -98,104 +177,8 @@ export const roomColumns: ColumnDef<Room>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-            status === "available"
-              ? "bg-green-100 text-green-800"
-              : status === "occupied"
-              ? "bg-red-100 text-red-800"
-              : "bg-yellow-100 text-yellow-800"
-          }`}
-        >
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Created At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const date = new Date(row.original.createdAt);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
-  },
-  {
-    accessorKey: "updatedAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Updated At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const date = new Date(row.original.updatedAt);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
-  },
-  {
-    accessorKey: "deletedAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Deleted At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const deletedAt = row.original.deletedAt;
-      if (!deletedAt) return "-";
-
-      const date = new Date(deletedAt);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const room = row.original;
-
-      return <RoomActionsCell room={room} />;
-    },
+    cell: ({ row }) => (
+      <InvoiceStatusBadge status={row.original.invoice!.status} />
+    ),
   },
 ];

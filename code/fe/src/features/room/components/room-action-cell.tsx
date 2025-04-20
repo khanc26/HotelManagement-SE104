@@ -73,8 +73,7 @@ export function RoomActionsCell({ room }: { room: Room }) {
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. Are you sure you want to permanently
-            delete room{" "}
+            Are you sure you want to soft delete room{" "}
             <span className="font-semibold inline text-black underline">
               {room.roomNumber}
             </span>

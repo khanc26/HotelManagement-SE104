@@ -19,7 +19,7 @@ export const getRooms = async (params?: RoomRequest) => {
 
   const response = await api.get<Room[]>("/", {
     params: {
-      name: params?.roomNumber,
+      roomNumber: params?.roomNumber,
       roomTypeName: params?.roomType,
       price: params?.price,
       status: params?.status,

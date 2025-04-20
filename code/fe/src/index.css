@@ -83,6 +83,14 @@ button:hover {
   border-color: #767676;
 }
 
+td {
+  text-align: center;
+}
+
+th {
+  text-align: center;
+}
+
 
 
 @media (prefers-color-scheme: light) {

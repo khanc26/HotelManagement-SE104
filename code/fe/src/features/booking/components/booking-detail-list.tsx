@@ -24,6 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-toastify";
+import { formatCurrency } from "@/utils/helpers/formatCurrency";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
+import { CardContentSkeleton } from "@/components/card-content-skeleton";
+import { CardContentError } from "@/components/card-content-error";
 
 // DataTable columns
 interface RowData {
@@ -42,7 +47,7 @@ function BookingDetailActionCell({
     mutationFn: (bookingDetailId: string) =>
       deleteBookingDetail(id!, [bookingDetailId]),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["booking", id] });
+      queryClient.invalidateQueries({ queryKey: ["booking"] });
       toast.success("Delete booking detail successfully!");
     },
     onError: (error: unknown) => {
@@ -85,7 +90,11 @@ function BookingDetailActionCell({
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogTitle>
+            Are you sure you want to soft delete this booking detail (if no
+            booking detail left in this booking after that, the booking will be
+            deleted as well)?
+          </DialogTitle>
         </DialogHeader>
         <DialogFooter>
           <Button
@@ -151,7 +160,7 @@ const columns = [
     accessorKey: "totalPrice",
     header: "Total Price",
     cell: ({ row }: { row: RowData }) => {
-      return `$${row.original.totalPrice}`;
+      return formatCurrency(row.original.totalPrice);
     },
   },
   {
@@ -191,20 +200,14 @@ export function BookingDetailList() {
   const { id } = useParams();
 
   // Fetch booking data
-  const { data: booking, isLoading } = useQuery({
+  const {
+    data: booking,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["booking", id],
     queryFn: () => getBookingById(id!),
   });
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!booking) {
-    return <div>Booking not found</div>;
-  }
-
-  console.log(booking.bookingDetails);
 
   return (
     <div className="space-y-4">
@@ -214,24 +217,32 @@ export function BookingDetailList() {
           <CardTitle>Booking Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="font-semibold">Booking ID</p>
-              <p>{booking.id}</p>
+          {isLoading ? (
+            <CardContentSkeleton />
+          ) : isError ? (
+            <CardContentError />
+          ) : !booking ? (
+            <CardContentError errorMessage="This booking is not found" />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <p className="font-semibold">Booking ID</p>
+                <p>{booking.id}</p>
+              </div>
+              <div>
+                <p className="font-semibold">User Email</p>
+                <p>{booking.user.email}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Total Price</p>
+                <p>${booking.totalPrice}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Created At</p>
+                <p>{format(new Date(booking.createdAt), "MMM dd, yyyy")}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold">User Email</p>
-              <p>{booking.user.email}</p>
-            </div>
-            <div>
-              <p className="font-semibold">Total Price</p>
-              <p>${booking.totalPrice}</p>
-            </div>
-            <div>
-              <p className="font-semibold">Created At</p>
-              <p>{format(new Date(booking.createdAt), "MMM dd, yyyy")}</p>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -242,7 +253,18 @@ export function BookingDetailList() {
         </CardHeader>
         <div className="flex">
           <CardContent className="flex-1 w-1">
-            <DataTable columns={columns} data={booking.bookingDetails || []} />
+            {isLoading ? (
+              <TableSkeleton />
+            ) : isError ? (
+              <TableError />
+            ) : !booking ? (
+              <TableError errorMessage="This booking is not found" />
+            ) : (
+              <DataTable
+                columns={columns}
+                data={booking.bookingDetails || []}
+              />
+            )}
           </CardContent>
         </div>
       </Card>

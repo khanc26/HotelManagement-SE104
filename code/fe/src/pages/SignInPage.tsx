@@ -21,8 +21,8 @@ import { access_token_expired_time } from "@/utils/constraints";
 import { toast } from "react-toastify";
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  email: z.string().email({
+    message: "Please enter a valid email address.",
   }),
   password: z.string().min(4, {
     message: "Password must be at least 6 characters.",
@@ -37,7 +37,7 @@ const SignInPage = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -47,7 +47,7 @@ const SignInPage = () => {
       const response = await axios.post(
         "http://localhost:3001/auth/sign-in",
         {
-          email: values.username,
+          email: values.email,
           password: values.password,
         },
         {
@@ -74,14 +74,14 @@ const SignInPage = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
-            name="username"
+            name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your username" {...field} />
+                  <Input placeholder="Enter your Email" {...field} />
                 </FormControl>
-                <FormDescription>This is your unique username.</FormDescription>
+                <FormDescription>This is your unique Email.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
