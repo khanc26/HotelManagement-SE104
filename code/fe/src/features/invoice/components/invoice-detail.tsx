@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getInvoiceById } from "@/api/invoices"; // Ensure this API function is defined
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -11,68 +10,60 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormDescription,
+  FormControl,
 } from "@/components/ui/form";
 import React from "react";
 import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { CardContentError } from "@/components/card-content-error";
+import { getBookingById } from "@/api/bookings";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
+import { DataTable } from "@/components/ui/data-table";
+import { invoiceDetailColumns } from "./invoice-detail-columns";
 
 // Zod schema for Invoice
-const invoiceSchema = z.object({
-  id: z.string(),
-  basePrice: z.number(),
-  totalPrice: z.number(),
-  dayRent: z.number(),
-  status: z.enum(["unpaid", "paid", "cancelled"]),
+const invoiceSummarySchema = z.object({
+  email: z.string().email(),
+  totalPrice: z.number().min(0),
   createdAt: z.string(),
-  updatedAt: z.string(),
 });
 
 export function InvoiceDetail() {
   const { id } = useParams();
   const {
-    data: invoice,
+    data: booking,
     isLoading,
     isError,
-    // error,
   } = useQuery({
-    queryKey: ["invoice", id],
-    queryFn: () => getInvoiceById(id!),
+    queryKey: ["booking", id],
+    queryFn: () => getBookingById(id!),
   });
 
-  const form = useForm<z.infer<typeof invoiceSchema>>({
-    resolver: zodResolver(invoiceSchema),
+  const form = useForm<z.infer<typeof invoiceSummarySchema>>({
+    resolver: zodResolver(invoiceSummarySchema),
     defaultValues: {
-      id: "",
-      basePrice: 0,
+      email: "",
       totalPrice: 0,
-      dayRent: 0,
-      status: "unpaid",
       createdAt: "",
-      updatedAt: "",
     },
   });
 
   // Populate form with invoice data
   React.useEffect(() => {
-    if (invoice) {
+    if (booking) {
       form.reset({
-        id: invoice.id,
-        basePrice: invoice.basePrice,
-        totalPrice: invoice.totalPrice,
-        dayRent: invoice.dayRent,
-        status: invoice.status,
-        createdAt: new Date(invoice.createdAt).toISOString().split("T")[0], // Format date for input
-        updatedAt: new Date(invoice.updatedAt).toISOString().split("T")[0], // Format date for input
+        email: booking.user.email,
+        totalPrice: booking.totalPrice,
+        createdAt: new Date(booking.createdAt).toISOString().split("T")[0], // Format for input
       });
     }
-  }, [invoice, form]);
+  }, [booking, form]);
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Invoice Details</CardTitle>
+          <CardTitle>Invoice Summary</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -82,30 +73,16 @@ export function InvoiceDetail() {
           ) : (
             <Form {...form}>
               <form className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="id"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Invoice ID</FormLabel>
-                        <Input {...field} disabled />
-                        <FormDescription>
-                          Unique identifier for the invoice
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="basePrice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Base Price</FormLabel>
-                        <Input type="number" {...field} disabled />
-                        <FormDescription>
-                          Base price of the invoice
-                        </FormDescription>
+                        <FormLabel>Payer</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
@@ -115,32 +92,16 @@ export function InvoiceDetail() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Total Price</FormLabel>
-                        <Input type="number" {...field} disabled />
-                        <FormDescription>Total amount due</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dayRent"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Day Rent</FormLabel>
-                        <Input type="number" {...field} disabled />
-                        <FormDescription>Daily rental price</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Input {...field} disabled />
-                        <FormDescription>
-                          Current status of the invoice
-                        </FormDescription>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                            disabled
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
@@ -150,23 +111,9 @@ export function InvoiceDetail() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Created At</FormLabel>
-                        <Input type="date" {...field} disabled />
-                        <FormDescription>
-                          Date the invoice was created
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="updatedAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Updated At</FormLabel>
-                        <Input type="date" {...field} disabled />
-                        <FormDescription>
-                          Date the invoice was last updated
-                        </FormDescription>
+                        <FormControl>
+                          <Input type="date" {...field} disabled />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
@@ -175,6 +122,29 @@ export function InvoiceDetail() {
             </Form>
           )}
         </CardContent>
+      </Card>
+
+      {/* DataTable for Invoice Details */}
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Invoice Management</CardTitle>
+        </CardHeader>
+        <div className="flex">
+          <CardContent className="flex-1 w-1">
+            {isLoading ? (
+              <TableSkeleton />
+            ) : isError ? (
+              <TableError errorMessage={"Error fetching invoice list"} />
+            ) : booking?.bookingDetails ? (
+              <DataTable
+                columns={invoiceDetailColumns}
+                data={booking.bookingDetails}
+              />
+            ) : (
+              <div>No booking details found</div>
+            )}
+          </CardContent>
+        </div>
       </Card>
     </div>
   );

@@ -39,7 +39,12 @@ export class BookingsService {
 
     let existingBookings: Booking[] = [];
 
-    const relations = ['user', 'bookingDetails'];
+    const relations = [
+      'user',
+      'bookingDetails',
+      'bookingDetails.room',
+      'bookingDetails.invoice',
+    ];
 
     const isAdmin =
       existingUser.role.roleName === RoleEnum.ADMIN ? true : false;
@@ -59,7 +64,7 @@ export class BookingsService {
             id: true,
             totalPrice: true,
             createdAt: true,
-            bookingDetails: true,
+            bookingDetails: {},
           },
     });
 
@@ -93,7 +98,12 @@ export class BookingsService {
       where: {
         id,
       },
-      relations: ['user', 'bookingDetails'],
+      relations: [
+        'user',
+        'bookingDetails',
+        'bookingDetails.room',
+        'bookingDetails.invoice',
+      ],
     });
 
     if (!existingBooking) {

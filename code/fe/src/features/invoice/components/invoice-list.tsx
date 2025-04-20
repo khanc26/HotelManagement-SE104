@@ -1,21 +1,21 @@
 import { DataTable } from "@/components/ui/data-table";
 import { invoiceColumns } from "./invoice-columns"; // Create this file for columns definition
 import { useQuery } from "@tanstack/react-query";
-import { getInvoices } from "@/api/invoices"; // Ensure this API function is defined
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { TableSkeleton } from "@/components/table-skeleton";
 import { TableError } from "@/components/table-error";
+import { getBookings } from "@/api/bookings";
 
 export function InvoiceList() {
   const {
-    data: invoices,
+    data: bookings,
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: getInvoices,
+    queryKey: ["bookings"],
+    queryFn: getBookings,
   });
 
   const errorMessage = isError
@@ -35,7 +35,7 @@ export function InvoiceList() {
             ) : isError ? (
               <TableError errorMessage={`${errorMessage}`} />
             ) : (
-              <DataTable columns={invoiceColumns} data={invoices || []} />
+              <DataTable columns={invoiceColumns} data={bookings || []} />
             )}
           </CardContent>
         </div>

@@ -28,7 +28,6 @@ export const columns = [
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }: { row: RowData }) => {
       const booking = row.original;
       return <BookingActionCell booking={booking} />;

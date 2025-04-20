@@ -31,6 +31,8 @@ import { PrivateRoutes } from "@/features/auth/components/private-routes";
 import InvoicePage from "@/pages/InvoicesPage";
 import { InvoiceList } from "@/features/invoice/components/invoice-list";
 import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
+import LandingLayout from "@/layouts/LandingLayout";
+import HomePage from "@/pages/landing/HomePage";
 
 const router = createBrowserRouter([
   {
@@ -168,8 +170,8 @@ const router = createBrowserRouter([
           {
             path: "edit",
             element: <ProfileEdit />,
-          }
-        ]
+          },
+        ],
       },
       {
         path: "error",
@@ -208,6 +210,16 @@ const router = createBrowserRouter([
       {
         path: "password-reset-success",
         element: <PasswordResetSuccessPage />,
+      },
+    ],
+  },
+  {
+    path: "/landing",
+    element: <LandingLayout />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
       },
     ],
   },
