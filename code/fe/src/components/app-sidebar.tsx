@@ -4,6 +4,7 @@ import {
   Bed,
   BedDouble,
   BookUser,
+  ChartNoAxesCombined,
   Home,
   NotebookPen,
   Receipt,
@@ -13,6 +14,7 @@ import { CustomSidebarHeader } from "./custom-sidebar-header";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -20,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./ui/sidebar";
+import { NavUser } from "./nav-user";
 
 const menuItems = {
   [Role.ADMIN]: [
@@ -48,6 +51,11 @@ const menuItems = {
       url: "/invoices/list",
       icon: Receipt,
     },
+    {
+      title: "Reports",
+      url: "/reports/list",
+      icon: ChartNoAxesCombined,
+    },
   ],
   [Role.USER]: [
     {
@@ -65,8 +73,8 @@ const menuItems = {
 
 export function AppSidebar() {
   const { role } = useRole();
-  console.log("THIS IS ROLE", role as string);
   const items = menuItems[role];
+
 
   return (
     <Sidebar>
@@ -79,7 +87,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className="py-6">
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -91,6 +99,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
     </Sidebar>
   );
 }

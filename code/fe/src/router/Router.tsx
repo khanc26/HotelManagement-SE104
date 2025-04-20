@@ -33,6 +33,7 @@ import { InvoiceList } from "@/features/invoice/components/invoice-list";
 import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
 import LandingLayout from "@/layouts/LandingLayout";
 import HomePage from "@/pages/landing/HomePage";
+import NotFound from "@/pages/NotFound";
 
 const router = createBrowserRouter([
   {
@@ -222,6 +223,10 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 
