@@ -47,9 +47,8 @@ export function RoomList() {
     data: rooms,
     isLoading: isRoomsLoading,
     isError: isRoomsError,
-    refetch: refetchRooms,
   } = useQuery({
-    queryKey: ["rooms"],
+    queryKey: ["rooms", searchParams],
     queryFn: () => getRooms(searchParams),
   });
 
@@ -69,8 +68,9 @@ export function RoomList() {
       price: values.price || undefined,
       status: values.status || undefined,
     };
-    setSearchParams({ ...params });
-    refetchRooms();
+    setSearchParams((prev) => {
+      return { ...prev, ...params };
+    });
   }
 
   const clearFilters = () => {
@@ -81,7 +81,6 @@ export function RoomList() {
       status: undefined,
     });
     setSearchParams({});
-    refetchRooms();
   };
 
   return (
