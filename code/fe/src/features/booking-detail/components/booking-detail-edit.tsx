@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { CardContentError } from "@/components/card-content-error";
 import { Loader2 } from "lucide-react";
+import { RoomPickerInput } from "@/features/room/components/room-picker-input";
 
 // Zod schema for BookingDetail
 const bookingDetailSchema = z.object({
@@ -205,7 +206,7 @@ export function BookingDetailEdit() {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="roomId"
                     render={({ field }) => (
@@ -213,6 +214,24 @@ export function BookingDetailEdit() {
                         <FormLabel>Room ID</FormLabel>
                         <FormControl>
                           <Input {...field} />
+                        </FormControl>
+                        <FormDescription>Room identifier</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  /> */}
+                  <FormField
+                    control={form.control}
+                    name="roomId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Room ID</FormLabel>
+                        <FormControl>
+                          <RoomPickerInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select a room"
+                          />
                         </FormControl>
                         <FormDescription>Room identifier</FormDescription>
                         <FormMessage />

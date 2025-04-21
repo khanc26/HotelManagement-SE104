@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { CardContentSkeleton } from "@/components/card-content-skeleton";
+import { CardContentError } from "@/components/card-content-error";
 
 // Zod schema for BookingDetail
 const bookingDetailSchema = z.object({
@@ -61,7 +63,11 @@ export function BookingDetail() {
   const navigate = useNavigate();
 
   // Fetch booking detail data
-  const { data: bookingDetail, isLoading } = useQuery({
+  const {
+    data: bookingDetail,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["booking-detail", detailId],
     queryFn: () => getBookingDetailById(detailId!),
   });
@@ -131,14 +137,6 @@ export function BookingDetail() {
     }
   }, [bookingDetail, form]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!bookingDetail) {
-    return <div>Booking detail not found</div>;
-  }
-
   return (
     <div className="space-y-4">
       <Card>
@@ -147,297 +145,315 @@ export function BookingDetail() {
           <Button onClick={() => navigate("edit")}>Edit</Button>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Booking Detail ID</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled />
-                      </FormControl>
-                      <FormDescription>
-                        Unique identifier for the booking detail
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="guestCount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Guest Count</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled
-                          value={field.value}
-                        />
-                      </FormControl>
-                      <FormDescription>Number of guests</FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="hasForeigners"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Has Foreigners</FormLabel>
-                      <FormControl>
-                        <Select value={field.value.toString()} disabled>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={field.value ? "Yes" : "No"}
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Yes</SelectItem>
-                            <SelectItem value="false">No</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormDescription>
-                        Indicates if there are foreign guests
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="room.roomNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Room Number</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled />
-                      </FormControl>
-                      <FormDescription>Room number</FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} disabled />
-                      </FormControl>
-                      <FormDescription>
-                        Start date of the booking
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} disabled />
-                      </FormControl>
-                      <FormDescription>End date of the booking</FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} disabled>
-                          <SelectTrigger>
-                            <SelectValue placeholder={field.value} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="checked_in">
-                              Checked In
-                            </SelectItem>
-                            <SelectItem value="checked_out">
-                              Checked Out
-                            </SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormDescription>
-                        Current status of the booking
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="approvalStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Approval Status</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} disabled>
-                          <SelectTrigger>
-                            <SelectValue placeholder={field.value} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormDescription>
-                        Approval status of the booking
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="totalPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total Price</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled />
-                      </FormControl>
-                      <FormDescription>
-                        Total price for the booking
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="invoice.id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Invoice ID</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled />
-                      </FormControl>
-                      <FormDescription>Associated invoice ID</FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="invoice.basePrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Base Price</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled />
-                      </FormControl>
-                      <FormDescription>Base price per day</FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="invoice.dayRent"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Days Rented</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled
-                          value={field.value}
-                        />
-                      </FormControl>
-                      <FormDescription>Number of days rented</FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="invoice.status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Invoice Status</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} disabled>
-                          <SelectTrigger>
-                            <SelectValue placeholder={field.value} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unpaid">Unpaid</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormDescription>
-                        Current status of the invoice
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="createdAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created At</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} disabled />
-                      </FormControl>
-                      <FormDescription>
-                        Date the booking was created
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="updatedAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Updated At</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} disabled />
-                      </FormControl>
-                      <FormDescription>
-                        Date the booking was last updated
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="deletedAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Deleted At</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          disabled
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Date the booking was deleted (if applicable)
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </form>
-          </Form>
+          {isLoading ? (
+            <CardContentSkeleton items={24} />
+          ) : isError ? (
+            <CardContentError />
+          ) : !bookingDetail ? (
+            <CardContentError errorMessage="This booking is not found" />
+          ) : (
+            <Form {...form}>
+              <form className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Booking Detail ID</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormDescription>
+                          Unique identifier for the booking detail
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="guestCount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Guest Count</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            disabled
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormDescription>Number of guests</FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="hasForeigners"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Has Foreigners</FormLabel>
+                        <FormControl>
+                          <Select value={field.value.toString()} disabled>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={field.value ? "Yes" : "No"}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="true">Yes</SelectItem>
+                              <SelectItem value="false">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormDescription>
+                          Indicates if there are foreign guests
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="room.roomNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Room Number</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormDescription>Room number</FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} disabled />
+                        </FormControl>
+                        <FormDescription>
+                          Start date of the booking
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} disabled />
+                        </FormControl>
+                        <FormDescription>
+                          End date of the booking
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <FormControl>
+                          <Select value={field.value} disabled>
+                            <SelectTrigger>
+                              <SelectValue placeholder={field.value} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="checked_in">
+                                Checked In
+                              </SelectItem>
+                              <SelectItem value="checked_out">
+                                Checked Out
+                              </SelectItem>
+                              <SelectItem value="cancelled">
+                                Cancelled
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormDescription>
+                          Current status of the booking
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="approvalStatus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Approval Status</FormLabel>
+                        <FormControl>
+                          <Select value={field.value} disabled>
+                            <SelectTrigger>
+                              <SelectValue placeholder={field.value} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="confirmed">
+                                Confirmed
+                              </SelectItem>
+                              <SelectItem value="cancelled">
+                                Cancelled
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormDescription>
+                          Approval status of the booking
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="totalPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Price</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormDescription>
+                          Total price for the booking
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="invoice.id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Invoice ID</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormDescription>Associated invoice ID</FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="invoice.basePrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Base Price</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormDescription>Base price per day</FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="invoice.dayRent"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Days Rented</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            disabled
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormDescription>Number of days rented</FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="invoice.status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Invoice Status</FormLabel>
+                        <FormControl>
+                          <Select value={field.value} disabled>
+                            <SelectTrigger>
+                              <SelectValue placeholder={field.value} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unpaid">Unpaid</SelectItem>
+                              <SelectItem value="paid">Paid</SelectItem>
+                              <SelectItem value="cancelled">
+                                Cancelled
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormDescription>
+                          Current status of the invoice
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="createdAt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Created At</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} disabled />
+                        </FormControl>
+                        <FormDescription>
+                          Date the booking was created
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="updatedAt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Updated At</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} disabled />
+                        </FormControl>
+                        <FormDescription>
+                          Date the booking was last updated
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deletedAt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Deleted At</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            disabled
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Date the booking was deleted (if applicable)
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </form>
+            </Form>
+          )}
         </CardContent>
       </Card>
     </div>
