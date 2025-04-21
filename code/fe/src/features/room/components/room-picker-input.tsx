@@ -14,16 +14,16 @@ import { Room } from "@/types/room.type";
 import { useQuery } from "@tanstack/react-query";
 import { getRooms } from "@/api/rooms";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDown, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface RoomPickerInputProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: { id: string; roomNumber: string };
+  onChange?: (value: { id: string; roomNumber: string }) => void;
   placeholder?: string;
 }
 
 export function RoomPickerInput({
-  value = "",
+  value,
   onChange,
   placeholder,
 }: RoomPickerInputProps) {
@@ -50,7 +50,10 @@ export function RoomPickerInput({
 
   const handleSelect = () => {
     if (selectedRooms.length > 0) {
-      onChange?.(selectedRooms[0].roomNumber);
+      onChange?.({
+        id: selectedRooms[0].id,
+        roomNumber: selectedRooms[0].roomNumber,
+      });
       setIsDialogOpen(false);
     }
   };
@@ -58,7 +61,8 @@ export function RoomPickerInput({
   const selectionColumns = [
     {
       id: "select",
-      cell: ({ row }) => (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cell: ({ row }: { row: any }) => (
         <label className="inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
@@ -80,7 +84,7 @@ export function RoomPickerInput({
       <div className="relative w-full">
         <Input
           readOnly
-          value={value}
+          value={value?.roomNumber || ""}
           onClick={() => setIsDialogOpen(true)}
           placeholder={placeholder}
           className="cursor-pointer pr-10"
@@ -90,13 +94,6 @@ export function RoomPickerInput({
           size={18}
         />
       </div>
-      {/* <Input
-        readOnly
-        value={value}
-        onClick={() => setIsDialogOpen(true)}
-        placeholder={placeholder}
-        className="cursor-pointer"
-      /> */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="min-w-[80%]">
           <DialogHeader>

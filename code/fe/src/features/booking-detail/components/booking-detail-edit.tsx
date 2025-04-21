@@ -30,6 +30,11 @@ import { CardContentError } from "@/components/card-content-error";
 import { Loader2 } from "lucide-react";
 import { RoomPickerInput } from "@/features/room/components/room-picker-input";
 
+const roomSchema = z.object({
+  id: z.string().min(1, { message: "Room is required" }),
+  roomNumber: z.string(), // Add any fields you need
+});
+
 // Zod schema for BookingDetail
 const bookingDetailSchema = z.object({
   bookingDetailId: z.string().min(1, { message: "Booking ID is required" }),
@@ -45,7 +50,7 @@ const bookingDetailSchema = z.object({
   approvalStatus: z.enum(["pending", "confirmed", "cancelled"], {
     message: "Invalid approval status",
   }),
-  roomId: z.string().min(1, { message: "Room ID is required" }),
+  room: roomSchema,
 });
 
 export function BookingDetailEdit() {
@@ -73,7 +78,10 @@ export function BookingDetailEdit() {
       endDate: "",
       status: "pending",
       approvalStatus: "pending",
-      roomId: "",
+      room: {
+        id: "",
+        roomNumber: "",
+      },
     },
   });
 
@@ -88,7 +96,10 @@ export function BookingDetailEdit() {
         endDate: format(new Date(bookingDetail.endDate), "yyyy-MM-dd"),
         status: bookingDetail.status,
         approvalStatus: bookingDetail.approvalStatus,
-        roomId: bookingDetail.room.id,
+        room: {
+          id: bookingDetail.room.id,
+          roomNumber: bookingDetail.room.roomNumber,
+        },
       });
     }
   }, [bookingDetail, form]);
@@ -124,10 +135,12 @@ export function BookingDetailEdit() {
       endDate: new Date(values.endDate),
       status: values.status as BookingDetailsStatus,
       approvalStatus: values.approvalStatus as BookingDetailsApprovalStatus,
-      roomId: values.roomId,
+      roomId: values.room.id,
     };
 
-    mutation.mutate({ id: id, updatedBookingDetail });
+    console.log(updatedBookingDetail);
+
+    // mutation.mutate({ id: id, updatedBookingDetail });
   }
 
   return (
@@ -222,14 +235,14 @@ export function BookingDetailEdit() {
                   /> */}
                   <FormField
                     control={form.control}
-                    name="roomId"
+                    name="room"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Room ID</FormLabel>
+                        <FormLabel>Room Number</FormLabel>
                         <FormControl>
                           <RoomPickerInput
                             value={field.value}
-                            onChange={field.onChange}
+                            onChange={(room) => form.setValue("room", room)}
                             placeholder="Select a room"
                           />
                         </FormControl>
