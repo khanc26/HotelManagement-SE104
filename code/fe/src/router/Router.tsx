@@ -16,7 +16,6 @@ import PasswordResetSuccessPage from "../pages/PasswordResetSuccessPage";
 import ProfilePage from "../pages/ProfilePage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import RoomsPage from "../pages/RoomsPage";
-import SettingsPage from "../pages/SettingsPage";
 import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
@@ -34,6 +33,9 @@ import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
 import LandingLayout from "@/layouts/LandingLayout";
 import HomePage from "@/pages/landing/HomePage";
 import NotFound from "@/pages/NotFound";
+import ReportPage from "@/pages/ReportPage";
+import { ReportList } from "@/features/report/components/report-list";
+import { ReportDetail } from "@/features/report/components/report-detail";
 
 const router = createBrowserRouter([
   {
@@ -141,24 +143,22 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "rents",
-        element: <SettingsPage />,
-      },
-      {
-        path: "regulations",
-        element: <SettingsPage />,
-      },
-      {
-        path: "room-types",
-        element: <SettingsPage />,
-      },
-      {
-        path: "month-revenue",
-        element: <SettingsPage />,
-      },
-      {
-        path: "invoices",
-        element: <SettingsPage />,
+        path: "reports",
+        element: <ReportPage />,
+        children: [
+          {
+            index: true,
+            element: <ReportList />,
+          },
+          {
+            path: "list",
+            element: <ReportList />,
+          },
+          {
+            path: ":id",
+            element: <ReportDetail />,
+          },
+        ],
       },
       {
         path: "profile",
