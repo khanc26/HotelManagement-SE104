@@ -138,9 +138,8 @@ export function BookingDetailEdit() {
       roomId: values.room.id,
     };
 
-    console.log(updatedBookingDetail);
 
-    // mutation.mutate({ id: id, updatedBookingDetail });
+    mutation.mutate({ id: id, updatedBookingDetail });
   }
 
   return (
@@ -219,20 +218,6 @@ export function BookingDetailEdit() {
                       </FormItem>
                     )}
                   />
-                  {/* <FormField
-                    control={form.control}
-                    name="roomId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Room ID</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormDescription>Room identifier</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
                   <FormField
                     control={form.control}
                     name="room"

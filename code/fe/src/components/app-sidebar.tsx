@@ -60,7 +60,7 @@ const menuItems = {
   [Role.USER]: [
     {
       title: "Book rooms",
-      url: "/user/rooms",
+      url: "/user-rooms",
       icon: BedDouble,
     },
     {
