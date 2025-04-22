@@ -22,6 +22,9 @@ import { TableError } from "@/components/table-error";
 import { DataTable } from "@/components/ui/data-table";
 import { reportColumns } from "./report-columns";
 import { ReportChart } from "./report-chart";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { ReportListPDFDocument } from './report-list-pdf-document';
+import { Printer } from 'lucide-react';
 
 const reportSearchSchema = z.object({
   year: z.coerce
@@ -195,10 +198,23 @@ export function ReportList() {
 
       {/* Table Data */}
       <Card className="w-full mb-4">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl font-bold">
             Revenue Report Each Month
           </CardTitle>
+          {reportList && (
+            <PDFDownloadLink
+              document={<ReportListPDFDocument reports={reportList} />}
+              fileName="monthly-revenue-report.pdf"
+            >
+              {({ loading }) => (
+                <Button variant="outline" disabled={loading}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  {loading ? 'Generating PDF...' : 'Print PDF'}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          )}
         </CardHeader>
         <div className="flex">
           <CardContent className="flex-1 w-1">
