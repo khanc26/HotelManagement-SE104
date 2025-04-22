@@ -20,6 +20,10 @@ import { TableSkeleton } from "@/components/table-skeleton";
 import { TableError } from "@/components/table-error";
 import { DataTable } from "@/components/ui/data-table";
 import { invoiceDetailColumns } from "./invoice-detail-columns";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { BookingDetailPDFDocument } from './invoice-detail-pdf-document';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 // Zod schema for Invoice
 const invoiceSummarySchema = z.object({
@@ -62,8 +66,27 @@ export function InvoiceDetail() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Invoice Summary</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Invoice Details</CardTitle>
+          {booking && (
+            <PDFDownloadLink
+              document={<BookingDetailPDFDocument booking={booking} />}
+              fileName={`booking-${booking.id}.pdf`}
+            >
+              {({ loading }) => (
+                <Button variant="outline" size="sm" disabled={loading}>
+                  {loading ? (
+                    'Generating PDF...'
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </>
+                  )}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
