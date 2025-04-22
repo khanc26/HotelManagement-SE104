@@ -27,6 +27,7 @@ import { BookingDetailList } from "@/features/booking/components/booking-detail-
 import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
 import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
+import { RoleBasedRoutes } from "@/features/auth/components/role-based-routes";
 import InvoicePage from "@/pages/InvoicesPage";
 import { InvoiceList } from "@/features/invoice/components/invoice-list";
 import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
@@ -37,27 +38,53 @@ import ReportPage from "@/pages/ReportPage";
 import { ReportList } from "@/features/report/components/report-list";
 import { ReportDetail } from "@/features/report/components/report-detail";
 import { UserRoomList } from "@/features/room/components/view-user/room-list";
+import { Role } from "@/types/role";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import UserRoomPage from "@/pages/UserRoomPage";
+
+const RootPath = () => {
+  const [role] = useLocalStorage("role", null);
+
+  if (role === Role.ADMIN) {
+    return <DashboardPage />;
+  } else if (role === Role.USER) {
+    return <UserRoomList />;
+  }
+
+  return <ErrorPage />;
+};
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <PrivateRoutes>
-        <MainLayout />
+        <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.USER]}>
+          <MainLayout />
+        </RoleBasedRoutes>
       </PrivateRoutes>
     ),
     children: [
       {
         index: true,
-        element: <DashboardPage />,
+        element: <RootPath />,
       },
+      // Admin routes
       {
         path: "dashboard",
-        element: <DashboardPage />,
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <DashboardPage />
+          </RoleBasedRoutes>
+        ),
       },
       {
         path: "rooms",
-        element: <RoomsPage />,
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <RoomsPage />
+          </RoleBasedRoutes>
+        ),
         children: [
           {
             index: true,
@@ -78,22 +105,34 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "/user/rooms",
-        element: <RoomsPage />,
+        path: "users",
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <UsersPage />
+          </RoleBasedRoutes>
+        ),
         children: [
           {
-            index: true,
-            element: <UserRoomList />,
+            path: "list",
+            element: <UserList />,
           },
           {
-            path: "list",
-            element: <UserRoomList />,
+            path: "add",
+            element: <UserAddNew />,
+          },
+          {
+            path: "edit",
+            element: <UserEdit />,
           },
         ],
       },
       {
         path: "bookings",
-        element: <BookingsPage />,
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <BookingsPage />
+          </RoleBasedRoutes>
+        ),
         children: [
           {
             index: true,
@@ -119,7 +158,11 @@ const router = createBrowserRouter([
       },
       {
         path: "invoices",
-        element: <InvoicePage />,
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <InvoicePage />
+          </RoleBasedRoutes>
+        ),
         children: [
           {
             index: true,
@@ -136,30 +179,12 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "profile",
-        element: <ProfilePage />,
-      },
-      {
-        path: "users",
-        element: <UsersPage />,
-        children: [
-          {
-            path: "list",
-            element: <UserList />,
-          },
-          {
-            path: "add",
-            element: <UserAddNew />,
-          },
-          {
-            path: "edit",
-            element: <UserEdit />,
-          },
-        ],
-      },
-      {
         path: "reports",
-        element: <ReportPage />,
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <ReportPage />
+          </RoleBasedRoutes>
+        ),
         children: [
           {
             index: true,
@@ -175,9 +200,32 @@ const router = createBrowserRouter([
           },
         ],
       },
+      // User routes
+      {
+        path: "user-rooms",
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+            <UserRoomPage />
+          </RoleBasedRoutes>
+        ),
+        children: [
+          {
+            index: true,
+            element: <UserRoomList />,
+          },
+          {
+            path: "list",
+            element: <UserRoomList />,
+          },
+        ],
+      },
       {
         path: "profile",
-        element: <ProfilePage />,
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+            <ProfilePage />
+          </RoleBasedRoutes>
+        ),
         children: [
           {
             path: "my-profile",
