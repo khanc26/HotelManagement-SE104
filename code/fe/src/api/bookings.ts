@@ -7,6 +7,35 @@ const api = axios.create({
   baseURL: "http://localhost:3001/bookings",
 });
 
+interface CreateBookingDetailDto {
+  roomId: string;
+  guestCount: number;
+  startDate: string;
+  endDate: string;
+  hasForeigners: boolean;
+}
+
+interface CreateBookingRequest {
+  createBookingDetailDtos: CreateBookingDetailDto[];
+}
+
+export const createBooking = async (bookingDetails: CreateBookingDetailDto[]) => {
+  const access_token = getAccessToken();
+
+  const requestBody: CreateBookingRequest = {
+    createBookingDetailDtos: bookingDetails,
+  };
+
+  const response = await api.post("/", requestBody, {
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+    withCredentials: true,
+  });
+
+  return response.data;
+};
+
 // Get all bookings
 export const getBookings = async () => {
   const access_token = getAccessToken();

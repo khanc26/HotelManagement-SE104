@@ -36,6 +36,7 @@ import NotFound from "@/pages/NotFound";
 import ReportPage from "@/pages/ReportPage";
 import { ReportList } from "@/features/report/components/report-list";
 import { ReportDetail } from "@/features/report/components/report-detail";
+import { UserRoomList } from "@/features/room/components/view-user/room-list";
 
 const router = createBrowserRouter([
   {
@@ -73,6 +74,20 @@ const router = createBrowserRouter([
           {
             path: "edit",
             element: <RoomEdit />,
+          },
+        ],
+      },
+      {
+        path: "/user/rooms",
+        element: <RoomsPage />,
+        children: [
+          {
+            index: true,
+            element: <UserRoomList />,
+          },
+          {
+            path: "list",
+            element: <UserRoomList />,
           },
         ],
       },

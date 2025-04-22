@@ -59,8 +59,8 @@ const menuItems = {
   ],
   [Role.USER]: [
     {
-      title: "Rooms",
-      url: "/rooms/list",
+      title: "Book rooms",
+      url: "/user/rooms",
       icon: BedDouble,
     },
     {
@@ -74,7 +74,6 @@ const menuItems = {
 export function AppSidebar() {
   const { role } = useRole();
   const items = menuItems[role];
-
 
   return (
     <Sidebar>
