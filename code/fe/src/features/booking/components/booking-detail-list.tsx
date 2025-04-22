@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { BookingDetail as BookingDetailType } from "@/types/booking-detail";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,8 @@ import {
   approvalStatusStyleMap,
   bookingStatusStyleMap,
 } from "./booking-status-map";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { BookingDetailPDFDocument } from './booking-detail-pdf-document';
 
 // DataTable columns
 interface RowData {
@@ -261,8 +263,27 @@ export function BookingDetailList() {
 
       {/* Room Details Card */}
       <Card>
-        <CardHeader>
-          <CardTitle>Booking Detail List</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Booking Details</CardTitle>
+          {booking && (
+            <PDFDownloadLink
+              document={<BookingDetailPDFDocument booking={booking} />}
+              fileName={`booking-${booking.id}.pdf`}
+            >
+              {({ loading }) => (
+                <Button variant="outline" size="sm" disabled={loading}>
+                  {loading ? (
+                    'Generating PDF...'
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </>
+                  )}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          )}
         </CardHeader>
         <div className="flex">
           <CardContent className="flex-1 w-1">
