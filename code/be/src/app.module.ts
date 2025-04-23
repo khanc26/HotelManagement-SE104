@@ -2,18 +2,21 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from 'src/config/configuration';
-import { SessionMiddleware } from 'src/libs/common/middlewares';
+import {
+  LoggerMiddleware,
+  SessionMiddleware,
+} from 'src/libs/common/middlewares';
 import { RedisProvider } from 'src/libs/common/providers';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { RoomTypesModule } from 'src/modules/room-types/room-types.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { BookingDetailsModule } from 'src/modules/booking-details/booking-details.module';
 import { BookingsModule } from 'src/modules/bookings/bookings.module';
 import { InvoicesModule } from 'src/modules/invoices/invoices.module';
+import { RoomTypesModule } from 'src/modules/room-types/room-types.module';
 import { RoomsModule } from 'src/modules/rooms/rooms.module';
 import { UsersModule } from 'src/modules/users/users.module';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { ConfigurationsModule } from './modules/configurations/configurations.module';
 import { ReportsModule } from './modules/reports/reports.module';
 
@@ -55,6 +58,8 @@ import { ReportsModule } from './modules/reports/reports.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+
     consumer
       .apply(SessionMiddleware)
       .exclude('/auth/sign-in', '/auth/sign-up', '/auth/sign-out')
