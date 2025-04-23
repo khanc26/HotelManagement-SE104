@@ -90,15 +90,18 @@ export class MainSeeder implements Seeder {
       this.logger.log('Seeding configuration data...');
 
       await Promise.all(
-        ConfigurationMockData.map(async ({ config_name, config_value }) => {
-          await configurationRepository.upsert(
-            {
-              configName: config_name,
-              configValue: config_value,
-            },
-            ['configName'],
-          );
-        }),
+        ConfigurationMockData.map(
+          async ({ config_name, config_value, description }) => {
+            await configurationRepository.upsert(
+              {
+                configName: config_name,
+                configValue: config_value,
+                description,
+              },
+              ['configName'],
+            );
+          },
+        ),
       );
 
       this.logger.log('Seeding room type data...');
