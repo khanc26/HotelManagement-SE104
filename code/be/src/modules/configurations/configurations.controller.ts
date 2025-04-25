@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { ConfigurationsService } from './configurations.service';
-import { UpdateConfigurationDto } from './dto/update-configuration.dto';
 import { JwtAuthGuard, RoleAuthGuard } from '../../libs/common/guards';
 import { Roles } from '../../libs/common/decorators';
 import { RoleEnum } from '../users/enums';
+import { UpdateConfigurationDto } from './dto';
 
 @Controller('configurations')
 @UseGuards(JwtAuthGuard, RoleAuthGuard)
