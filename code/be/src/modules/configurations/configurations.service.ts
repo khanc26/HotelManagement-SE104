@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Configuration } from 'src/modules/configurations/entities';
 import { DataSource, Repository } from 'typeorm';
-import { UpdateConfigurationDto } from './dto/update-configuration.dto';
+import { UpdateConfigurationDto } from './dto';
 
 @Injectable()
 export class ConfigurationsService {
