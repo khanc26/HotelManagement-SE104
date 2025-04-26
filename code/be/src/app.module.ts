@@ -64,7 +64,13 @@ export class AppModule implements NestModule {
 
     consumer
       .apply(SessionMiddleware)
-      .exclude('/auth/sign-in', '/auth/sign-up', '/auth/sign-out', '/payments')
+      .exclude(
+        '/',
+        '/auth/sign-in',
+        '/auth/sign-up',
+        '/auth/sign-out',
+        '/payments/vnpay/ipn',
+      )
       .forRoutes('*');
   }
 }

@@ -21,5 +21,6 @@ export default () => ({
     tmn_code: process.env.VNPAY_TMN_CODE,
     secure_secret: process.env.VNPAY_SECURE_SECRET,
     host: process.env.VNPAY_HOST,
+    return_url: process.env.VNPAY_RETURN_URL,
   },
 });
