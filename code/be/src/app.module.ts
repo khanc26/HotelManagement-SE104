@@ -18,6 +18,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigurationsModule } from './modules/configurations/configurations.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
@@ -52,6 +53,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     BookingDetailsModule,
     ConfigurationsModule,
     ReportsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],
@@ -62,7 +64,13 @@ export class AppModule implements NestModule {
 
     consumer
       .apply(SessionMiddleware)
-      .exclude('/auth/sign-in', '/auth/sign-up', '/auth/sign-out')
+      .exclude(
+        '/',
+        '/auth/sign-in',
+        '/auth/sign-up',
+        '/auth/sign-out',
+        '/payments/vnpay/ipn',
+      )
       .forRoutes('*');
   }
 }
