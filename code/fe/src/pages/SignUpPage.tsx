@@ -25,7 +25,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { z } from "zod";
 
-
 const formSchema = z
   .object({
     email: z.string().email({
@@ -81,17 +80,20 @@ const SignUpPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await axios.post("http://localhost:3001/auth/sign-up", {
-        email: values.email,
-        password: values.password,
-        fullName: values.fullName,
-        nationality: values.nationality,
-        dob: new Date(values.dob),
-        phoneNumber: values.phoneNumber,
-        address: values.address,
-        identityNumber: values.identityNumber,
-        userTypeName: values.userType,
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_API_URL}/auth/sign-up`,
+        {
+          email: values.email,
+          password: values.password,
+          fullName: values.fullName,
+          nationality: values.nationality,
+          dob: new Date(values.dob),
+          phoneNumber: values.phoneNumber,
+          address: values.address,
+          identityNumber: values.identityNumber,
+          userTypeName: values.userType,
+        }
+      );
 
       if (response.status === 201) {
         toast.success("Successfully sign up!");
