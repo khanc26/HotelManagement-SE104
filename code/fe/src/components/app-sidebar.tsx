@@ -1,10 +1,20 @@
 import { useRole } from "@/hooks/useRole";
 import { Role } from "@/types/user.type";
-import { BedDouble, BookUser, Home, NotebookPen, UserCog } from "lucide-react";
+import {
+  Bed,
+  BedDouble,
+  BookUser,
+  ChartNoAxesCombined,
+  Home,
+  NotebookPen,
+  Receipt,
+  UserCog,
+} from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -12,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./ui/sidebar";
+import { NavUser } from "./nav-user";
 
 const menuItems = {
   [Role.ADMIN]: [
@@ -23,7 +34,7 @@ const menuItems = {
     {
       title: "Rooms",
       url: "/rooms/list",
-      icon: BookUser,
+      icon: Bed,
     },
     {
       title: "Users",
@@ -40,11 +51,21 @@ const menuItems = {
       url: "/bookings/list",
       icon: NotebookPen,
     },
+    {
+      title: "Invoices",
+      url: "/invoices/list",
+      icon: Receipt,
+    },
+    {
+      title: "Reports",
+      url: "/reports/list",
+      icon: ChartNoAxesCombined,
+    },
   ],
   [Role.USER]: [
     {
-      title: "Rooms",
-      url: "/rooms/list",
+      title: "Book rooms",
+      url: "/user-rooms",
       icon: BedDouble,
     },
     {
@@ -57,7 +78,6 @@ const menuItems = {
 
 export function AppSidebar() {
   const { role } = useRole();
-  console.log("THIS IS ROLE", role as string);
   const items = menuItems[role];
 
   return (
@@ -71,7 +91,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className="py-6">
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -83,6 +103,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
     </Sidebar>
   );
 }

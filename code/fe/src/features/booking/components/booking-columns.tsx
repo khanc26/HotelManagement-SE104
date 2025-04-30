@@ -1,6 +1,7 @@
 import { Booking } from "@/types/booking.type";
 import { format } from "date-fns";
 import { BookingActionCell } from "./booking-action-cell";
+import { formatCurrency } from "@/utils/helpers/formatCurrency";
 
 interface RowData {
   original: Booking;
@@ -15,7 +16,7 @@ export const columns = [
     accessorKey: "totalPrice",
     header: "Total Price",
     cell: ({ row }: { row: RowData }) => {
-      return `$${row.original.totalPrice}`;
+      return formatCurrency(row.original.totalPrice);
     },
   },
   {
@@ -27,7 +28,6 @@ export const columns = [
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }: { row: RowData }) => {
       const booking = row.original;
       return <BookingActionCell booking={booking} />;

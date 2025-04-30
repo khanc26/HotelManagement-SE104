@@ -19,16 +19,55 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { LogOut, User } from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { clearAuthLocalStorage } from "@/utils/helpers/clearAuthLocalStorage";
+import { toast } from "react-toastify";
+
+const signOut = async () => {
+  const response = await fetch("http://localhost:3001/auth/sign-out", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to sign out");
+  }
+
+  return response.json();
+};
 
 const CustomHeader = () => {
+  const queryClient = useQueryClient();
+
   const location = useLocation();
   const navigate = useNavigate();
   const pathSegments = location.pathname
     .split("/")
     .filter((segment) => segment);
 
+  const mutation = useMutation({
+    mutationKey: ["signOut"],
+    mutationFn: signOut,
+    onSuccess: () => {
+      clearAuthLocalStorage();
+      queryClient.clear();
+      toast.success("Signed out successfully");
+      navigate("/auth/sign-in");
+    },
+    onError: (error: unknown) => {
+      console.error("Sign-out failed:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to sign out: ${errorMessage}`);
+    },
+  });
+
   const handleLogOut = () => {
-    console.log("Log out");
+    mutation.mutate();
   };
 
   return (

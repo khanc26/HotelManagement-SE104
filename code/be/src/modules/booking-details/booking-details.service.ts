@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
-import { MAX_GUESTS_PER_ROOM } from 'src/libs/common/constants';
+import { MAX_GUESTS_PER_ROOM, SURCHARGE_RATE } from 'src/libs/common/constants';
 import { BookingDetail } from 'src/modules/booking-details/entities';
 import { BookingDetailsStatus } from 'src/modules/booking-details/enums';
 import { Booking } from 'src/modules/bookings/entities';
@@ -105,7 +105,7 @@ export class BookingDetailsService {
       : localUserType.surcharge_factor;
 
     const surchargeRate =
-      await this.configurationsService.handleGetValueByName('surcharge_rate');
+      await this.configurationsService.handleGetValueByName(SURCHARGE_RATE);
 
     if (!surchargeRate)
       throw new NotFoundException(
@@ -396,10 +396,12 @@ export class BookingDetailsService {
       : localUserType.surcharge_factor;
 
     const surchargeRate =
-      await this.configurationsService.handleGetValueByName('surcharge_rate');
+      await this.configurationsService.handleGetValueByName(SURCHARGE_RATE);
 
     if (!surchargeRate)
-      throw new NotFoundException(`Configuration for surchare rate not found.`);
+      throw new NotFoundException(
+        `Configuration for surcharge rate not found.`,
+      );
 
     const detailPrice =
       baseDetailPrice *
