@@ -42,6 +42,11 @@ const menuItems = {
       icon: BookUser,
     },
     {
+      title:"Room Types",
+      url:"/room-types/list",
+      icon: BookUser,
+    },
+    {
       title: "Bookings",
       url: "/bookings/list",
       icon: NotebookPen,

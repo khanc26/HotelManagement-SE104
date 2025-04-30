@@ -3,20 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { CreateInvoiceDto, UpdateInvoiceDto } from 'src/modules/invoices/dto';
 import { Invoice } from 'src/modules/invoices/entities';
-import { DataSource, In, Repository } from 'typeorm';
-import { format } from 'date-fns';
-import { MonthlyRevenue } from 'src/modules/reports/entities';
+import { InvoicesStatus } from 'src/modules/invoices/enums';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class InvoicesService {
   constructor(
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
-    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   public createInvoice = async (createInvoiceDto: CreateInvoiceDto) => {
@@ -161,5 +159,29 @@ export class InvoicesService {
         },
       })
     ).reduce((acc, curr) => acc + Number(curr.totalPrice), 0);
+  };
+
+  public handleUpdateStatusOfInvoice = async (
+    invoiceId: string,
+    vnp_ResponseCode: string,
+    vnp_TransactionStatus: string,
+  ) => {
+    const invoice = await this.invoiceRepository.findOne({
+      where: {
+        id: invoiceId,
+      },
+    });
+
+    if (!invoice)
+      throw new NotFoundException(`Invoice with id '${invoiceId}' not found.`);
+
+    const status =
+      vnp_ResponseCode === '00' && vnp_TransactionStatus === '00'
+        ? InvoicesStatus.PAID
+        : InvoicesStatus.UNPAID;
+
+    invoice.status = status;
+
+    await this.invoiceRepository.save(invoice);
   };
 }

@@ -33,9 +33,6 @@ export class RoomType {
   })
   roomPrice!: number;
 
-  @Column({ type: 'int', nullable: true })
-  maxGuests?: number;
-
   @OneToMany(() => Room, (room) => room.roomType, {
     cascade: true,
     orphanedRowAction: 'delete',
