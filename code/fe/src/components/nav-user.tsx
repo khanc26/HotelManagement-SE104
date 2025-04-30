@@ -22,7 +22,7 @@ import { clearAuthLocalStorage } from "@/utils/helpers/clearAuthLocalStorage";
 import { toast } from "react-toastify";
 
 const signOut = async () => {
-  const response = await fetch(`${import.meta.env.VITE_BASE_API_URL}/auth/sign-out`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/sign-out`, {
     method: "POST",
     credentials: "include",
     headers: {

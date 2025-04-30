@@ -41,7 +41,7 @@ const VerifyOTPPage = () => {
   // values: z.infer<typeof formSchema>
   async function onSubmit() {
     // try {
-    //   const response = await axios.post(`${import.meta.env.VITE_BASE_API_URL}/auth/verify-otp`, {
+    //   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/verify-otp`, {
     //     email,
     //     otp: values.otp,
     //   });

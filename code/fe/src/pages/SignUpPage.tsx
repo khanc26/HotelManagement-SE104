@@ -81,7 +81,7 @@ const SignUpPage = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_API_URL}/auth/sign-up`,
+        `${import.meta.env.VITE_API_BASE_URL}/auth/sign-up`,
         {
           email: values.email,
           password: values.password,
