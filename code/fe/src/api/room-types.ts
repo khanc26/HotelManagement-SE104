@@ -3,7 +3,7 @@ import axios from "axios";
 import { RoomType } from "@/types/room-type.type";
 import { RoomTypeCreateRequest, RoomTypeUpdateRequest } from "@/types/room-type.type";
 const api = axios.create({
-  baseURL: "http://localhost:3001/room-types",
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/room-types`,
 });
 
 export const getRoomTypes = async (): Promise<RoomType[]> => {
