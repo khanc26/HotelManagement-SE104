@@ -1,21 +1,21 @@
 import { getUsers } from "@/api/users";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Role, UserSearchRequest, UserType } from "@/types/user.type";
+import { UserSearchRequest, UserType } from "@/types/user.type";
+import { roles, userStatus, userTypes } from "@/utils/constraints";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { SearchIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -124,29 +124,31 @@ export function UserList() {
   };
 
   return (
-    <div>
+    <>
       <p className="text-3xl font-bold mb-6">Users Management</p>
 
       {/* Search Form */}
-      <Card className="w-full h-full mb-4">
+      <Card className="w-full h-full mb-4 border-black/10">
         <CardHeader>
-          <CardTitle className="text-xl font-bold">Search user</CardTitle>
+          <CardTitle className="text-xl font-bold">Search User</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSearch)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(onSearch)}
+              className="flex flex-col md:gap-4 gap-2"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="fullname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>FullName</FormLabel>
+                      <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Fullname" {...field} />
+                        <Input placeholder="John Doe" {...field} />
                       </FormControl>
-                      <FormDescription>This is the user name.</FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -157,20 +159,16 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Role</FormLabel>
                       <FormControl>
-                        <select
+                        <Select
+                          items={roles}
                           {...field}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                          placeholder="Select role..."
+                          defaultSelectedKeys={["user"]}
                         >
-                          <option value="">All Role</option>
-                          {Object.values(Role).map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
+                          {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                        </Select>
                       </FormControl>
-                      <FormDescription>This is the user role.</FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -181,14 +179,9 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Enter your email address"
-                          {...field}
-                        />
+                        <Input placeholder="johndoe01@gmail.com" {...field} />
                       </FormControl>
-                      <FormDescription>Valid email address</FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -199,12 +192,12 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter the address" {...field} />
+                        <Input
+                          placeholder="123 Main Street, London, England"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>
-                        The address must include the city, district, and street
-                      </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -215,12 +208,9 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Nationality</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter the nationality" {...field} />
+                        <Input placeholder="England" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        The nationality must be specified
-                      </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -229,22 +219,18 @@ export function UserList() {
                   name="guest_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Guest_type</FormLabel>
+                      <FormLabel>Guest Type</FormLabel>
                       <FormControl>
-                        <select
+                        <Select
+                          items={userTypes}
                           {...field}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                          defaultSelectedKeys={["local"]}
+                          placeholder="Select user type..."
                         >
-                          <option value="">Select type</option>
-                          {Object.values(UserType).map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
+                          {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                        </Select>
                       </FormControl>
-                      <FormDescription>Type the guest type</FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -253,17 +239,11 @@ export function UserList() {
                   name="identity_number"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Identity_number</FormLabel>
+                      <FormLabel>Identity Number</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Enter the identity_number"
-                          {...field}
-                        />
+                        <Input placeholder="123456789" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        The identity_number is important
-                      </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
@@ -274,46 +254,48 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>User Status</FormLabel>
                       <FormControl>
-                        <select
+                        <Select
+                          items={userStatus}
                           {...field}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                          defaultSelectedKeys={["active"]}
+                          placeholder="Select user status..."
                         >
-                          <option value="">Select status</option>
-                          <option value="active">active</option>
-                          <option value="inactive">inactive</option>
-                        </select>
+                          {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                        </Select>
                       </FormControl>
-                      <FormDescription>
-                        Current status of the user
-                      </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600" />
                     </FormItem>
                   )}
                 />
-                 <FormField
-                control={form.control}
-                name="dob"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date of Birth</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage className="text-red-600" />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" className="flex-1">
+              <div className="flex gap-4 items-center justify-center">
+                <Button
+                  type="submit"
+                  color="primary"
+                  startContent={<SearchIcon />}
+                >
                   Search
                 </Button>
+
                 <Button
                   type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={clearFilters}
+                  color="primary"
+                  onPress={clearFilters}
+                  startContent={<TrashIcon />}
                 >
                   Clear Filters
                 </Button>
@@ -323,9 +305,9 @@ export function UserList() {
         </CardContent>
       </Card>
 
-      <Card className="w-full h-full mb-4">
+      <Card className="w-full h-full mb-4 border-black/10">
         <CardHeader>
-          <CardTitle className="text-xl font-bold">List of user</CardTitle>
+          <CardTitle className="text-xl font-bold">Users List</CardTitle>
         </CardHeader>
         <CardContent>
           {isUsersLoading ? (
@@ -341,6 +323,6 @@ export function UserList() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }
