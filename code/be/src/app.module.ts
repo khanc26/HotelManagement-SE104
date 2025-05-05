@@ -17,7 +17,7 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigurationsModule } from './modules/configurations/configurations.module';
+import { ParamsModule } from './modules/params/params.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ReportsModule } from './modules/reports/reports.module';
 
@@ -51,7 +51,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     InvoicesModule,
     BookingsModule,
     BookingDetailsModule,
-    ConfigurationsModule,
+    ParamsModule,
     ReportsModule,
     PaymentsModule,
   ],
