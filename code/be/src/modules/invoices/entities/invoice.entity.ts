@@ -1,6 +1,7 @@
 import { transformDateTime } from 'src/libs/common/helpers';
 import { BookingDetail } from 'src/modules/booking-details/entities';
 import { InvoicesStatus } from 'src/modules/invoices/enums/invoices-status.enum';
+import { Payment } from 'src/modules/payments/entities';
 import {
   Column,
   CreateDateColumn,
@@ -56,6 +57,9 @@ export class Invoice {
   })
   @JoinColumn()
   bookingDetail!: BookingDetail;
+
+  @OneToOne(() => Payment, (payment) => payment.invoice, { nullable: true })
+  payment?: Payment;
 
   @CreateDateColumn({
     type: 'timestamp',

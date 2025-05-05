@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -9,22 +8,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { UserType } from "@/types/user.type";
+import { userTypes } from "@/utils/constraints";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { z } from "zod";
-
 
 const formSchema = z
   .object({
@@ -35,11 +26,11 @@ const formSchema = z
       message: "Password must be at least 6 characters.",
     }),
     confirmPassword: z.string(),
-    fullName: z.string().min(2, {
-      message: "Full name must be at least 2 characters.",
+    fullName: z.string().min(1, {
+      message: "Your name can't be empty.",
     }),
-    nationality: z.string().min(2, {
-      message: "Nationality must be at least 2 characters.",
+    nationality: z.string().min(1, {
+      message: "Nationality can't be empty.",
     }),
     dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Please enter a valid date",
@@ -47,16 +38,18 @@ const formSchema = z
     phoneNumber: z.string().min(10, {
       message: "Phone number must be at least 10 characters.",
     }),
-    address: z.string().min(5, {
-      message: "Address must be at least 5 characters.",
+    address: z.string().min(1, {
+      message: "Address can't be empty.",
     }),
-    identityNumber: z.string().min(9, {
-      message: "Identity number must be at least 9 characters.",
+    identityNumber: z.string().min(1, {
+      message: "Identity number can't be empty.",
     }),
-    userType: z.nativeEnum(UserType),
+    userType: z.enum(["foreign", "local"], {
+      message: "Please choose a valid user type.",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "Passwords didn't match",
     path: ["confirmPassword"],
   });
 
@@ -75,23 +68,26 @@ const SignUpPage = () => {
       phoneNumber: "",
       address: "",
       identityNumber: "",
-      userType: UserType.LOCAL,
+      userType: undefined,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await axios.post("http://localhost:3001/auth/sign-up", {
-        email: values.email,
-        password: values.password,
-        fullName: values.fullName,
-        nationality: values.nationality,
-        dob: new Date(values.dob),
-        phoneNumber: values.phoneNumber,
-        address: values.address,
-        identityNumber: values.identityNumber,
-        userTypeName: values.userType,
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/sign-up`,
+        {
+          email: values.email,
+          password: values.password,
+          fullName: values.fullName,
+          nationality: values.nationality,
+          dob: new Date(values.dob),
+          phoneNumber: values.phoneNumber,
+          address: values.address,
+          identityNumber: values.identityNumber,
+          userTypeName: values.userType,
+        }
+      );
 
       if (response.status === 201) {
         toast.success("Successfully sign up!");
@@ -104,23 +100,25 @@ const SignUpPage = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className="text-2xl font-bold mb-4 text-center">Sign Up</h2>
+    <div className="mx-auto md:px-6 px-2 flex flex-col md:gap-6 gap-3">
+      <div className="flex flex-col text-center items-center">
+        <h2 className="text-2xl font-bold text-center">SIGN UP</h2>
+
+        <p className="text-gray-600 text-center">
+          Create an account to start managing reservations, guests, and hotel
+          services.
+        </p>
+      </div>
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your full name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col md:gap-4 gap-2 w-full mx-auto"
+        >
+          <p className="italic font-medium text-center">
+            Your Account Information
+          </p>
+
           <FormField
             control={form.control}
             name="email"
@@ -130,100 +128,11 @@ const SignUpPage = () => {
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="johndoe01@gmail.com"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="nationality"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nationality</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your nationality" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="dob"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date of Birth</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your phone number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your address" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="identityNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Identity Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your identity number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="userType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select user type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value={UserType.LOCAL}>Local</SelectItem>
-                    <SelectItem value={UserType.FOREIGN}>Foreign</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
+                <FormMessage className="text-red-600" />
               </FormItem>
             )}
           />
@@ -236,11 +145,11 @@ const SignUpPage = () => {
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Your password here..."
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-red-600" />
               </FormItem>
             )}
           />
@@ -253,21 +162,133 @@ const SignUpPage = () => {
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder="Confirm your password..."
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-red-600" />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">
+
+          <p className="italic font-medium text-center">
+            Your Details Information
+          </p>
+
+          <div className="grid md:grid-cols-2 grid-cols-1 md:gap-4 gap-2">
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-600" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="nationality"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Nationality</FormLabel>
+                  <FormControl>
+                    <Input placeholder="England" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-600" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dob"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-600" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="0393873631" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-600" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your address" {...field} />
+                </FormControl>
+                <FormMessage className="text-red-600" />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid md:grid-cols-2 grid-cols-1 md:gap-4 gap-2">
+            <FormField
+              control={form.control}
+              name="identityNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Identity Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your identity number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-600" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="userType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>User Type</FormLabel>
+                  <Select
+                    className="max-w-xs"
+                    items={userTypes}
+                    placeholder="Select an animal"
+                    {...field}
+                  >
+                    {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                  </Select>
+                  <FormMessage className="text-red-600" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <Button type="submit" className="w-fit mx-auto" color="primary">
             Sign Up
           </Button>
           <p className="text-center text-sm">
             Already have an account?{" "}
             <Link to="/auth/sign-in" className="text-blue-600 hover:underline">
-              Login here
+              Sign in
             </Link>
           </p>
         </form>

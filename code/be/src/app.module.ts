@@ -17,8 +17,9 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ReportsModule } from './modules/reports/reports.module';
 import { ParamsModule } from './modules/params/params.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ParamsModule } from './modules/params/params.module';
     BookingDetailsModule,
     ParamsModule,
     ReportsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],
@@ -62,7 +64,13 @@ export class AppModule implements NestModule {
 
     consumer
       .apply(SessionMiddleware)
-      .exclude('/auth/sign-in', '/auth/sign-up', '/auth/sign-out')
+      .exclude(
+        '/',
+        '/auth/sign-in',
+        '/auth/sign-up',
+        '/auth/sign-out',
+        '/payments/vnpay/ipn',
+      )
       .forRoutes('*');
   }
 }

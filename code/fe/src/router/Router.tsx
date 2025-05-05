@@ -41,6 +41,9 @@ import { UserRoomList } from "@/features/room/components/view-user/room-list";
 import { Role } from "@/types/role";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import UserRoomPage from "@/pages/UserRoomPage";
+import RoomTypePage from "@/pages/RoomTypePage";
+import { RoomTypeAdd } from "@/features/roomtype/room-type-add";
+import RoomTypeList from "@/features/roomtype/room-type-list";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -125,6 +128,24 @@ const router = createBrowserRouter([
             element: <UserEdit />,
           },
         ],
+      },
+      {
+        path: "room-types",
+        element: <RoomTypePage />,
+        children: [
+          {
+            path: "list",
+            element: <RoomTypeList />,
+          },
+          {
+            path: "add",
+            element: <RoomTypeAdd />,
+          },
+        ],
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
       },
       {
         path: "bookings",
