@@ -35,9 +35,7 @@ export class ParamsService {
     });
 
     if (!existingParam) {
-      throw new NotFoundException(
-        `Param with name ${paramName} not found`,
-      );
+      throw new NotFoundException(`Param with name ${paramName} not found`);
     }
 
     const { id, ...existingParamValue } = existingParam;

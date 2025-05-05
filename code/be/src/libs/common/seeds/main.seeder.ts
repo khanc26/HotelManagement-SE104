@@ -37,8 +37,7 @@ export class MainSeeder implements Seeder {
       const userTypeRepository = entityManager.getRepository(UserType);
       const userRepository = entityManager.getRepository(User);
       const profileRepository = entityManager.getRepository(Profile);
-      const paramRepository =
-        entityManager.getRepository(Param);
+      const paramRepository = entityManager.getRepository(Param);
       const roomTypeRepository = entityManager.getRepository(RoomType);
       const roomRepository = entityManager.getRepository(Room);
 
@@ -90,18 +89,16 @@ export class MainSeeder implements Seeder {
       this.logger.log('Seeding param data...');
 
       await Promise.all(
-        ParamMockData.map(
-          async ({ param_name, param_value, description }) => {
-            await paramRepository.upsert(
-              {
-                paramName: param_name,
-                paramValue: param_value,
-                description,
-              },
-              ['paramName'],
-            );
-          },
-        ),
+        ParamMockData.map(async ({ param_name, param_value, description }) => {
+          await paramRepository.upsert(
+            {
+              paramName: param_name,
+              paramValue: param_value,
+              description,
+            },
+            ['paramName'],
+          );
+        }),
       );
 
       this.logger.log('Seeding room type data...');

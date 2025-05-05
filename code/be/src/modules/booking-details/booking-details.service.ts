@@ -58,14 +58,10 @@ export class BookingDetailsService {
       );
 
     const maxGuestsPerRoomParam =
-      await this.paramsService.handleGetValueByName(
-        MAX_GUESTS_PER_ROOM,
-      );
+      await this.paramsService.handleGetValueByName(MAX_GUESTS_PER_ROOM);
 
     if (!maxGuestsPerRoomParam)
-      throw new NotFoundException(
-        `Param for max guests per room not found.`,
-      );
+      throw new NotFoundException(`Param for max guests per room not found.`);
 
     if (Number(maxGuestsPerRoomParam.paramValue) < guestCount)
       throw new BadRequestException(
@@ -108,9 +104,7 @@ export class BookingDetailsService {
       await this.paramsService.handleGetValueByName(SURCHARGE_RATE);
 
     if (!surchargeRate)
-      throw new NotFoundException(
-        `Param for surcharge rate not found.`,
-      );
+      throw new NotFoundException(`Param for surcharge rate not found.`);
 
     const detailPrice =
       baseDetailPrice *
@@ -321,14 +315,10 @@ export class BookingDetailsService {
       1;
 
     const maxGuestsPerRoomParam =
-      await this.paramsService.handleGetValueByName(
-        MAX_GUESTS_PER_ROOM,
-      );
+      await this.paramsService.handleGetValueByName(MAX_GUESTS_PER_ROOM);
 
     if (!maxGuestsPerRoomParam)
-      throw new NotFoundException(
-        `Param for max guests per room not found.`,
-      );
+      throw new NotFoundException(`Param for max guests per room not found.`);
 
     const guestCount =
       updateBookingDetailDto?.guestCount ?? existingBookingDetail.guestCount;
@@ -399,9 +389,7 @@ export class BookingDetailsService {
       await this.paramsService.handleGetValueByName(SURCHARGE_RATE);
 
     if (!surchargeRate)
-      throw new NotFoundException(
-        `Param for surcharge rate not found.`,
-      );
+      throw new NotFoundException(`Param for surcharge rate not found.`);
 
     const detailPrice =
       baseDetailPrice *

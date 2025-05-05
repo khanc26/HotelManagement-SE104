@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { transformDateTime } from '../../../libs/common/helpers';
 
-@Entity("params")
+@Entity('params')
 export class Param {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
