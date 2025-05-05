@@ -8,16 +8,16 @@ import {
 } from 'typeorm';
 import { transformDateTime } from '../../../libs/common/helpers';
 
-@Entity()
-export class Configuration {
+@Entity("params")
+export class Param {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
   @Column()
-  configName!: string;
+  paramName!: string;
 
   @Column({ type: 'float' })
-  configValue!: number;
+  paramValue!: number;
 
   @Column({ nullable: true })
   description!: string;

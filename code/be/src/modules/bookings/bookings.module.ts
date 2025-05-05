@@ -3,8 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookingDetailsRepository } from 'src/modules/booking-details/booking-details.repository';
 import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
 import { Booking } from 'src/modules/bookings/entities';
-import { ConfigurationsService } from 'src/modules/configurations/configurations.service';
-import { Configuration } from 'src/modules/configurations/entities';
 import { Invoice } from 'src/modules/invoices/entities';
 import { InvoicesRepository } from 'src/modules/invoices/invoices.repository';
 import { InvoicesService } from 'src/modules/invoices/invoices.service';
@@ -19,6 +17,8 @@ import { BookingsRepository } from './bookings.repository';
 import { BookingsService } from './bookings.service';
 import { ReportsService } from 'src/modules/reports/reports.service';
 import { MonthlyRevenue } from 'src/modules/reports/entities';
+import { Param } from '../params/entities';
+import { ParamsService } from '../params/params.service';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { MonthlyRevenue } from 'src/modules/reports/entities';
       UserType,
       Role,
       Invoice,
-      Configuration,
+      Param,
       Room,
       RoomType,
       MonthlyRevenue,
@@ -42,7 +42,7 @@ import { MonthlyRevenue } from 'src/modules/reports/entities';
     BookingDetailsService,
     BookingDetailsRepository,
     InvoicesService,
-    ConfigurationsService,
+    ParamsService,
     RoomsService,
     InvoicesRepository,
     RoomTypesService,

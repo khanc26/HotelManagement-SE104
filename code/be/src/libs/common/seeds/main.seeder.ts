@@ -2,14 +2,14 @@ import { Logger, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { IUser } from 'src/libs/common/constants';
 import {
-  ConfigurationMockData,
+  ParamMockData,
   roleMockData,
   RoomTypeMock,
   usersAdminMock,
   UserTypeMockData,
 } from 'src/libs/common/seeds/mocks';
 import { generateRoomsMockData } from 'src/libs/common/seeds/mocks/rooms.mock';
-import { Configuration } from 'src/modules/configurations/entities';
+import { Param } from 'src/modules/params/entities';
 import { RoomType } from 'src/modules/room-types/entities';
 import { Room } from 'src/modules/rooms/entities';
 import { Profile } from 'src/modules/users/entities/profile.entity';
@@ -37,8 +37,8 @@ export class MainSeeder implements Seeder {
       const userTypeRepository = entityManager.getRepository(UserType);
       const userRepository = entityManager.getRepository(User);
       const profileRepository = entityManager.getRepository(Profile);
-      const configurationRepository =
-        entityManager.getRepository(Configuration);
+      const paramRepository =
+        entityManager.getRepository(Param);
       const roomTypeRepository = entityManager.getRepository(RoomType);
       const roomRepository = entityManager.getRepository(Room);
 
@@ -87,18 +87,18 @@ export class MainSeeder implements Seeder {
         }),
       );
 
-      this.logger.log('Seeding configuration data...');
+      this.logger.log('Seeding param data...');
 
       await Promise.all(
-        ConfigurationMockData.map(
-          async ({ config_name, config_value, description }) => {
-            await configurationRepository.upsert(
+        ParamMockData.map(
+          async ({ param_name, param_value, description }) => {
+            await paramRepository.upsert(
               {
-                configName: config_name,
-                configValue: config_value,
+                paramName: param_name,
+                paramValue: param_value,
                 description,
               },
-              ['configName'],
+              ['paramName'],
             );
           },
         ),
