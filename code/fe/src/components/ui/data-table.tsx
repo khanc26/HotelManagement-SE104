@@ -19,14 +19,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React from "react";
-import { Button } from "./button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { Input } from "./input";
+import { Button, Input } from "@heroui/react";
+import { ChevronLeft, ChevronRight, SearchIcon } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,7 +40,6 @@ export function DataTable<TData, TValue>({
   onRowSelectionChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [globalFilter, setGlobalFilter] = React.useState<any>([]);
 
   const [columnVisibility, setColumnVisibility] =
@@ -75,9 +74,13 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div>
-      <div className="flex items-center py-4">
+    <>
+      <div
+        className="flex md:flex-row flex-col items-start justify-start
+      md:items-center py-4 md:justify-between gap-4"
+      >
         <Input
+          startContent={<SearchIcon />}
           placeholder="Search for any keyword..."
           value={globalFilter ?? ""}
           onChange={(e) => {
@@ -89,9 +92,7 @@ export function DataTable<TData, TValue>({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Display
-            </Button>
+            <Button color="primary">Display</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
@@ -115,7 +116,7 @@ export function DataTable<TData, TValue>({
         </DropdownMenu>
       </div>
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border-black/10 border p-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -169,22 +170,24 @@ export function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
-          variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
+          startContent={<ChevronLeft />}
+          color="secondary"
+          onPress={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
         </Button>
         <Button
-          variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
+          color="secondary"
+          endContent={<ChevronRight />}
+          onPress={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
           Next
         </Button>
       </div>
-    </div>
+    </>
   );
 }

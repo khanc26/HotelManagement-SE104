@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Button } from "./components/ui/button.tsx";
+import { HeroUIProvider } from "@heroui/react";
 
 interface ResponseError extends Error {
   response?: {
@@ -88,7 +89,9 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <HeroUIProvider>
+        <App />
+      </HeroUIProvider>
     </QueryClientProvider>
   </StrictMode>
 );
