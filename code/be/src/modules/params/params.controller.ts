@@ -16,7 +16,7 @@ export class ParamsController {
     return this.paramsService.findAll();
   }
 
-  @Get(':history')
+  @Get('history')
   @Roles(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN)
   async getHistory() {
     return this.paramsService.getHistory();
