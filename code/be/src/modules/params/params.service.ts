@@ -18,7 +18,15 @@ export class ParamsService {
     });
   };
 
-  getAllParams = async () => {
+  findAll = async () => {
+    return await this.paramsRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  };
+
+  getHistory = async () => {
     return await this.paramsRepository.find({
       withDeleted: true,
       order: {
@@ -61,7 +69,7 @@ export class ParamsService {
       await queryRunner.release();
     }
 
-    const params = await this.getAllParams();
+    const params = await this.findAll();
     return params;
   };
 }
