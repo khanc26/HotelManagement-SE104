@@ -5,6 +5,7 @@ import { BookingDetailEdit } from "@/features/booking-detail/components/booking-
 import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
 import { BookingList } from "@/features/booking/components/booking-list";
 import { ConfigurationEdit } from "@/features/configurations/components/configuraion-edit";
+import { ConfigurationHistory } from "@/features/configurations/components/configuration-history";
 import { ConfigurationParams } from "@/features/configurations/components/configurations-list";
 import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
 import { InvoiceList } from "@/features/invoice/components/invoice-list";
@@ -146,10 +147,7 @@ const router = createBrowserRouter([
           },
         ],
       },
-      {
-        path: "profile",
-        element: <ProfilePage />,
-      },
+  
       {
         path: "bookings",
         element: (
@@ -222,6 +220,10 @@ const router = createBrowserRouter([
             path: "edit",
             element: <ConfigurationEdit />,
           },
+          {
+            path: "history",
+            element: <ConfigurationHistory />,
+          }
         ],
       },
       {
@@ -268,7 +270,7 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.USER]}>
             <ProfilePage />
           </RoleBasedRoutes>
         ),

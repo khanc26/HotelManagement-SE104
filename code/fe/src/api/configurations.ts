@@ -1,4 +1,4 @@
-import { UpdateParamDto } from "@/types/Configuration";
+import { UpdateParamDto } from "@/types/configuration.";
 import { getAccessToken } from "@/utils/helpers/getAccessToken";
 import axios from "axios";
 
@@ -46,5 +46,23 @@ export const updateConfiguration = async (
       throw new Error(error.response?.data?.message || 'Failed to update configuration');
     }
     throw new Error('Failed to update configuration');
+  }
+};
+
+export const getConfigurationHistory = async () => {
+  try {
+    const access_token = getAccessToken();
+
+    const response = await api.get(`/history`, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+      withCredentials: true,
+    });
+
+    console.log("Response Configuration History:", response.data);
+    return response.data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Failed to get configuration history ");
   }
 };

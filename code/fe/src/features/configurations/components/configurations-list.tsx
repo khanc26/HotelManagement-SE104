@@ -9,9 +9,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 type ParamItem = {
   paramName: string;
@@ -20,6 +23,9 @@ type ParamItem = {
 };
 
 export function ConfigurationParams() {
+
+  const navigate = useNavigate();
+
   const form = useForm<Record<string, number>>({
     defaultValues: {},
   });
@@ -28,10 +34,27 @@ export function ConfigurationParams() {
     data: params,
     isLoading,
     isError,
+    error
   } = useQuery({
     queryKey: ["params"],
     queryFn: getConfiguration,
   });
+
+  if (isError) {
+    const errorData = GetAPIErrorResponseData(error);
+    if (errorData.statusCode === 401) {
+      toast.error("Unauthorized. Navigating to sign-in page in 3 seconds");
+      setTimeout(() => {
+        navigate("/auth/sign-in");
+      }, 3000);
+    } else
+      toast.error(
+        "Error while getting configurations " +
+          errorData.statusCode +
+          " " +
+          errorData.message
+      );
+  }
 
   useEffect(() => {
     if (params) {

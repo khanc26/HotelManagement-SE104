@@ -9,6 +9,10 @@ const menuItems = [
    {
       title: "Edit",
       url: "edit",
+   },
+   {
+      title: "History",
+      url: "history",
    }
 ];
 
