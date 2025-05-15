@@ -22,11 +22,11 @@ import { Link } from "react-router-dom";
 import { RoomType } from "@/types/room-type.type";
 import { deleteRoomType } from "@/api/room-types";
 
-export function RoomActionsCell({ roomType }: { roomType: RoomType }) {
+export function RoomTypeActionCell({ roomType }: { roomType: RoomType }) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: (roomTypeId: string) => deleteRoomType(roomTypeId),
+    mutationFn: (id: string) => deleteRoomType(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["room-types"] });
       console.log(`Room type ${roomType.name} deleted successfully`);
@@ -46,7 +46,10 @@ export function RoomActionsCell({ roomType }: { roomType: RoomType }) {
     <Dialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0 flex items-center justify-center"
+          >
             <span className="sr-only">Open menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>

@@ -32,9 +32,8 @@ import VerifyOTPPage from "../pages/VerifyOTPPage";
 //import { PrivateRoutes } from "@/features/auth/components/private-routes";
 //import NotAuthenticated from "@/pages/NotAuthenticated";
 import RoomTypePage from "@/pages/RoomTypePage";
-import { RoomTypeAdd }  from "@/features/roomtype/room-type-add";
-import  RoomTypeList from "@/features/roomtype/room-type-list";
-
+import { RoomTypeList } from "@/features/roomtype/room-type-list";
+import  { RoomTypeEdit }  from "@/features/roomtype/room-type-edit";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -79,8 +78,8 @@ const router = createBrowserRouter([
             element: <RoomTypeList />,
           },
           {
-            path: "add",
-            element: <RoomTypeAdd />,
+           path: "Edit",
+           element: <RoomTypeEdit />,
           },
         ],
       },      
