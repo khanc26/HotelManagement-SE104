@@ -2,14 +2,14 @@ import { Logger, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { IUser } from 'src/libs/common/constants';
 import {
-  ConfigurationMockData,
+  ParamMockData,
   roleMockData,
   RoomTypeMock,
   usersAdminMock,
   UserTypeMockData,
 } from 'src/libs/common/seeds/mocks';
 import { generateRoomsMockData } from 'src/libs/common/seeds/mocks/rooms.mock';
-import { Configuration } from 'src/modules/configurations/entities';
+import { Param } from 'src/modules/params/entities';
 import { RoomType } from 'src/modules/room-types/entities';
 import { Room } from 'src/modules/rooms/entities';
 import { Profile } from 'src/modules/users/entities/profile.entity';
@@ -37,8 +37,7 @@ export class MainSeeder implements Seeder {
       const userTypeRepository = entityManager.getRepository(UserType);
       const userRepository = entityManager.getRepository(User);
       const profileRepository = entityManager.getRepository(Profile);
-      const configurationRepository =
-        entityManager.getRepository(Configuration);
+      const paramRepository = entityManager.getRepository(Param);
       const roomTypeRepository = entityManager.getRepository(RoomType);
       const roomRepository = entityManager.getRepository(Room);
 
@@ -87,16 +86,17 @@ export class MainSeeder implements Seeder {
         }),
       );
 
-      this.logger.log('Seeding configuration data...');
+      this.logger.log('Seeding param data...');
 
       await Promise.all(
-        ConfigurationMockData.map(async ({ config_name, config_value }) => {
-          await configurationRepository.upsert(
+        ParamMockData.map(async ({ param_name, param_value, description }) => {
+          await paramRepository.upsert(
             {
-              configName: config_name,
-              configValue: config_value,
+              paramName: param_name,
+              paramValue: param_value,
+              description,
             },
-            ['configName'],
+            ['paramName'],
           );
         }),
       );
@@ -104,19 +104,16 @@ export class MainSeeder implements Seeder {
       this.logger.log('Seeding room type data...');
 
       await Promise.all(
-        RoomTypeMock.map(
-          async ({ name, description, roomPrice, maxGuests }) => {
-            await roomTypeRepository.upsert(
-              {
-                name,
-                description,
-                roomPrice,
-                maxGuests,
-              },
-              ['name'],
-            );
-          },
-        ),
+        RoomTypeMock.map(async ({ name, description, roomPrice }) => {
+          await roomTypeRepository.upsert(
+            {
+              name,
+              description,
+              roomPrice,
+            },
+            ['name'],
+          );
+        }),
       );
 
       this.logger.log('Seeding rooms data...');
@@ -183,7 +180,9 @@ export class MainSeeder implements Seeder {
     }
 
     if (!role)
-      throw new Error(`Role for type ${type} not found in the system.`);
+      throw new Error(
+        `The role associated with type '${type}' could not be found.`,
+      );
 
     const userLocalType = await userTypeRepository.findOne({
       where: {
@@ -192,7 +191,9 @@ export class MainSeeder implements Seeder {
     });
 
     if (!userLocalType)
-      throw new NotFoundException('User local type not found.');
+      throw new NotFoundException(
+        'The specified user local type could not be found.',
+      );
 
     await userRepository.upsert(
       {
@@ -210,7 +211,8 @@ export class MainSeeder implements Seeder {
       },
     });
 
-    if (!findUser) throw new Error(`User with email '${email}' not found.`);
+    if (!findUser)
+      throw new NotFoundException(`No user found with the email '${email}'.`);
 
     await profileRepository.upsert(
       {

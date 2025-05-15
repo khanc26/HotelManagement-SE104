@@ -7,11 +7,10 @@ import {
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
-import { MAX_GUESTS_PER_ROOM } from 'src/libs/common/constants';
+import { MAX_GUESTS_PER_ROOM, SURCHARGE_RATE } from 'src/libs/common/constants';
 import { BookingDetail } from 'src/modules/booking-details/entities';
 import { BookingDetailsStatus } from 'src/modules/booking-details/enums';
 import { Booking } from 'src/modules/bookings/entities';
-import { ConfigurationsService } from 'src/modules/configurations/configurations.service';
 import { InvoicesService } from 'src/modules/invoices/invoices.service';
 import { Room } from 'src/modules/rooms/entities';
 import { RoomStatusEnum } from 'src/modules/rooms/enums';
@@ -21,6 +20,7 @@ import { DataSource, In } from 'typeorm';
 import { RoleEnum, UserTypeEnum } from '../users/enums';
 import { BookingDetailsRepository } from './booking-details.repository';
 import { CreateBookingDetailDto, UpdateBookingDetailDto } from './dto';
+import { ParamsService } from '../params/params.service';
 
 @Injectable()
 export class BookingDetailsService {
@@ -29,7 +29,7 @@ export class BookingDetailsService {
     private readonly bookingDetailsRepository: BookingDetailsRepository,
     private readonly usersService: UsersService,
     private readonly invoicesService: InvoicesService,
-    private readonly configurationsService: ConfigurationsService,
+    private readonly paramsService: ParamsService,
     private readonly roomsService: RoomsService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -43,33 +43,29 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const existingRoom = await this.roomsService.findOne(roomId);
 
     if (!existingRoom) {
-      throw new NotFoundException(`Room with id: '${roomId}' not found.`);
+      throw new NotFoundException('Room not found or has been deleted.');
     }
 
     if (existingRoom.status === RoomStatusEnum.OCCUPIED)
       throw new BadRequestException(
-        `Room '${existingRoom.roomNumber}' has been occupied by another user.`,
+        `The room with number '${existingRoom.roomNumber}' is currently occupied.`,
       );
 
-    const maxGuestsPerRoomConfig =
-      await this.configurationsService.handleGetValueByName(
-        MAX_GUESTS_PER_ROOM,
-      );
+    const maxGuestsPerRoomParam =
+      await this.paramsService.handleGetValueByName(MAX_GUESTS_PER_ROOM);
 
-    if (!maxGuestsPerRoomConfig)
-      throw new NotFoundException(
-        `Configuration for max guests per room not found.`,
-      );
+    if (!maxGuestsPerRoomParam)
+      throw new NotFoundException(`Param for max guests per room not found.`);
 
-    if (Number(maxGuestsPerRoomConfig.configValue) < guestCount)
+    if (Number(maxGuestsPerRoomParam.paramValue) < guestCount)
       throw new BadRequestException(
-        `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+        `A room can accommodate up to ${maxGuestsPerRoomParam.paramValue} guests only. Please reduce the number of guests.`,
       );
 
     const { startDate, endDate } = createBookingDetailDto;
@@ -105,16 +101,14 @@ export class BookingDetailsService {
       : localUserType.surcharge_factor;
 
     const surchargeRate =
-      await this.configurationsService.handleGetValueByName('surcharge_rate');
+      await this.paramsService.handleGetValueByName(SURCHARGE_RATE);
 
     if (!surchargeRate)
-      throw new NotFoundException(
-        `Configuration for surcharge rate not found.`,
-      );
+      throw new NotFoundException(`Param for surcharge rate not found.`);
 
     const detailPrice =
       baseDetailPrice *
-      (1 + surchargeRate.configValue * (guestCount > 2 ? 1 : 0)) *
+      (1 + surchargeRate.paramValue * (guestCount > 2 ? 1 : 0)) *
       surcharge_factor;
 
     const newBookingDetail = this.bookingDetailsRepository.create(
@@ -151,7 +145,7 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     return (
@@ -187,7 +181,7 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with email: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const bookingDetail = await this.bookingDetailsRepository.findOne({
@@ -212,7 +206,9 @@ export class BookingDetailsService {
     });
 
     if (!bookingDetail) {
-      throw new NotFoundException(`Booking detail with id: '${id}' not found.`);
+      throw new NotFoundException(
+        'The booking details you are looking for could not be found.',
+      );
     }
 
     return bookingDetail;
@@ -230,7 +226,7 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const existingBookingDetail = await this.bookingDetailsRepository.findOne({
@@ -247,7 +243,9 @@ export class BookingDetailsService {
     });
 
     if (!existingBookingDetail)
-      throw new NotFoundException(`Booking detail with id '${id}' not found.`);
+      throw new NotFoundException(
+        'The booking details you are looking for could not be found.',
+      );
 
     if (
       existingBookingDetail.status === BookingDetailsStatus.CANCELLED ||
@@ -320,22 +318,18 @@ export class BookingDetailsService {
         (1000 * 60 * 60 * 24) +
       1;
 
-    const maxGuestsPerRoomConfig =
-      await this.configurationsService.handleGetValueByName(
-        MAX_GUESTS_PER_ROOM,
-      );
+    const maxGuestsPerRoomParam =
+      await this.paramsService.handleGetValueByName(MAX_GUESTS_PER_ROOM);
 
-    if (!maxGuestsPerRoomConfig)
-      throw new NotFoundException(
-        `Configuration for max guests per room not found.`,
-      );
+    if (!maxGuestsPerRoomParam)
+      throw new NotFoundException(`Param for max guests per room not found.`);
 
     const guestCount =
       updateBookingDetailDto?.guestCount ?? existingBookingDetail.guestCount;
 
-    if (guestCount > maxGuestsPerRoomConfig.configValue)
+    if (guestCount > maxGuestsPerRoomParam.paramValue)
       throw new BadRequestException(
-        `A room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+        `A room can accommodate up to ${maxGuestsPerRoomParam.paramValue} guests only. Please reduce the number of guests.`,
       );
 
     let existingRoom: Room | null = existingBookingDetail.room;
@@ -347,17 +341,15 @@ export class BookingDetailsService {
         throw new NotFoundException(`Room with id: '${roomId}' not found.`);
 
       if (existingRoom.status === RoomStatusEnum.OCCUPIED)
-        throw new BadRequestException(
-          `Room with id '${roomId}' has been occupied.`,
-        );
+        throw new BadRequestException(`This room has been occupied.`);
 
       if (
         roomId !== existingBookingDetail.room.id &&
         guestCount &&
-        Number(maxGuestsPerRoomConfig.configValue) < guestCount
+        Number(maxGuestsPerRoomParam.paramValue) < guestCount
       )
         throw new BadRequestException(
-          `A new room can accommodate up to ${maxGuestsPerRoomConfig.configValue} guests only. Please reduce the number of guests.`,
+          `A new room can accommodate up to ${maxGuestsPerRoomParam.paramValue} guests only. Please reduce the number of guests.`,
         );
     }
 
@@ -396,14 +388,14 @@ export class BookingDetailsService {
       : localUserType.surcharge_factor;
 
     const surchargeRate =
-      await this.configurationsService.handleGetValueByName('surcharge_rate');
+      await this.paramsService.handleGetValueByName(SURCHARGE_RATE);
 
     if (!surchargeRate)
-      throw new NotFoundException(`Configuration for surchare rate not found.`);
+      throw new NotFoundException(`Param for surcharge rate not found.`);
 
     const detailPrice =
       baseDetailPrice *
-      (1 + surchargeRate.configValue * (guestCount > 2 ? 1 : 0)) *
+      (1 + surchargeRate.paramValue * (guestCount > 2 ? 1 : 0)) *
       surcharge_factor;
 
     await this.bookingDetailsRepository.update(

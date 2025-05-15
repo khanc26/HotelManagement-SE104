@@ -8,7 +8,7 @@ import { getAccessToken } from "@/utils/helpers/getAccessToken";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3001/rooms",
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/rooms`,
 });
 
 // Get all rooms with optional query parameters
@@ -19,7 +19,7 @@ export const getRooms = async (params?: RoomRequest) => {
 
   const response = await api.get<Room[]>("/", {
     params: {
-      name: params?.roomNumber,
+      roomNumber: params?.roomNumber,
       roomTypeName: params?.roomType,
       price: params?.price,
       status: params?.status,

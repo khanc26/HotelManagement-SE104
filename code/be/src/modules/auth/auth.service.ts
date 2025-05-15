@@ -37,7 +37,7 @@ export class AuthService {
     );
 
     if (!isPasswordMatching) {
-      throw new UnauthorizedException('Password is incorrect');
+      throw new UnauthorizedException('The password you entered is incorrect.');
     }
 
     const { accessToken, refreshToken } = this.handleGenerateTokens(
@@ -77,7 +77,9 @@ export class AuthService {
 
   public handleRefreshToken = (refreshToken: string) => {
     if (!refreshToken)
-      throw new UnauthorizedException('Refresh token is missing.');
+      throw new UnauthorizedException(
+        'Refresh token is missing from the request.',
+      );
 
     let payload: JwtPayload;
 
@@ -89,7 +91,7 @@ export class AuthService {
       console.error(error);
 
       throw new UnauthorizedException(
-        'Refresh Token is invalid or has expired.',
+        'Your refresh token is invalid or has expired. Please log in again.',
       );
     }
 

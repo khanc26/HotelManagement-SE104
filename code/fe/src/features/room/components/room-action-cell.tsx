@@ -72,8 +72,6 @@ export function RoomActionsCell({ roomType }: { roomType: RoomType }) {
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. Are you sure you want to permanently
-            delete room type{" "}
             <span className="font-semibold inline text-black underline">
               {roomType.name}
             </span>

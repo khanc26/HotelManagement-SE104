@@ -29,7 +29,7 @@ export class RoomTypesService {
 
     if (existingRoomType)
       throw new BadRequestException(
-        `Room type with name: '${name}' already existed.`,
+        'The room type you are trying to add already exists.',
       );
 
     const newRoomType = this.roomTypeRepository.create(createRoomTypeDto);
@@ -49,8 +49,7 @@ export class RoomTypesService {
       relations: ['rooms'],
     });
 
-    if (!findRoomType)
-      throw new NotFoundException(`Room type with id: '${id}' not found.`);
+    if (!findRoomType) throw new NotFoundException(`Room type not found.`);
 
     return findRoomType;
   }
@@ -63,8 +62,7 @@ export class RoomTypesService {
 
     const roomType = await this.roomTypeRepository.findOne({ where: { id } });
 
-    if (!roomType)
-      throw new NotFoundException(`Room type with id: '${id}' not found.`);
+    if (!roomType) throw new NotFoundException(`Room type not found.`);
 
     await this.roomTypeRepository.update({ id }, updateRoomTypeDto);
 
@@ -79,8 +77,7 @@ export class RoomTypesService {
       where: { id },
     });
 
-    if (!findRoomType)
-      throw new NotFoundException(`Room type with id: '${id}' not found.`);
+    if (!findRoomType) throw new NotFoundException(`Room type not found.`);
 
     await this.roomTypeRepository.softDelete({ id });
 

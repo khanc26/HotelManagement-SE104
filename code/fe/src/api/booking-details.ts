@@ -3,7 +3,7 @@ import { getAccessToken } from "@/utils/helpers/getAccessToken";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3001/booking-details",
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/booking-details`,
 });
 
 // Get booking details for a booking

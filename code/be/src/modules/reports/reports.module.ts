@@ -4,8 +4,6 @@ import { BookingDetailsRepository } from 'src/modules/booking-details/booking-de
 import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
 import { BookingDetail } from 'src/modules/booking-details/entities';
 import { BookingsModule } from 'src/modules/bookings/bookings.module';
-import { ConfigurationsModule } from 'src/modules/configurations/configurations.module';
-import { Configuration } from 'src/modules/configurations/entities';
 import { Invoice } from 'src/modules/invoices/entities';
 import { InvoicesModule } from 'src/modules/invoices/invoices.module';
 import { MonthlyRevenue } from 'src/modules/reports/entities';
@@ -15,6 +13,8 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { ReportsController } from './reports.controller';
 import { ReportsService } from './reports.service';
 import { RoomsModule } from 'src/modules/rooms/rooms.module';
+import { Param } from '../params/entities';
+import { ParamsModule } from '../params/params.module';
 
 @Module({
   imports: [
@@ -24,12 +24,12 @@ import { RoomsModule } from 'src/modules/rooms/rooms.module';
       BookingDetail,
       User,
       Invoice,
-      Configuration,
+      Param,
       Room,
     ]),
     UsersModule,
     InvoicesModule,
-    ConfigurationsModule,
+    ParamsModule,
     RoomsModule,
   ],
   controllers: [ReportsController],

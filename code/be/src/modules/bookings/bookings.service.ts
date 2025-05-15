@@ -34,12 +34,17 @@ export class BookingsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     let existingBookings: Booking[] = [];
 
-    const relations = ['user', 'bookingDetails'];
+    const relations = [
+      'user',
+      'bookingDetails',
+      'bookingDetails.room',
+      'bookingDetails.invoice',
+    ];
 
     const isAdmin =
       existingUser.role.roleName === RoleEnum.ADMIN ? true : false;
@@ -59,7 +64,7 @@ export class BookingsService {
             id: true,
             totalPrice: true,
             createdAt: true,
-            bookingDetails: true,
+            bookingDetails: {},
           },
     });
 
@@ -86,18 +91,23 @@ export class BookingsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const existingBooking = await this.bookingsRepository.findOne({
       where: {
         id,
       },
-      relations: ['user', 'bookingDetails'],
+      relations: [
+        'user',
+        'bookingDetails',
+        'bookingDetails.room',
+        'bookingDetails.invoice',
+      ],
     });
 
     if (!existingBooking) {
-      throw new NotFoundException(`Booking with id: '${id}' not found.`);
+      throw new NotFoundException(`Booking not found.`);
     }
 
     if (
@@ -132,7 +142,7 @@ export class BookingsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const existingBooking = await this.bookingsRepository.findOne({
@@ -210,8 +220,7 @@ export class BookingsService {
   async create({ createBookingDetailDtos }: CreateBookingDto, userId: string) {
     const user = await this.usersService.handleGetUserByField('id', userId);
 
-    if (!user)
-      throw new NotFoundException(`User with id '${userId}' not found.`);
+    if (!user) throw new NotFoundException(`User not found.`);
 
     const bookingDetails = await Promise.all(
       createBookingDetailDtos.map((dto) =>
@@ -269,8 +278,7 @@ export class BookingsService {
       },
     });
 
-    if (!booking)
-      throw new NotFoundException(`Booking with id '${bookingId}' not found.`);
+    if (!booking) throw new NotFoundException(`Booking not found.`);
 
     await Promise.all(
       updateBookingDetailDtos.map((dto) =>

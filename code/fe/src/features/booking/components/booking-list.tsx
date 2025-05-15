@@ -3,9 +3,11 @@ import { getBookings } from "@/api/bookings";
 import { DataTable } from "@/components/ui/data-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { columns } from "./booking-columns";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
 
 export function BookingList() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["bookings"],
     queryFn: () => getBookings(),
   });
@@ -18,7 +20,9 @@ export function BookingList() {
       <div className="flex">
         <CardContent className="flex-1 w-1">
           {isLoading ? (
-            <div>Loading...</div>
+            <TableSkeleton />
+          ) : isError ? (
+            <TableError />
           ) : (
             <DataTable columns={columns} data={data || []} />
           )}

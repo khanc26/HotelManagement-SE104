@@ -83,8 +83,6 @@ button:hover {
   border-color: #767676;
 }
 
-
-
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -186,10 +184,13 @@ button:hover {
 /* Add the new keyframes and animation configurations */
 @layer utilities {
   @keyframes caret-blink {
-    0%,70%,100% {
+    0%,
+    70%,
+    100% {
       opacity: 1;
     }
-    20%,50% {
+    20%,
+    50% {
       opacity: 0;
     }
   }

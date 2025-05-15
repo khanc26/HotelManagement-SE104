@@ -1,15 +1,17 @@
 import {
-  SortingState,
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  VisibilityState,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,30 +21,30 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React from "react";
-import { Button } from "./button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { Input } from "./input";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onRowSelectionChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [globalFilter, setGlobalFilter] = React.useState<any>([]);
 
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
@@ -53,16 +55,30 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    // onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      setRowSelection(updater); // Update internal state
+      if (onRowSelectionChange) {
+        // Send updated rowSelection to parent
+        onRowSelectionChange(
+          typeof updater === "function" ? updater(rowSelection) : updater
+        );
+      }
+    },
     state: {
       sorting,
       columnVisibility,
       globalFilter,
+      rowSelection,
     },
   });
 
   return (
-    <div>
-      <div className="flex items-center py-4">
+    <>
+      <div
+        className="flex md:flex-row flex-col items-start justify-start
+      md:items-center py-4 md:justify-between gap-4"
+      >
         <Input
           placeholder="Search for any keyword..."
           value={globalFilter ?? ""}
@@ -75,9 +91,7 @@ export function DataTable<TData, TValue>({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Display
-            </Button>
+            <Button color="primary">Display</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
@@ -101,7 +115,7 @@ export function DataTable<TData, TValue>({
         </DropdownMenu>
       </div>
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border-black/10 border p-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -155,22 +169,22 @@ export function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
-          variant="outline"
           size="sm"
+          color="secondary"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
         </Button>
         <Button
-          variant="outline"
           size="sm"
+          color="secondary"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
           Next
         </Button>
       </div>
-    </div>
+    </>
   );
 }
