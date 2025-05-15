@@ -46,9 +46,9 @@ import { Role } from "@/types/role";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import UserRoomPage from "@/pages/UserRoomPage";
 import RoomTypePage from "@/pages/RoomTypePage";
-import { RoomTypeAdd } from "@/features/roomtype/room-type-add";
 import RoomTypeList from "@/features/roomtype/room-type-list";
 import PaymentResult from "@/pages/PaymentResult";
+import { RoomTypeEdit } from "@/features/roomtype/room-type-edit";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -121,6 +121,10 @@ const router = createBrowserRouter([
         ),
         children: [
           {
+            index: true,
+            element: <UserList />,
+          },
+          {
             path: "list",
             element: <UserList />,
           },
@@ -139,12 +143,16 @@ const router = createBrowserRouter([
         element: <RoomTypePage />,
         children: [
           {
+            index: true,
+            element: <RoomTypeList />,
+          },
+          {
             path: "list",
             element: <RoomTypeList />,
           },
           {
-            path: "add",
-            element: <RoomTypeAdd />,
+           path: "Edit",
+           element: <RoomTypeEdit />,
           },
         ],
       },
