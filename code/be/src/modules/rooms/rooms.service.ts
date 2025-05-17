@@ -53,30 +53,28 @@ export class RoomsService {
       .createQueryBuilder('rooms')
       .leftJoinAndSelect('rooms.roomType', 'roomType');
 
-    if (searchRoomsDto) {
-      if (searchRoomsDto?.roomNumber) {
-        qb.andWhere('LOWER(rooms.roomNumber) LIKE LOWER(:roomNumber)', {
-          name: `%${searchRoomsDto.roomNumber}%`,
-        });
-      }
+    if (searchRoomsDto?.roomNumber) {
+      qb.andWhere('LOWER(rooms.roomNumber) LIKE LOWER(:roomNumber)', {
+        roomNumber: `%${searchRoomsDto.roomNumber}%`,
+      });
+    }
 
-      if (searchRoomsDto?.price) {
-        qb.andWhere('roomType.roomPrice = :price', {
-          price: searchRoomsDto.price,
-        });
-      }
+    if (searchRoomsDto?.price) {
+      qb.andWhere('roomType.roomPrice = :price', {
+        price: searchRoomsDto.price,
+      });
+    }
 
-      if (searchRoomsDto?.roomTypeName) {
-        qb.andWhere('LOWER(roomType.name) LIKE LOWER(:roomTypeName)', {
-          roomTypeName: `%${searchRoomsDto.roomTypeName}%`,
-        });
-      }
+    if (searchRoomsDto?.roomTypeName) {
+      qb.andWhere('LOWER(roomType.name) LIKE LOWER(:roomTypeName)', {
+        roomTypeName: `%${searchRoomsDto.roomTypeName}%`,
+      });
+    }
 
-      if (searchRoomsDto.status) {
-        qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
-          status: `%${searchRoomsDto.status}%`,
-        });
-      }
+    if (searchRoomsDto?.status) {
+      qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
+        status: `%${searchRoomsDto.status}%`,
+      });
     }
 
     return await qb.getMany();
