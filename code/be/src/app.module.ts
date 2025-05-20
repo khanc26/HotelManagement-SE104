@@ -20,6 +20,7 @@ import { AppService } from './app.service';
 import { ParamsModule } from './modules/params/params.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { EmailsModule } from './modules/emails/emails.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     ParamsModule,
     ReportsModule,
     PaymentsModule,
+    EmailsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SessionMiddleware, RedisProvider],
