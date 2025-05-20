@@ -360,7 +360,7 @@ export class UsersService {
       where: {
         [field]: value,
       },
-      relations: ['role'],
+      relations: ['role', 'profile'],
     });
   };
 
@@ -608,4 +608,15 @@ export class UsersService {
       await queryRunner.release();
     }
   }
+
+  public updatePassword = async (email: string, newPassword: string) => {
+    await this.userRepository.update(
+      {
+        email,
+      },
+      {
+        password: await this.hashingProvider.hashPassword(newPassword),
+      },
+    );
+  };
 }
