@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Link, useNavigate } from "react-router-dom";
-import { access_token_expired_time } from "@/utils/constraints";
+import { access_token_expired_time } from "@/utils/constants";
 import { toast } from "react-toastify";
 
 const formSchema = z.object({

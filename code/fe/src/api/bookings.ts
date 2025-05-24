@@ -1,11 +1,8 @@
 import { UpdateBookingDetailRequest } from "@/types/booking-detail";
 import { Booking } from "@/types/booking.type";
-import { getAccessToken } from "@/utils/helpers/getAccessToken";
-import axios from "axios";
+import { createApiInstance } from "./axios-config";
 
-const api = axios.create({
-  baseURL: "http://localhost:3001/bookings",
-});
+const api = createApiInstance("http://localhost:3001/bookings");
 
 interface CreateBookingDetailDto {
   roomId: string;
@@ -20,47 +17,23 @@ interface CreateBookingRequest {
 }
 
 export const createBooking = async (bookingDetails: CreateBookingDetailDto[]) => {
-  const access_token = getAccessToken();
-
   const requestBody: CreateBookingRequest = {
     createBookingDetailDtos: bookingDetails,
   };
 
-  const response = await api.post("/", requestBody, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.post("/", requestBody);
   return response.data;
 };
 
 // Get all bookings
 export const getBookings = async () => {
-  const access_token = getAccessToken();
-
-  const response = await api.get<Booking[]>("/", {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.get<Booking[]>("/");
   return response.data;
 };
 
 // Get a single booking by ID
 export const getBookingById = async (id: string) => {
-  const access_token = getAccessToken();
-
-  const response = await api.get<Booking>(`/${id}`, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.get<Booking>(`/${id}`);
   return response.data;
 };
 
@@ -69,20 +42,10 @@ export const deleteBookingDetail = async (
   id: string,
   bookingDetailIds: string[]
 ) => {
-  const access_token = getAccessToken();
-
   const bookingDetailIdsString = bookingDetailIds.join(",");
-
   const response = await api.delete<Booking>(
-    `/${id}?bookingDetailIds=${bookingDetailIdsString}`,
-    {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      withCredentials: true,
-    }
+    `/${id}?bookingDetailIds=${bookingDetailIdsString}`
   );
-
   return response.data;
 };
 
@@ -92,19 +55,11 @@ export const updateBooking = async (
   updatedBookingDetail: UpdateBookingDetailRequest
 ) => {
   try {
-    const access_token = getAccessToken();
-
     const requestBody = {
       updateBookingDetailDtos: [updatedBookingDetail],
     };
 
-    const response = await api.patch(`/${id}`, requestBody, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      withCredentials: true,
-    });
-
+    const response = await api.patch(`/${id}`, requestBody);
     return response.data;
   } catch (error) {
     throw error instanceof Error
