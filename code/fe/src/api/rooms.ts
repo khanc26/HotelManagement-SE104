@@ -6,7 +6,7 @@ import {
 } from "@/types/room.type";
 import { createApiInstance } from "./axios-config";
 
-const api = createApiInstance("http://localhost:3001/rooms");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/rooms`);
 
 // Get all rooms with optional query parameters
 export const getRooms = async (params?: RoomRequest) => {
