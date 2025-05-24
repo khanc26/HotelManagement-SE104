@@ -22,9 +22,9 @@ import { TableError } from "@/components/table-error";
 import { DataTable } from "@/components/ui/data-table";
 import { reportColumns } from "./report-columns";
 import { ReportChart } from "./report-chart";
-// import { PDFDownloadLink } from '@react-pdf/renderer';
-// import { ReportListPDFDocument } from './report-list-pdf-document';
-// import { Printer } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { ReportListPDFDocument } from './report-list-pdf-document';
+import { Printer } from 'lucide-react';
 
 const reportSearchSchema = z.object({
   year: z.coerce
@@ -202,7 +202,7 @@ export function ReportList() {
           <CardTitle className="text-xl font-bold">
             Revenue Report Each Month
           </CardTitle>
-          {/* {reportList && (
+          {reportList && (
             <PDFDownloadLink
               document={<ReportListPDFDocument reports={reportList} />}
               fileName="monthly-revenue-report.pdf"
@@ -214,7 +214,7 @@ export function ReportList() {
                 </Button>
               )}
             </PDFDownloadLink>
-          )} */}
+          )}
         </CardHeader>
         <div className="flex">
           <CardContent className="flex-1 w-1">

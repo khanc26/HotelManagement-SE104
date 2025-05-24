@@ -6,10 +6,10 @@ import { TableError } from "@/components/table-error";
 import { DataTable } from "@/components/ui/data-table";
 import { useParams, useSearchParams } from "react-router";
 import { reportDetailColumns } from "./report-detail-columns";
-// import { PDFDownloadLink } from '@react-pdf/renderer';
-// import { ReportDetailPDFDocument } from './report-detail-pdf-document';
-// import { Button } from "@/components/ui/button";
-// import { Printer } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { ReportDetailPDFDocument } from './report-detail-pdf-document';
+import { Button } from "@/components/ui/button";
+import { Printer } from 'lucide-react';
 
 export function ReportDetail() {
   const [searchParams] = useSearchParams();
@@ -31,7 +31,7 @@ export function ReportDetail() {
       <Card className="w-full mb-4">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Report Revenue For {month} By Room Type</CardTitle>
-          {/* {report && month && (
+          {report && month && (
             <PDFDownloadLink
               document={<ReportDetailPDFDocument reports={report} month={month} />}
               fileName={`revenue-report-${month.toLowerCase()}.pdf`}
@@ -43,7 +43,7 @@ export function ReportDetail() {
                 </Button>
               )}
             </PDFDownloadLink>
-          )} */}
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex">

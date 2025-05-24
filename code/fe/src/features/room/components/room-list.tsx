@@ -22,9 +22,9 @@ import { getRoomTypes } from "@/api/room-types";
 import { RoomRequest } from "@/types/room.type";
 import { TableSkeleton } from "@/components/table-skeleton";
 import { TableError } from "@/components/table-error";
-// import { PDFDownloadLink } from '@react-pdf/renderer';
-// import { RoomPDFDocument } from './room-pdf-document';
-// import { Printer } from 'lucide-react';
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { RoomPDFDocument } from "./room-pdf-document";
+import { Printer } from "lucide-react";
 
 const roomSchema = z.object({
   roomNumber: z.string().optional(),
@@ -202,19 +202,20 @@ export function RoomList() {
       <Card className="w-full mb-4">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl font-bold">List of room</CardTitle>
-          {/* {rooms && (
+          {rooms && (
             <PDFDownloadLink
+              key={Date.now()}
               document={<RoomPDFDocument rooms={rooms} />}
               fileName="room-list.pdf"
             >
               {({ loading }) => (
                 <Button variant="outline" disabled={loading}>
                   <Printer className="mr-2 h-4 w-4" />
-                  {loading ? 'Generating PDF...' : 'Print PDF'}
+                  {loading ? "Generating PDF..." : "Print PDF"}
                 </Button>
               )}
             </PDFDownloadLink>
-          )} */}
+          )}
         </CardHeader>
         <div className="flex">
           <CardContent className="flex-1 w-1">
