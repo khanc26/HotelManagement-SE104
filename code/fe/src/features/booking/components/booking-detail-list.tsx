@@ -267,6 +267,7 @@ export function BookingDetailList() {
           <CardTitle>Booking Details</CardTitle>
           {booking && (
             <PDFDownloadLink
+            key={Date.now()}
               document={<BookingDetailPDFDocument booking={booking} />}
               fileName={`booking-${booking.id}.pdf`}
             >
