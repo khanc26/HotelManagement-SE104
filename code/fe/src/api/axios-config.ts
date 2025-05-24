@@ -66,10 +66,12 @@ export const createApiInstance = (baseURL: string): AxiosInstance => {
         try {
           const response = await axios.post(
             `${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`,
+            {},
             {
               withCredentials: true,
             }
           );
+
           const newToken = response.data.access_token;
 
           isRefreshing = false;

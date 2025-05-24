@@ -14,7 +14,7 @@ export const useLocalStorage = (
       if (parsed?.expiresAt) {
         const now = Date.now();
         if (now > parsed.expiresAt) {
-          localStorage.removeItem(key);
+          // localStorage.removeItem(key);
           return undefined; // Return undefined if expired
         }
       }
