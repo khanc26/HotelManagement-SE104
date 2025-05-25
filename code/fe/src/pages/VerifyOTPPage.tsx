@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import axios from "axios";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,6 +20,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const formSchema = z.object({
   otp: z.string().length(6, {
@@ -39,21 +40,26 @@ const VerifyOTPPage = () => {
     },
   });
   // values: z.infer<typeof formSchema>
-  async function onSubmit() {
-    // try {
-    //   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/verify-otp`, {
-    //     email,
-    //     otp: values.otp,
-    //   });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/verify-otp`,
+        {
+          email,
+          otp: values.otp,
+        }
+      );
 
-    //   if (response.status === 200) {
+      if (response.status === 200) {
+        toast.success("OTP verified successfully!");
         navigate("/auth/reset-password", { 
-          state: { email, token: "123" } 
+          state: { email, token: response.data.token } 
         });
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to verify OTP. Please try again.");
+    }
   }
 
   return (
