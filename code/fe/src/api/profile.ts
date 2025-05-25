@@ -1,7 +1,7 @@
 import { User } from "@/types/user.type";
 import { createApiInstance } from "./axios-config";
 
-const api = createApiInstance("http://localhost:3001/auth");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/auth`);
 
 export const getMyProfile = async () => {
   try {

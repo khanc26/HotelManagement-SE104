@@ -1,7 +1,7 @@
 import { User, UserSearchRequest, UserUpdateRequest } from "@/types/user.type";
 import { createApiInstance } from "./axios-config";
 
-const api = createApiInstance("http://localhost:3001/users");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/users`);
 
 // Get all users
 export const getUsers = async (params?: UserSearchRequest) => {

@@ -41,7 +41,7 @@ const ResetPasswordPage = () => {
 
   async function onSubmit() {
     // try {
-    //   const response = await axios.post("http://localhost:3001/auth/reset-password", {
+    //   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`, {
     //     email,
     //     token,
     //     password: values.password,

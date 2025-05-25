@@ -1,7 +1,7 @@
 import { Invoice } from "@/types/invoice.type";
 import { createApiInstance } from "./axios-config";
 
-const api = createApiInstance("http://localhost:3001/invoices");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/invoices`);
 
 export const getInvoices = async () => {
   const response = await api.get<Invoice[]>(`/`);

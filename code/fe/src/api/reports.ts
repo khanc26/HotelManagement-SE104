@@ -5,7 +5,7 @@ import {
 } from "@/types/report.type";
 import { createApiInstance } from "./axios-config";
 
-const api = createApiInstance("http://localhost:3001/reports");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/reports`);
 
 export const getReports = async (query: ReportRequest) => {
   const response = await api.get<MonthlyRevenue[]>(`/`, {

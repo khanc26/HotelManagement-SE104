@@ -2,7 +2,7 @@ import { UpdateBookingDetailRequest } from "@/types/booking-detail";
 import { Booking } from "@/types/booking.type";
 import { createApiInstance } from "./axios-config";
 
-const api = createApiInstance("http://localhost:3001/bookings");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/bookings`);
 
 interface CreateBookingDetailDto {
   roomId: string;

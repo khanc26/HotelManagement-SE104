@@ -3,8 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BcryptProvider, HashingProvider } from 'src/libs/common/providers';
 import { BookingDetailsRepository } from 'src/modules/booking-details/booking-details.repository';
 import { BookingDetail } from 'src/modules/booking-details/entities';
-import { ConfigurationsService } from 'src/modules/configurations/configurations.service';
-import { Configuration } from 'src/modules/configurations/entities';
 import { Invoice } from 'src/modules/invoices/entities';
 import { InvoicesModule } from 'src/modules/invoices/invoices.module';
 import { InvoicesService } from 'src/modules/invoices/invoices.service';
@@ -20,6 +18,8 @@ import { UsersRepository } from 'src/modules/users/users.repository';
 import { UsersService } from 'src/modules/users/users.service';
 import { BookingDetailsController } from './booking-details.controller';
 import { BookingDetailsService } from './booking-details.service';
+import { Param } from '../params/entities';
+import { ParamsService } from '../params/params.service';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { BookingDetailsService } from './booking-details.service';
       BookingDetail,
       User,
       Room,
-      Configuration,
+      Param,
       Profile,
       UserType,
       Role,
@@ -45,7 +45,7 @@ import { BookingDetailsService } from './booking-details.service';
     BookingDetailsRepository,
     UsersService,
     InvoicesService,
-    ConfigurationsService,
+    ParamsService,
     RoomsService,
     UsersRepository,
     RoomTypesService,

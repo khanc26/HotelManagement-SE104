@@ -3,10 +3,10 @@ import { createApiInstance } from "./axios-config";
 // import axios from "axios";
 
 // const api = axios.create({
-//   baseURL: "http://localhost:3001/booking-details",
+//   baseURL: `${import.meta.env.VITE_API_BASE_URL}/booking-details`,
 // });
 
-const api = createApiInstance("http://localhost:3001/booking-details");
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/booking-details`);
 
 // Get booking details for a booking
 export const getBookingDetailById = async (bookingDetailId: string) => {
