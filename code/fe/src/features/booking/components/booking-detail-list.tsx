@@ -34,8 +34,8 @@ import {
   approvalStatusStyleMap,
   bookingStatusStyleMap,
 } from "./booking-status-map";
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { BookingDetailPDFDocument } from './booking-detail-pdf-document';
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { BookingDetailPDFDocument } from "./booking-detail-pdf-document";
 
 // DataTable columns
 interface RowData {
@@ -118,6 +118,10 @@ function BookingDetailActionCell({
 }
 
 const columns = [
+  {
+    accessorKey: "room.roomNumber",
+    header: "Room",
+  },
   {
     accessorKey: "guestCount",
     header: "Guest Count",
@@ -267,14 +271,14 @@ export function BookingDetailList() {
           <CardTitle>Booking Details</CardTitle>
           {booking && (
             <PDFDownloadLink
-            key={Date.now()}
+              key={Date.now()}
               document={<BookingDetailPDFDocument booking={booking} />}
               fileName={`booking-${booking.id}.pdf`}
             >
               {({ loading }) => (
                 <Button variant="outline" size="sm" disabled={loading}>
                   {loading ? (
-                    'Generating PDF...'
+                    "Generating PDF..."
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
