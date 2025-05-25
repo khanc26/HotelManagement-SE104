@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -8,8 +9,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { userTypes } from "@/utils/constants";
-import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -268,13 +277,17 @@ const SignUpPage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>User Type</FormLabel>
-                  <Select
-                    className="max-w-xs"
-                    items={userTypes}
-                    placeholder="Select an animal"
-                    {...field}
-                  >
-                    {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full select-none">
+                      <SelectValue placeholder="Select a guest type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Guest type</SelectLabel>
+                        <SelectItem value="foreign">Foreign</SelectItem>
+                        <SelectItem value="local">Local</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
                   </Select>
                   <FormMessage className="text-red-600" />
                 </FormItem>

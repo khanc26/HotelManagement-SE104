@@ -48,9 +48,7 @@ export class ReportsService {
     });
 
     if (!monthlyRevenueDetails)
-      throw new NotFoundException(
-        `Month revenue details with id '${id}' not found.`,
-      );
+      throw new NotFoundException(`Month revenue details not found.`);
 
     return this.bookingDetailsService.getRevenueByRoomTypeInMonth(
       monthlyRevenueDetails.month,

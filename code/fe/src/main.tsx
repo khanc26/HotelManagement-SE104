@@ -1,16 +1,15 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
 import {
   MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { toast } from "react-toastify";
+import App from "./App.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { HeroUIProvider } from "@heroui/react";
+import "./index.css";
 
 interface ResponseError extends Error {
   response?: {
@@ -98,9 +97,7 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <HeroUIProvider>
-        <App />
-      </HeroUIProvider>
+      <App />
     </QueryClientProvider>
   </StrictMode>
 );

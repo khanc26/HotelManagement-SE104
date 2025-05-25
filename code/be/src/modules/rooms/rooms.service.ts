@@ -30,9 +30,7 @@ export class RoomsService {
     });
 
     if (existingRoomWithRoomNumber)
-      throw new BadRequestException(
-        `Room with number: '${roomNumber}' already exists.`,
-      );
+      throw new BadRequestException(`This room number is already in use.`);
 
     const roomType = await this.roomTypeService.findOne(roomTypeId);
 
@@ -55,30 +53,28 @@ export class RoomsService {
       .createQueryBuilder('rooms')
       .leftJoinAndSelect('rooms.roomType', 'roomType');
 
-    if (searchRoomsDto) {
-      if (searchRoomsDto?.roomNumber) {
-        qb.andWhere('LOWER(rooms.roomNumber) LIKE LOWER(:roomNumber)', {
-          name: `%${searchRoomsDto.roomNumber}%`,
-        });
-      }
+    if (searchRoomsDto?.roomNumber) {
+      qb.andWhere('LOWER(rooms.roomNumber) LIKE LOWER(:roomNumber)', {
+        roomNumber: `%${searchRoomsDto.roomNumber}%`,
+      });
+    }
 
-      if (searchRoomsDto?.price) {
-        qb.andWhere('roomType.roomPrice = :price', {
-          price: searchRoomsDto.price,
-        });
-      }
+    if (searchRoomsDto?.price) {
+      qb.andWhere('roomType.roomPrice = :price', {
+        price: searchRoomsDto.price,
+      });
+    }
 
-      if (searchRoomsDto?.roomTypeName) {
-        qb.andWhere('LOWER(roomType.name) LIKE LOWER(:roomTypeName)', {
-          roomTypeName: `%${searchRoomsDto.roomTypeName}%`,
-        });
-      }
+    if (searchRoomsDto?.roomTypeName) {
+      qb.andWhere('LOWER(roomType.name) LIKE LOWER(:roomTypeName)', {
+        roomTypeName: `%${searchRoomsDto.roomTypeName}%`,
+      });
+    }
 
-      if (searchRoomsDto.status) {
-        qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
-          status: `%${searchRoomsDto.status}%`,
-        });
-      }
+    if (searchRoomsDto?.status) {
+      qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
+        status: `%${searchRoomsDto.status}%`,
+      });
     }
 
     return await qb.getMany();
@@ -101,7 +97,8 @@ export class RoomsService {
       relations: ['roomType'],
     });
 
-    if (!room) throw new NotFoundException(`Room with id: '${id}' not found.`);
+    if (!room)
+      throw new NotFoundException('Room not found or has been deleted.');
 
     const { roomTypeId, ...res } = updateRoomDto;
 
@@ -116,7 +113,7 @@ export class RoomsService {
       )?.id !== id
     )
       throw new BadRequestException(
-        `Room ${res.roomNumber} has existed in the system.`,
+        `Room number '${res.roomNumber}' already exists in the system.`,
       );
 
     let roomType: RoomType | null = null;
@@ -124,10 +121,7 @@ export class RoomsService {
     if (roomTypeId) {
       roomType = await this.roomTypeService.findOne(roomTypeId);
 
-      if (!roomType)
-        throw new NotFoundException(
-          `Room type with id: '${roomTypeId}' not found.`,
-        );
+      if (!roomType) throw new NotFoundException(`Room type not found.`);
     }
 
     await this.roomRepository.update(
@@ -145,7 +139,7 @@ export class RoomsService {
     const findRoom = await this.roomRepository.findOneBy({ id });
 
     if (!findRoom)
-      throw new NotFoundException(`Room with id: '${id}' not found.`);
+      throw new NotFoundException('Room not found or has been deleted.');
 
     await this.roomRepository.softDelete(findRoom.id);
 
@@ -164,9 +158,7 @@ export class RoomsService {
       });
 
       if (!room)
-        throw new BadRequestException(
-          `Room with id '${roomId}' not found in the system.`,
-        );
+        throw new NotFoundException('Room not found or has been deleted.');
 
       room.status = status;
 

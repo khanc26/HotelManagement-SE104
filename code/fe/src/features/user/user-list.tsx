@@ -1,4 +1,5 @@
 import { getUsers } from "@/api/users";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -9,13 +10,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UserSearchRequest, UserType } from "@/types/user.type";
-import { roles, userStatus, userTypes } from "@/utils/constants";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
-import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { SearchIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -160,12 +168,19 @@ export function UserList() {
                       <FormLabel>Role</FormLabel>
                       <FormControl>
                         <Select
-                          items={roles}
-                          {...field}
-                          placeholder="Select role..."
-                          defaultSelectedKeys={["user"]}
+                          value={field.value}
+                          onValueChange={field.onChange}
                         >
-                          {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Role</SelectLabel>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="user">User</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
                         </Select>
                       </FormControl>
                       <FormMessage className="text-red-600" />
@@ -222,12 +237,19 @@ export function UserList() {
                       <FormLabel>Guest Type</FormLabel>
                       <FormControl>
                         <Select
-                          items={userTypes}
-                          {...field}
-                          defaultSelectedKeys={["local"]}
-                          placeholder="Select user type..."
+                          value={field.value}
+                          onValueChange={field.onChange}
                         >
-                          {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                          <SelectTrigger className="w-full select-none">
+                            <SelectValue placeholder="Select a guest type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Guest type</SelectLabel>
+                              <SelectItem value="foreign">Foreign</SelectItem>
+                              <SelectItem value="local">Local</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
                         </Select>
                       </FormControl>
                       <FormMessage className="text-red-600" />
@@ -255,12 +277,21 @@ export function UserList() {
                       <FormLabel>User Status</FormLabel>
                       <FormControl>
                         <Select
-                          items={userStatus}
-                          {...field}
-                          defaultSelectedKeys={["active"]}
-                          placeholder="Select user status..."
+                          value={field.value}
+                          onValueChange={field.onChange}
                         >
-                          {(animal) => <SelectItem>{animal.label}</SelectItem>}
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Status</SelectLabel>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="inactive">
+                                In Active
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
                         </Select>
                       </FormControl>
                       <FormMessage className="text-red-600" />
@@ -283,20 +314,11 @@ export function UserList() {
               </div>
 
               <div className="flex gap-4 items-center justify-center">
-                <Button
-                  type="submit"
-                  color="primary"
-                  startContent={<SearchIcon />}
-                >
+                <Button type="submit" color="primary">
                   Search
                 </Button>
 
-                <Button
-                  type="button"
-                  color="primary"
-                  onPress={clearFilters}
-                  startContent={<TrashIcon />}
-                >
+                <Button type="button" color="primary" onClick={clearFilters}>
                   Clear Filters
                 </Button>
               </div>

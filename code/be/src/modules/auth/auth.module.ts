@@ -6,15 +6,19 @@ import {
   BcryptProvider,
   HashingProvider,
   JwtProvider,
+  RedisProvider,
 } from 'src/libs/common/providers';
 import { UsersModule } from '../users/users.module';
 import { UsersRepository } from '../users/users.repository';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { EmailsModule } from 'src/modules/emails/emails.module';
+import { EmailsProducer } from 'src/modules/emails/producers';
 
 @Module({
   imports: [
     UsersModule,
+    EmailsModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('jwt_secret_key'),
@@ -30,6 +34,8 @@ import { AuthService } from './auth.service';
   ],
   providers: [
     AuthService,
+    EmailsProducer,
+    RedisProvider,
     {
       provide: HashingProvider,
       useClass: BcryptProvider,
