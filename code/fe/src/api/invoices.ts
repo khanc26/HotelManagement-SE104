@@ -17,3 +17,11 @@ export const deleteInvoice = async (id: string) => {
   const response = await api.delete<Invoice>(`/${id}`);
   return response.data;
 };
+
+export const payInvoice = async (invoiceId: string, amount: number) => {
+  const response = await api.post(`/payments`, {
+    amount,
+    invoiceId,
+  });
+  return response.data;
+};
