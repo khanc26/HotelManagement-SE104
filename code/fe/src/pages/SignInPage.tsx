@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -10,6 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { access_token_expired_time } from "@/utils/constants";
@@ -54,12 +57,28 @@ const SignInPage = () => {
           withCredentials: true,
         }
       );
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/sign-in`,
+        {
+          email: values.email,
+          password: values.password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
       const access_token = response.data.accessToken;
       const role = response.data.role;
       setAccessTokenValue(access_token, access_token_expired_time);
       setRoleLocalStorage(role, access_token_expired_time);
+      const access_token = response.data.accessToken;
+      const role = response.data.role;
+      setAccessTokenValue(access_token, access_token_expired_time);
+      setRoleLocalStorage(role, access_token_expired_time);
 
+      navigate("/");
       navigate("/");
 
       toast.success("Signed in successfully!", {
@@ -67,7 +86,14 @@ const SignInPage = () => {
       });
     } catch (err: any) {
       console.error(err);
+      toast.success("Signed in successfully!", {
+        position: "bottom-right",
+      });
+    } catch (err: any) {
+      console.error(err);
 
+      toast.error(err?.response?.data?.message || err?.message);
+    }
       toast.error(err?.response?.data?.message || err?.message);
     }
   }
@@ -134,8 +160,17 @@ const SignInPage = () => {
                 Remember me
               </label>
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="terms" />
+              <label htmlFor="terms" className="text-sm select-none">
+                Remember me
+              </label>
+            </div>
           </div>
 
+          <Button type="submit" className="w-fit mx-auto" color="primary">
+            Sign In
+          </Button>
           <Button type="submit" className="w-fit mx-auto" color="primary">
             Sign In
           </Button>
