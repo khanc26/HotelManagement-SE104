@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { UserSearchRequest, UserType } from "@/types/user.type";
-import { roles, userStatus, userTypes } from "@/utils/constraints";
+import { roles, userStatus, userTypes } from "@/utils/constants";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
