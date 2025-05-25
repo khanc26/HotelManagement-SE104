@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRooms } from "@/api/rooms";
 import { createBooking } from "@/api/bookings";
 import { TableSkeleton } from "@/components/table-skeleton";
@@ -24,6 +24,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { formatCurrency } from "@/utils/helpers/formatCurrency";
 import { toast } from "react-toastify";
+import { roomPricingRules } from "@/utils/constants";
 
 // Zod schema for a single booking
 const bookingSchema = z
@@ -43,10 +44,6 @@ const bookingSchema = z
       return date > today;
     }, "End date must be after today"),
     hasForeigners: z.boolean(),
-    identityCard: z
-      .string()
-      .min(9, "Identity card must be at least 9 characters"),
-    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
   })
   .refine(
     (data) => {
@@ -93,8 +90,6 @@ function BookingCard({
       startDate: today,
       endDate: tomorrowStr,
       hasForeigners: false,
-      identityCard: "",
-      phoneNumber: "",
     },
   });
 
@@ -110,8 +105,34 @@ function BookingCard({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  const totalNights = calculateTotalNights();
-  const totalPrice = totalNights * room.roomType.roomPrice;
+  const calculateTotalPrice = () => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    let basePrice = nights * room.roomType.roomPrice;
+    const { watch } = form;
+    const guestCount = watch("guestCount");
+    const hasForeigners = watch("hasForeigners");
+
+    // Apply foreign multiplier if applicable
+    if (hasForeigners) {
+      basePrice *= roomPricingRules.FOREIGN_MULTIPLIER;
+    }
+
+    // Apply group surcharge if applicable
+    if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
+      const surchargePercentage = roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
+      const surcharge = (basePrice * surchargePercentage) / 100;
+      basePrice += surcharge;
+    }
+
+    return basePrice;
+  };
+
+  const totalPrice = calculateTotalPrice();
 
   useEffect(() => {
     registerForm(room.id, form);
@@ -139,7 +160,7 @@ function BookingCard({
           <p>Max Guests: {room.roomType.maxGuests}</p>
           <p>Price per night: {formatCurrency(room.roomType.roomPrice)}</p>
           <p className="mt-2 font-semibold">
-            Total for {totalNights} nights: {formatCurrency(totalPrice)}
+            Total for {calculateTotalNights()} nights: {formatCurrency(totalPrice)}
           </p>
         </div>
 
@@ -198,36 +219,6 @@ function BookingCard({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="identityCard"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Identity Card</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter ID card number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter phone number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             <FormField
               control={form.control}
               name="hasForeigners"
@@ -259,16 +250,63 @@ function BookingCard({
 
 export function UserRoomList() {
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
+  const [totalAmount, setTotalAmount] = useState(0);
   const formRefs = useRef<Map<string, UseFormReturn<BookingFormValues>>>(
     new Map()
   );
+  const queryClient = useQueryClient();
 
   const registerForm = (
     roomId: string,
     form: UseFormReturn<BookingFormValues>
   ) => {
     formRefs.current.set(roomId, form);
+    // Subscribe to form changes
+    const subscription = form.watch(() => {
+      updateTotalAmount();
+    });
+    return () => subscription.unsubscribe();
   };
+
+  const updateTotalAmount = () => {
+    let total = 0;
+    selectedRooms.forEach((room) => {
+      const form = formRefs.current.get(room.id);
+      if (form) {
+        const values = form.getValues();
+        const { startDate, endDate, guestCount, hasForeigners } = values;
+
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const diffTime = Math.abs(end.getTime() - start.getTime());
+          const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          let roomTotal = nights * room.roomType.roomPrice;
+
+          // Apply foreign multiplier if applicable
+          if (hasForeigners) {
+            roomTotal *= roomPricingRules.FOREIGN_MULTIPLIER;
+          }
+
+          // Apply group surcharge if applicable
+          if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
+            const surchargePercentage = roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
+            const surcharge = (roomTotal * surchargePercentage) / 100;
+            roomTotal += surcharge;
+          }
+
+          total += roomTotal;
+        }
+      }
+    });
+    setTotalAmount(total);
+  };
+
+  // Update total when rooms are added or removed
+  useEffect(() => {
+    updateTotalAmount();
+  }, [selectedRooms]);
 
   const {
     data: rooms = [],
@@ -284,11 +322,8 @@ export function UserRoomList() {
     onSuccess: () => {
       toast.success("Your rooms have been booked successfully!");
       setSelectedRooms([]);
-      formRefs.current.clear();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to book rooms. Please try again.");
-    },
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    }
   });
 
   const handleRowSelectionChange = (rowSelection: Record<string, boolean>) => {
@@ -329,19 +364,6 @@ export function UserRoomList() {
 
     bookRooms(bookingData);
   };
-
-  const totalAmount = selectedRooms.reduce((total, room) => {
-    const form = formRefs.current.get(room.id);
-    if (!form) return total;
-
-    const { startDate, endDate } = form.getValues();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const nights = Math.ceil(
-      Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return total + nights * room.roomType.roomPrice;
-  }, 0);
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-6">
