@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { BookingDetail as BookingDetailType } from "@/types/booking-detail";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Download } from "lucide-react";
+import { Download, MoreHorizontal } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -267,6 +267,7 @@ export function BookingDetailList() {
           <CardTitle>Booking Details</CardTitle>
           {booking && (
             <PDFDownloadLink
+            key={Date.now()}
               document={<BookingDetailPDFDocument booking={booking} />}
               fileName={`booking-${booking.id}.pdf`}
             >

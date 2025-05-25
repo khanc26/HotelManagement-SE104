@@ -3,36 +3,18 @@ import {
   MonthlyRevenueByRoomType,
   ReportRequest,
 } from "@/types/report.type";
-import { getAccessToken } from "@/utils/helpers/getAccessToken";
-import axios from "axios";
+import { createApiInstance } from "./axios-config";
 
-const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/reports`,
-});
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/reports`);
 
 export const getReports = async (query: ReportRequest) => {
-  const access_token = getAccessToken();
-
   const response = await api.get<MonthlyRevenue[]>(`/`, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
     params: query,
   });
-
   return response.data;
 };
 
 export const getReportById = async (id: string) => {
-  const access_token = getAccessToken();
-
-  const response = await api.get<MonthlyRevenueByRoomType[]>(`/${id}`, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.get<MonthlyRevenueByRoomType[]>(`/${id}`);
   return response.data;
 };

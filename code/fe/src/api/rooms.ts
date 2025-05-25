@@ -4,17 +4,12 @@ import {
   RoomRequest,
   RoomUpdateRequest,
 } from "@/types/room.type";
-import { getAccessToken } from "@/utils/helpers/getAccessToken";
-import axios from "axios";
+import { createApiInstance } from "./axios-config";
 
-const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/rooms`,
-});
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/rooms`);
 
 // Get all rooms with optional query parameters
 export const getRooms = async (params?: RoomRequest) => {
-  const access_token = getAccessToken();
-
   console.log("Params:", params);
 
   const response = await api.get<Room[]>("/", {
@@ -24,10 +19,6 @@ export const getRooms = async (params?: RoomRequest) => {
       price: params?.price,
       status: params?.status,
     },
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
   });
 
   return response.data;
@@ -35,30 +26,14 @@ export const getRooms = async (params?: RoomRequest) => {
 
 // Get a single room by ID
 export const getRoom = async (id: string) => {
-  const access_token = getAccessToken();
-
-  const response = await api.get<Room>(`/${id}`, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.get<Room>(`/${id}`);
   return response.data;
 };
 
 // Create a new room
 export const createRoom = async (newRoom: RoomCreateRequest) => {
   try {
-    const access_token = getAccessToken();
-
-    const response = await api.post<Room>("/", newRoom, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      withCredentials: true,
-    });
-
+    const response = await api.post<Room>("/", newRoom);
     return response.data;
   } catch (error) {
     throw error instanceof Error ? error : new Error("Failed to update room");
@@ -71,15 +46,7 @@ export const updateRoom = async (
   updatedRoom: RoomUpdateRequest
 ) => {
   try {
-    const access_token = getAccessToken();
-
-    const response = await api.patch<Room>(`/${id}`, updatedRoom, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      withCredentials: true,
-    });
-
+    const response = await api.patch<Room>(`/${id}`, updatedRoom);
     return response.data;
   } catch (error) {
     throw error instanceof Error ? error : new Error("Failed to update room");
@@ -88,14 +55,6 @@ export const updateRoom = async (
 
 // Delete a room
 export const deleteRoom = async (id: string) => {
-  const access_token = getAccessToken();
-
-  const response = await api.delete<Room>(`/${id}`, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.delete<Room>(`/${id}`);
   return response.data;
 };

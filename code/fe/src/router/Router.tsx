@@ -243,7 +243,7 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+          <RoleBasedRoutes allowedRoles={[Role.USER, Role.ADMIN]}>
             <ProfilePage />
           </RoleBasedRoutes>
         ),

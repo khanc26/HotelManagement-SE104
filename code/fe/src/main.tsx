@@ -27,6 +27,13 @@ const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
       const typedError = error as ResponseError;
+      
+      // // Handle network/CORS errors
+      // if (error.message.includes('Unable to connect to the server')) {
+      //   console.error('Connection Error:', error);
+      //   return; // Don't show toast for network errors
+      // }
+
       if (typedError?.response?.status === 401) {
         toast.error(
           <div>
@@ -46,6 +53,7 @@ const queryClient = new QueryClient({
             draggable: false,
           }
         );
+        localStorage.removeItem("access_token");
       } else {
         toast.error(`API Error: ${error.message || "An error occurred"}`);
       }
@@ -54,8 +62,8 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error, _, __, mutation) => {
       const { mutationKey } = mutation.options;
-
       const typedError = error as ResponseError;
+
       if (typedError?.response?.status === 401) {
         toast.error(
           <div>
@@ -75,6 +83,7 @@ const queryClient = new QueryClient({
             draggable: false,
           }
         );
+        localStorage.removeItem("access_token");
       } else {
         toast.error(
           `API Mutation Error${

@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { access_token_expired_time } from "@/utils/constraints";
+import { access_token_expired_time } from "@/utils/constants";
 import { Button, Checkbox, Input } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";

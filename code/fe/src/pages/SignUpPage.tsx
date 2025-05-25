@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { userTypes } from "@/utils/constraints";
+import { userTypes } from "@/utils/constants";
 import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
