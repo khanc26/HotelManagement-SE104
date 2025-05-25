@@ -360,7 +360,7 @@ export class UsersService {
       where: {
         [field]: value,
       },
-      relations: ['role'],
+      relations: ['role', 'profile'],
     });
   };
 
@@ -500,12 +500,13 @@ export class UsersService {
             },
             relations: {
               role: true,
+              profile: true,
             },
           });
 
           if (!user) {
             throw new BadRequestException(
-              `User with id '${userId}' not found in the system or already locked.`,
+              `User not found in the system or already locked.`,
             );
           }
 
@@ -515,7 +516,7 @@ export class UsersService {
 
           if (!isAllowed) {
             throw new BadRequestException(
-              `User with id '${userId}' cannot be locked as they have ADMIN privileges.`,
+              `User cannot be locked as they have ADMIN privileges.`,
             );
           }
 
@@ -574,12 +575,13 @@ export class UsersService {
             },
             relations: {
               role: true,
+              profile: true,
             },
           });
 
           if (!user) {
             throw new BadRequestException(
-              `User with id '${userId}' not found in the system or already unlocked.`,
+              `User not found in the system or already unlocked.`,
             );
           }
 
@@ -589,7 +591,7 @@ export class UsersService {
 
           if (!isAllowed) {
             throw new BadRequestException(
-              `User with id '${userId}' cannot be unlocked as they have ADMIN privileges.`,
+              `User '${user.profile.fullName}' cannot be unlocked as they have ADMIN privileges.`,
             );
           }
 
@@ -606,4 +608,15 @@ export class UsersService {
       await queryRunner.release();
     }
   }
+
+  public updatePassword = async (email: string, newPassword: string) => {
+    await this.userRepository.update(
+      {
+        email,
+      },
+      {
+        password: await this.hashingProvider.hashPassword(newPassword),
+      },
+    );
+  };
 }

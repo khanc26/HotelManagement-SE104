@@ -13,7 +13,13 @@ import { Request, Response } from 'express';
 import { Roles, UserSession } from 'src/libs/common/decorators';
 import { JwtAuthGuard, RoleAuthGuard } from 'src/libs/common/guards';
 import { JwtPayload } from 'src/libs/common/types';
-import { SignInDto, SignUpDto } from 'src/modules/auth/dto';
+import {
+  ForgetPasswordDto,
+  ResetPasswordDto,
+  SignInDto,
+  SignUpDto,
+  VerifyOtpDto,
+} from 'src/modules/auth/dto';
 import { RoleEnum as Role } from 'src/modules/users/enums/role.enum';
 import { UsersService } from 'src/modules/users/users.service';
 import { AuthService } from './auth.service';
@@ -71,5 +77,20 @@ export class AuthController {
     const { userId } = request.user as JwtPayload;
 
     return this.usersService.handleGetProfileByUserId(userId);
+  }
+
+  @Post('forget-password')
+  async forgetPassword(@Body() forgetPasswordDto: ForgetPasswordDto) {
+    return this.authService.forgetPassword(forgetPasswordDto);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return this.authService.verifyOtp(verifyOtpDto);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

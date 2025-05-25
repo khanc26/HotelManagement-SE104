@@ -180,7 +180,9 @@ export class MainSeeder implements Seeder {
     }
 
     if (!role)
-      throw new Error(`Role for type ${type} not found in the system.`);
+      throw new Error(
+        `The role associated with type '${type}' could not be found.`,
+      );
 
     const userLocalType = await userTypeRepository.findOne({
       where: {
@@ -189,7 +191,9 @@ export class MainSeeder implements Seeder {
     });
 
     if (!userLocalType)
-      throw new NotFoundException('User local type not found.');
+      throw new NotFoundException(
+        'The specified user local type could not be found.',
+      );
 
     await userRepository.upsert(
       {
@@ -207,7 +211,8 @@ export class MainSeeder implements Seeder {
       },
     });
 
-    if (!findUser) throw new Error(`User with email '${email}' not found.`);
+    if (!findUser)
+      throw new NotFoundException(`No user found with the email '${email}'.`);
 
     await profileRepository.upsert(
       {

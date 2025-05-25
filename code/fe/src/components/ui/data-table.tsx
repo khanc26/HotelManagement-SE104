@@ -1,15 +1,17 @@
 import {
-  SortingState,
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  VisibilityState,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -25,8 +27,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { Button, Input } from "@heroui/react";
-import { ChevronLeft, ChevronRight, SearchIcon } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -80,7 +80,6 @@ export function DataTable<TData, TValue>({
       md:items-center py-4 md:justify-between gap-4"
       >
         <Input
-          startContent={<SearchIcon />}
           placeholder="Search for any keyword..."
           value={globalFilter ?? ""}
           onChange={(e) => {
@@ -171,9 +170,8 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           size="sm"
-          startContent={<ChevronLeft />}
           color="secondary"
-          onPress={() => table.previousPage()}
+          onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
@@ -181,8 +179,7 @@ export function DataTable<TData, TValue>({
         <Button
           size="sm"
           color="secondary"
-          endContent={<ChevronRight />}
-          onPress={() => table.nextPage()}
+          onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
           Next

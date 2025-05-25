@@ -58,8 +58,7 @@ export class PaymentsService {
       },
     });
 
-    if (!payment)
-      throw new NotFoundException(`Payment with id '${id}' not found.`);
+    if (!payment) throw new NotFoundException(`Payment not found.`);
 
     return omit(payment, ['invoice.bookingDetail.booking.user.password']);
   };
@@ -76,10 +75,7 @@ export class PaymentsService {
       },
     });
 
-    if (!invoice)
-      throw new NotFoundException(
-        `Invoice with id '${invoiceId}' not found in the system.`,
-      );
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
     const newPayment = this.paymentRepository.create({
       amount,
@@ -155,9 +151,7 @@ export class PaymentsService {
     });
 
     if (!payment)
-      throw new NotFoundException(
-        `Payment of invoice '${invoiceId}' not found.`,
-      );
+      throw new NotFoundException(`Payment of this invoice not found.`);
 
     payment.payment_status =
       vnp_ResponseCode === '00' && vnp_TransactionStatus == '00'

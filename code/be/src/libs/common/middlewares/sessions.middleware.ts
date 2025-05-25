@@ -14,7 +14,8 @@ export class SessionMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     const sessionId = req.signedCookies['user_session'] as string;
 
-    if (!sessionId) throw new BadRequestException('Session id is missing...');
+    if (!sessionId)
+      throw new BadRequestException('A valid session is required.');
 
     const user = await this.redisProvider.get('sess:' + sessionId);
 
