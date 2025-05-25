@@ -1,7 +1,5 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -67,8 +65,9 @@ const SignInPage = () => {
       });
     } catch (err: any) {
       console.error(err);
-
-      toast.error(err?.response?.data?.message || err?.message);
+      toast.error("Failed to sign in. Please check your credentials.", {
+        position: "bottom-right",
+      });
     }
   }
 
