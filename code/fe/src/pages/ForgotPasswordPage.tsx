@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import axios from "axios";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -33,17 +34,22 @@ const ForgotPasswordPage = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // try {
-    //   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/forgot-password`, {
-    //     email: values.email,
-    //   });
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/forget-password`,
+        {
+          email: values.email,
+        }
+      );
 
-    //   if (response.status === 200) {
+      if (response.status === 200) {
+        toast.success("OTP has been sent to your email!");
         navigate("/auth/verify-otp", { state: { email: values.email } });
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to send OTP. Please try again.");
+    }
   }
 
   return (
