@@ -1,4 +1,4 @@
-import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
+import { getMyProfile } from "@/api/profile";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,10 +15,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useNavigate } from "react-router";
-import { getMyProfile } from "@/api/profile";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clearAuthLocalStorage } from "@/utils/helpers/clearAuthLocalStorage";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 
 const signOut = async () => {
@@ -142,7 +142,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link to="/settings/account">
+                <Link to="/profile/my-profile">
                   <BadgeCheck className="mr-2 h-4 w-4" />
                   Profile
                 </Link>

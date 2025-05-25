@@ -8,9 +8,11 @@ import {
   Home,
   NotebookPen,
   Receipt,
-  UserCog,
+  SettingsIcon,
+  UserCog
 } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
+import { NavUser } from "./nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +24,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./ui/sidebar";
-import { NavUser } from "./nav-user";
 
 const menuItems = {
   [Role.ADMIN]: [
@@ -61,6 +62,11 @@ const menuItems = {
       url: "/reports/list",
       icon: ChartNoAxesCombined,
     },
+    {
+      title: "Configuration",
+      url: "/configuration/list",
+      icon: SettingsIcon,
+    }
   ],
   [Role.USER]: [
     {

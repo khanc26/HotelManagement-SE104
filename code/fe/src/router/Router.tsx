@@ -1,3 +1,6 @@
+import { ConfigurationEdit } from "@/features/configurations/components/configuraion-edit";
+import { ConfigurationHistory } from "@/features/configurations/components/configuration-history";
+import { ConfigurationParams } from "@/features/configurations/components/configurations-list";
 import { ProfileEdit } from "@/features/profile/profile-edit";
 import { MyProfile } from "@/features/profile/profile-my-profile";
 import { RoomAddNew } from "@/features/room/components/room-add";
@@ -6,6 +9,7 @@ import { RoomList } from "@/features/room/components/room-list";
 import { UserAddNew } from "@/features/user/user-add";
 import { UserEdit } from "@/features/user/user-edit";
 import { UserList } from "@/features/user/user-list";
+import ConfigurationPage from "@/pages/ConfigurarionPage";
 import UsersPage from "@/pages/UsersPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
@@ -144,10 +148,7 @@ const router = createBrowserRouter([
           },
         ],
       },
-      {
-        path: "profile",
-        element: <ProfilePage />,
-      },
+  
       {
         path: "bookings",
         element: (
@@ -198,6 +199,32 @@ const router = createBrowserRouter([
             path: ":id",
             element: <InvoiceDetail />,
           },
+        ],
+      },
+      {
+        path: "configuration",
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <ConfigurationPage />
+          </RoleBasedRoutes>
+        ),
+        children: [
+          {
+            index: true,
+            element: <ConfigurationParams />,
+          },
+          {
+            path: "list",
+            element: <ConfigurationParams/>,
+          },
+          {
+            path: "edit",
+            element: <ConfigurationEdit />,
+          },
+          {
+            path: "history",
+            element: <ConfigurationHistory />,
+          }
         ],
       },
       {
