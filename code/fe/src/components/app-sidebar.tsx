@@ -79,6 +79,11 @@ const menuItems = {
       url: "/profile/my-profile",
       icon: UserCog,
     },
+    {
+      title: "Profile",
+      url: "/user-invoices",
+      icon: UserCog,
+    },
   ],
 };
 

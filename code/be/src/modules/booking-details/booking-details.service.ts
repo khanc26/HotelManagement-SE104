@@ -43,18 +43,18 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const existingRoom = await this.roomsService.findOne(roomId);
 
     if (!existingRoom) {
-      throw new NotFoundException(`Room with id: '${roomId}' not found.`);
+      throw new NotFoundException('Room not found or has been deleted.');
     }
 
     if (existingRoom.status === RoomStatusEnum.OCCUPIED)
       throw new BadRequestException(
-        `Room '${existingRoom.roomNumber}' has been occupied by another user.`,
+        `The room with number '${existingRoom.roomNumber}' is currently occupied.`,
       );
 
     const maxGuestsPerRoomParam =
@@ -145,7 +145,7 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     return (
@@ -181,7 +181,7 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with email: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const bookingDetail = await this.bookingDetailsRepository.findOne({
@@ -206,7 +206,9 @@ export class BookingDetailsService {
     });
 
     if (!bookingDetail) {
-      throw new NotFoundException(`Booking detail with id: '${id}' not found.`);
+      throw new NotFoundException(
+        'The booking details you are looking for could not be found.',
+      );
     }
 
     return bookingDetail;
@@ -224,7 +226,7 @@ export class BookingDetailsService {
     );
 
     if (!existingUser) {
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
+      throw new NotFoundException(`User not found.`);
     }
 
     const existingBookingDetail = await this.bookingDetailsRepository.findOne({
@@ -241,7 +243,9 @@ export class BookingDetailsService {
     });
 
     if (!existingBookingDetail)
-      throw new NotFoundException(`Booking detail with id '${id}' not found.`);
+      throw new NotFoundException(
+        'The booking details you are looking for could not be found.',
+      );
 
     if (
       existingBookingDetail.status === BookingDetailsStatus.CANCELLED ||
@@ -337,9 +341,7 @@ export class BookingDetailsService {
         throw new NotFoundException(`Room with id: '${roomId}' not found.`);
 
       if (existingRoom.status === RoomStatusEnum.OCCUPIED)
-        throw new BadRequestException(
-          `Room with id '${roomId}' has been occupied.`,
-        );
+        throw new BadRequestException(`This room has been occupied.`);
 
       if (
         roomId !== existingBookingDetail.room.id &&

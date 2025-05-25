@@ -27,13 +27,16 @@ export class RoleAuthGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest<Request>();
 
-    if (!user) throw new UnauthorizedException('User Not Authenticated.');
+    if (!user)
+      throw new UnauthorizedException(
+        'You must be logged in to access this resource.',
+      );
 
     const hasRole = requiredRoles.includes((user as JwtPayload).role);
 
     if (!hasRole)
       throw new ForbiddenException(
-        "You don't have permission to access this route.",
+        'You do not have sufficient permissions to access this resource.',
       );
 
     return true;

@@ -33,8 +33,7 @@ export class InvoicesService {
       },
     });
 
-    if (!invoice)
-      throw new NotFoundException(`Invoice with id '${invoiceId}' not found.`);
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
     await this.invoiceRepository.update(
       {
@@ -103,8 +102,7 @@ export class InvoicesService {
       },
     });
 
-    if (!invoice)
-      throw new NotFoundException(`Invoice with id '${invoiceId}' not found.`);
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
     if (invoice.bookingDetail.booking.user.id !== userId && role !== 'admin')
       throw new ForbiddenException(
@@ -133,8 +131,7 @@ export class InvoicesService {
       },
     });
 
-    if (!invoice)
-      throw new NotFoundException(`Invoice with id '${invoiceId}' not found.`);
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
     await this.invoiceRepository.delete(invoiceId);
 
@@ -172,8 +169,7 @@ export class InvoicesService {
       },
     });
 
-    if (!invoice)
-      throw new NotFoundException(`Invoice with id '${invoiceId}' not found.`);
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
     const status =
       vnp_ResponseCode === '00' && vnp_TransactionStatus === '00'

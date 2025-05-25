@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import axios from "axios";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,7 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const formSchema = z.object({
   password: z.string().min(6, {
@@ -28,8 +29,8 @@ const formSchema = z.object({
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-  // const location = useLocation();
-  // const { email, token } = location.state || {};
+  const location = useLocation();
+  const { email, token } = location.state || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,20 +40,25 @@ const ResetPasswordPage = () => {
     },
   });
 
-  async function onSubmit() {
-    // try {
-    //   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`, {
-    //     email,
-    //     token,
-    //     password: values.password,
-    //   });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`,
+        {
+          email,
+          token,
+          newPassword: values.password,
+        }
+      );
 
-    //   if (response.status === 200) {
+      if (response.status === 200) {
+        toast.success("Password reset successfully!");
         navigate("/auth/password-reset-success");
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to reset password. Please try again.");
+    }
   }
 
   return (
