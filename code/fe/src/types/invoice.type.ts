@@ -3,7 +3,7 @@ import { BookingDetail } from "./booking-detail";
 export enum InvoicesStatus {
   UNPAID = "unpaid",
   PAID = "paid",
-  CANCELLED = "cancelled", // Giả định thêm trạng thái hợp lý
+  CANCELLED = "cancelled",
 }
 
 export interface CreateInvoiceRequest {
