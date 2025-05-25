@@ -1,3 +1,6 @@
+import { ConfigurationEdit } from "@/features/configurations/components/configuraion-edit";
+import { ConfigurationHistory } from "@/features/configurations/components/configuration-history";
+import { ConfigurationParams } from "@/features/configurations/components/configurations-list";
 import { ProfileEdit } from "@/features/profile/profile-edit";
 import { MyProfile } from "@/features/profile/profile-my-profile";
 import { RoomAddNew } from "@/features/room/components/room-add";
@@ -6,6 +9,7 @@ import { RoomList } from "@/features/room/components/room-list";
 import { UserAddNew } from "@/features/user/user-add";
 import { UserEdit } from "@/features/user/user-edit";
 import { UserList } from "@/features/user/user-list";
+import ConfigurationPage from "@/pages/ConfigurarionPage";
 import UsersPage from "@/pages/UsersPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
@@ -29,7 +33,7 @@ import { BookingDetailEdit } from "@/features/booking-detail/components/booking-
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
 import { RoleBasedRoutes } from "@/features/auth/components/role-based-routes";
 import InvoicePage from "@/pages/InvoicesPage";
-import { InvoiceList } from "@/features/invoice/components/invoice-list";
+import { InvoiceList } from "@/features/invoice/components/view-user/invoice-list";
 import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
 import LandingLayout from "@/layouts/LandingLayout";
 import HomePage from "@/pages/landing/HomePage";
@@ -44,6 +48,7 @@ import UserRoomPage from "@/pages/UserRoomPage";
 import RoomTypePage from "@/pages/RoomTypePage";
 import { RoomTypeAdd } from "@/features/roomtype/room-type-add";
 import RoomTypeList from "@/features/roomtype/room-type-list";
+import PaymentResult from "@/pages/PaymentResult";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -143,10 +148,7 @@ const router = createBrowserRouter([
           },
         ],
       },
-      {
-        path: "profile",
-        element: <ProfilePage />,
-      },
+  
       {
         path: "bookings",
         element: (
@@ -200,6 +202,32 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "configuration",
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+            <ConfigurationPage />
+          </RoleBasedRoutes>
+        ),
+        children: [
+          {
+            index: true,
+            element: <ConfigurationParams />,
+          },
+          {
+            path: "list",
+            element: <ConfigurationParams/>,
+          },
+          {
+            path: "edit",
+            element: <ConfigurationEdit />,
+          },
+          {
+            path: "history",
+            element: <ConfigurationHistory />,
+          }
+        ],
+      },
+      {
         path: "reports",
         element: (
           <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
@@ -241,6 +269,10 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "payment-result",
+        element: <PaymentResult />,
+      },
+      {
         path: "profile",
         element: (
           <RoleBasedRoutes allowedRoles={[Role.USER, Role.ADMIN]}>
@@ -257,6 +289,14 @@ const router = createBrowserRouter([
             element: <ProfileEdit />,
           },
         ],
+      },
+      {
+        path: "user-invoices",
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+            <InvoiceList />
+          </RoleBasedRoutes>
+        ),
       },
     ],
   },
