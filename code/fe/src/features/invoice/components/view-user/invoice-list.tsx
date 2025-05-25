@@ -1,10 +1,11 @@
 import { DataTable } from "@/components/ui/data-table";
 import { Invoice } from "@/types/invoice.type";
-import { getInvoices, payInvoice } from "@/api/invoices";
+import { getInvoices } from "@/api/invoices";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { invoiceColumns } from "./invoice-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { payInvoice } from "@/api/payments";
 
 export const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -27,7 +28,10 @@ export const InvoiceList = () => {
 
     const handlePayInvoice = (event: Event) => {
       const customEvent = event as CustomEvent<{ invoice: Invoice }>;
-      payInvoice(customEvent.detail.invoice.id, customEvent.detail.invoice.totalPrice)
+      payInvoice(
+        customEvent.detail.invoice.id,
+        customEvent.detail.invoice.totalPrice
+      )
         .then((response) => {
           window.location.href = response.paymentUrl;
         })
@@ -60,4 +64,4 @@ export const InvoiceList = () => {
       </Card>
     </div>
   );
-}; 
+};
