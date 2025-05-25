@@ -7,11 +7,11 @@ export function getAccessToken() {
 
     // Handle expiring token format ({ value, expiresAt })
     if (parsed?.value && parsed?.expiresAt) {
-      const now = Date.now();
-      if (now > parsed.expiresAt) {
-        localStorage.removeItem("access_token");
-        return null;
-      }
+      // const now = Date.now();
+      // if (now > parsed.expiresAt) {
+      //   localStorage.removeItem("access_token");
+      //   return null;
+      // }
       return parsed.value;
     }
 

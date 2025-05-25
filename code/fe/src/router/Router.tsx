@@ -243,7 +243,7 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+          <RoleBasedRoutes allowedRoles={[Role.USER, Role.ADMIN]}>
             <ProfilePage />
           </RoleBasedRoutes>
         ),
@@ -258,11 +258,11 @@ const router = createBrowserRouter([
           },
         ],
       },
-      {
-        path: "error",
-        element: <ErrorPage />,
-      },
     ],
+  },
+  {
+    path: "/error",
+    element: <ErrorPage />,
   },
   {
     path: "/auth",

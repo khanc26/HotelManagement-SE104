@@ -1,10 +1,5 @@
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import { NavLink } from "react-router-dom";
-import { Button } from "./ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link, useLocation } from "react-router-dom";
 
 interface CustomNavigationMenuProps {
   className?: string;
@@ -18,28 +13,18 @@ export function CustomNavigationMenu({
   className,
   menuItems,
 }: CustomNavigationMenuProps) {
+  const location = useLocation();
+  const currentPath = location.pathname.split("/").pop() || menuItems[0].url;
+
   return (
-    <NavigationMenu className={className}>
-      <NavigationMenuList>
+    <Tabs value={currentPath} className={className}>
+      <TabsList className="flex w-fit gap-2">
         {menuItems.map((item) => (
-          <NavLink
-            to={item.url}
-            key={item.url}
-            className={({ isActive }) =>
-              isActive ? "rounded-md bg-primary text-white" : "rounded-md"
-            }
-          >
-            <NavigationMenuItem>
-              <Button
-                variant={"ghost"}
-                className="w-full !border-[1px] !border-slate-200"
-              >
-                {item.title}
-              </Button>
-            </NavigationMenuItem>
-          </NavLink>
+          <TabsTrigger key={item.url} value={item.url} asChild className="px-6">
+            <Link to={item.url}>{item.title}</Link>
+          </TabsTrigger>
         ))}
-      </NavigationMenuList>
-    </NavigationMenu>
+      </TabsList>
+    </Tabs>
   );
 }

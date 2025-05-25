@@ -1,7 +1,5 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,7 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { access_token_expired_time } from "@/utils/constraints";
+import { access_token_expired_time } from "@/utils/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -67,8 +65,9 @@ const SignInPage = () => {
       });
     } catch (err: any) {
       console.error(err);
-
-      toast.error(err?.response?.data?.message || err?.message);
+      toast.error("Failed to sign in. Please check your credentials.", {
+        position: "bottom-right",
+      });
     }
   }
 
