@@ -19,12 +19,12 @@ import {
 import { Control, FieldValues, Path } from "react-hook-form";
 
 interface DatePickerProps<T extends FieldValues> {
-  control: Control<T>
-  name: Path<T>
-  label?: string
-  description?: string
-  minDate?: Date
-  className?: string
+  control: Control<T>;
+  name: Path<T>;
+  label?: string;
+  description?: string;
+  minDate?: Date;
+  className?: string;
 }
 
 export function InputDatePicker<T extends FieldValues>({
@@ -35,10 +35,9 @@ export function InputDatePicker<T extends FieldValues>({
   minDate,
   className,
 }: DatePickerProps<T>) {
-  // Normalize minDate to midnight to avoid time-based comparison issues
   const normalizedMinDate = minDate
     ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate())
-    : undefined
+    : undefined;
 
   return (
     <FormField
@@ -69,8 +68,13 @@ export function InputDatePicker<T extends FieldValues>({
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={field.value}
-                onSelect={field.onChange}
+                selected={field.value ? new Date(field.value) : undefined}
+                onSelect={(selectedDate) => {
+                  const dateString = selectedDate
+                    ? format(selectedDate, "yyyy-MM-dd")
+                    : undefined;
+                  field.onChange(dateString);
+                }}
                 disabled={
                   normalizedMinDate
                     ? (date) =>
@@ -91,5 +95,5 @@ export function InputDatePicker<T extends FieldValues>({
         </FormItem>
       )}
     />
-  )
+  );
 }
