@@ -80,9 +80,9 @@ const menuItems = {
       icon: UserCog,
     },
     {
-      title: "Profile",
+      title: "Invoices",
       url: "/user-invoices",
-      icon: UserCog,
+      icon: Receipt,
     },
   ],
 };
