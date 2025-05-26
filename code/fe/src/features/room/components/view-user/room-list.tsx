@@ -25,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { formatCurrency } from "@/utils/helpers/formatCurrency";
 import { toast } from "react-toastify";
 import { roomPricingRules } from "@/utils/constants";
+import { InputDatePicker } from "@/components/ui/input-date-picker";
 
 // Zod schema for a single booking
 const bookingSchema = z
@@ -111,7 +112,7 @@ function BookingCard({
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     let basePrice = nights * room.roomType.roomPrice;
     const { watch } = form;
     const guestCount = watch("guestCount");
@@ -160,39 +161,26 @@ function BookingCard({
           <p>Max Guests: {room.roomType.maxGuests}</p>
           <p>Price per night: {formatCurrency(room.roomType.roomPrice)}</p>
           <p className="mt-2 font-semibold">
-            Total for {calculateTotalNights()} nights: {formatCurrency(totalPrice)}
+            Total for {calculateTotalNights()} nights:{" "}
+            {formatCurrency(totalPrice)}
           </p>
         </div>
 
         <Form {...form}>
           <form className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <InputDatePicker
                 control={form.control}
                 name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Check-in Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} min={today} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Check-in Date"
+                minDate={new Date(today)}
               />
 
-              <FormField
+              <InputDatePicker
                 control={form.control}
                 name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Check-out Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} min={startDate || today} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Check-out Date"
+                minDate={new Date(startDate)}
               />
             </div>
 
@@ -281,7 +269,7 @@ export function UserRoomList() {
           const end = new Date(endDate);
           const diffTime = Math.abs(end.getTime() - start.getTime());
           const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
+
           let roomTotal = nights * room.roomType.roomPrice;
 
           // Apply foreign multiplier if applicable
@@ -291,7 +279,8 @@ export function UserRoomList() {
 
           // Apply group surcharge if applicable
           if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
-            const surchargePercentage = roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
+            const surchargePercentage =
+              roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
             const surcharge = (roomTotal * surchargePercentage) / 100;
             roomTotal += surcharge;
           }
@@ -323,7 +312,7 @@ export function UserRoomList() {
       toast.success("Your rooms have been booked successfully!");
       setSelectedRooms([]);
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
-    }
+    },
   });
 
   const handleRowSelectionChange = (rowSelection: Record<string, boolean>) => {
@@ -359,8 +348,6 @@ export function UserRoomList() {
         hasForeigners: values.hasForeigners,
       };
     });
-
-    // console.log(bookingData);
 
     bookRooms(bookingData);
   };
