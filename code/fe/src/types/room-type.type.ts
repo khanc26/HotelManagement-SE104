@@ -33,9 +33,7 @@ export interface RoomTypeCreateRequest {
 
 // Interface cho yêu cầu cập nhật loại phòng (RoomTypeUpdateRequest)
 export interface RoomTypeUpdateRequest {
-  name?: RoomTypeName; // Tên loại phòng (optional)
   description?: string; // Mô tả loại phòng (optional)
   roomPrice?: number; // Giá của loại phòng (optional)
-  maxGuests?: number; // Sức chứa tối đa (optional)
   // Các thuộc tính khác nếu cần thiết
 }

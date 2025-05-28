@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 
 const menuItems = [
   { title: "Room Type List", url: "list" },
-  { title: "Add Room Type", url: "add" },
+  //{ title: "Add Room Type", url: "add" },
 ];
 
 const RoomTypePage = () => {
