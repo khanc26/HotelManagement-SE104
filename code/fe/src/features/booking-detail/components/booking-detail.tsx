@@ -29,33 +29,33 @@ import { CardContentError } from "@/components/card-content-error";
 
 // Zod schema for BookingDetail
 const bookingDetailSchema = z.object({
-  id: z.string().min(1, { message: "Booking ID is required" }),
+  id: z.string().trim().min(1, { message: "Booking ID is required" }),
   guestCount: z.number().min(1, { message: "Guest count must be at least 1" }),
   hasForeigners: z.boolean(),
-  startDate: z.string().min(1, { message: "Start date is required" }),
-  endDate: z.string().min(1, { message: "End date is required" }),
+  startDate: z.string().trim().min(1, { message: "Start date is required" }),
+  endDate: z.string().trim().min(1, { message: "End date is required" }),
   status: z.enum(["pending", "checked_in", "checked_out", "cancelled"], {
     message: "Invalid status",
   }),
   approvalStatus: z.enum(["pending", "confirmed", "cancelled"], {
     message: "Invalid approval status",
   }),
-  totalPrice: z.string().min(1, { message: "Total price is required" }),
+  totalPrice: z.string().trim().min(1, { message: "Total price is required" }),
   room: z.object({
-    roomNumber: z.string(),
-    note: z.string().optional(),
+    roomNumber: z.string().trim(),
+    note: z.string().trim().optional(),
     status: z.enum(["available", "occupied"]),
   }),
   invoice: z.object({
-    id: z.string(),
-    basePrice: z.string(),
-    totalPrice: z.string(),
+    id: z.string().trim(),
+    basePrice: z.string().trim(),
+    totalPrice: z.string().trim(),
     dayRent: z.number(),
     status: z.enum(["unpaid", "paid", "cancelled"]),
   }),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  deletedAt: z.string().nullable(),
+  createdAt: z.string().trim(),
+  updatedAt: z.string().trim(),
+  deletedAt: z.string().trim().nullable(),
 });
 
 export function BookingDetail() {

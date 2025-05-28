@@ -21,14 +21,14 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const userSchema = z.object({
-  fullName: z.string().optional(),
-  email: z.string().optional(),
-  address: z.string().optional(),
-  nationality: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  identityNumber: z.string().optional(),
+  fullName: z.string().trim().optional(),
+  email: z.string().trim().optional(),
+  address: z.string().trim().optional(),
+  nationality: z.string().trim().optional(),
+  phoneNumber: z.string().trim().optional(),
+  identityNumber: z.string().trim().optional(),
   status: z.enum(["active", "inactive"]).optional(),
-  dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
+  dob: z.string().trim().refine((val) => !isNaN(Date.parse(val)), {
     message: "Please enter a valid date",
   }).optional(),
 });

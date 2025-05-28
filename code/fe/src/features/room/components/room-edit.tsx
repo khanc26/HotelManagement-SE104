@@ -25,9 +25,9 @@ import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { CardContentError } from "@/components/card-content-error";
 
 const roomSchema = z.object({
-  roomNumber: z.string().optional(),
-  roomTypeId: z.string().min(1, { message: "Please select a room type." }),
-  note: z.string().optional(),
+  roomNumber: z.string().trim().optional(),
+  roomTypeId: z.string().trim().min(1, { message: "Please select a room type." }),
+  note: z.string().trim().optional(),
   status: z.enum(["available", "occupied"]).optional(),
 });
 

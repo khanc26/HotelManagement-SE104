@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 import { useEffect } from "react";
 
 const roomTypeSchema = z.object({
-  name: z.string().min(1, "Room type name is required"),
+  name: z.string().trim().min(1, "Room type name is required"),
   price: z
     .string()
     .min(1, "Price is required")

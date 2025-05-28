@@ -31,19 +31,19 @@ import { Loader2 } from "lucide-react";
 import { RoomPickerInput } from "@/features/room/components/room-picker-input";
 
 const roomSchema = z.object({
-  id: z.string().min(1, { message: "Room is required" }),
-  roomNumber: z.string(), // Add any fields you need
+  id: z.string().trim().min(1, { message: "Room is required" }),
+  roomNumber: z.string().trim(), // Add any fields you need
 });
 
 // Zod schema for BookingDetail
 const bookingDetailSchema = z.object({
-  bookingDetailId: z.string().min(1, { message: "Booking ID is required" }),
+  bookingDetailId: z.string().trim().min(1, { message: "Booking ID is required" }),
   guestCount: z.coerce
     .number()
     .min(1, { message: "Guest count must be at least 1" }),
   hasForeigners: z.boolean(),
-  startDate: z.string().min(1, { message: "Start date is required" }),
-  endDate: z.string().min(1, { message: "End date is required" }),
+  startDate: z.string().trim().min(1, { message: "Start date is required" }),
+  endDate: z.string().trim().min(1, { message: "End date is required" }),
   status: z.enum(["pending", "checked_in", "checked_out", "cancelled"], {
     message: "Invalid status",
   }),

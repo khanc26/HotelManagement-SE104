@@ -23,9 +23,9 @@ import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 
 const roomSchema = z.object({
-  roomNumber: z.string().min(1, { message: "Room number is required" }),
-  roomTypeId: z.string().min(1, { message: "Room type is required" }),
-  note: z.string().optional(),
+  roomNumber: z.string().trim().min(1, { message: "Room number is required" }),
+  roomTypeId: z.string().trim().min(1, { message: "Room type is required" }),
+  note: z.string().trim().optional(),
 });
 
 export function RoomAddNew() {

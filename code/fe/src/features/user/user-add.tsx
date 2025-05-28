@@ -19,13 +19,13 @@ const USER_TYPES = ["foreign", "local"] as const;
 const USER_ROLE = ["admin", "user"] as const;
 
 const userSchema = z.object({
-  fullname: z.string().min(2, "Full name must be at least 2 characters."),
+  fullname: z.string().trim().min(2, "Full name must be at least 2 characters."),
   role: z.enum(["admin", "user"]),
-  email: z.string().email("Invalid email format."),
-  address: z.string().min(5, "Address must be at least 5 characters."),
-  nationality: z.string().min(2, "Nationality must be specified."),
+  email: z.string().trim().email("Invalid email format."),
+  address: z.string().trim().min(5, "Address must be at least 5 characters."),
+  nationality: z.string().trim().min(2, "Nationality must be specified."),
   guest_type: z.enum(["foreign", "local"]),
-  phone_number: z.string().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number."),
+  phone_number: z.string().trim().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number."),
   identity_number: z
     .string()
     .min(5, "Identity number must be at least 5 characters."),
