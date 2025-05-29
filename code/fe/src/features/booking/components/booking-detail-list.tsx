@@ -237,10 +237,6 @@ export function BookingDetailList() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <p className="font-semibold">Booking ID</p>
-                <p>{booking.id}</p>
-              </div>
-              <div>
                 <p className="font-semibold">User Email</p>
                 <p>{booking.user.email}</p>
               </div>

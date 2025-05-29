@@ -27,9 +27,9 @@ import { Download } from "lucide-react";
 
 // Zod schema for Invoice
 const invoiceSummarySchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().email(),
   totalPrice: z.number().min(0),
-  createdAt: z.string(),
+  createdAt: z.string().trim(),
 });
 
 export function InvoiceDetail() {

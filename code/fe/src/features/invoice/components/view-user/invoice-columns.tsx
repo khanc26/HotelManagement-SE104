@@ -2,12 +2,9 @@ import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Invoice, InvoicesStatus } from "@/types/invoice.type";
 import { formatCurrency } from "@/lib/utils";
+import { InvoiceStatusBadge } from "../invoice-status-badge";
 
 export const invoiceColumns: ColumnDef<Invoice>[] = [
-  {
-    accessorKey: "id",
-    header: "Invoice ID",
-  },
   {
     accessorKey: "bookingDetail.room.roomNumber",
     header: "Room",
@@ -16,7 +13,9 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     accessorKey: "bookingDetail.startDate",
     header: "Check In",
     cell: ({ row }) => {
-      return new Date(row.original.bookingDetail.startDate).toLocaleDateString();
+      return new Date(
+        row.original.bookingDetail.startDate
+      ).toLocaleDateString();
     },
   },
   {
@@ -36,6 +35,7 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => <InvoiceStatusBadge status={row.original.status} />,
   },
   {
     id: "actions",
@@ -64,4 +64,4 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
       );
     },
   },
-]; 
+];

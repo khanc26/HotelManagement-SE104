@@ -32,13 +32,13 @@ import { z } from "zod";
 import { userColumns } from "./user-columns";
 
 const userSchema = z.object({
-  fullname: z.string().optional(),
+  fullname: z.string().trim().optional(),
   role: z.enum(["admin", "user"]).optional(),
-  email: z.string().optional(),
-  address: z.string().optional(),
-  nationality: z.string().optional(),
+  email: z.string().trim().optional(),
+  address: z.string().trim().optional(),
+  nationality: z.string().trim().optional(),
   guest_type: z.enum(["local", "foreign"]).optional(),
-  identity_number: z.string().optional(),
+  identity_number: z.string().trim().optional(),
   status: z.enum(["active", "inactive"]).optional(),
   dob: z
     .string()

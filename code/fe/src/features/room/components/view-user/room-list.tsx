@@ -30,15 +30,15 @@ import { InputDatePicker } from "@/components/ui/input-date-picker";
 // Zod schema for a single booking
 const bookingSchema = z
   .object({
-    roomId: z.string(),
+    roomId: z.string().trim(),
     guestCount: z.number().min(1, "Guest count must be at least 1"),
-    startDate: z.string().refine((val) => {
+    startDate: z.string().trim().refine((val) => {
       const date = new Date(val);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return date >= today;
     }, "Start date must be today or later"),
-    endDate: z.string().refine((val) => {
+    endDate: z.string().trim().refine((val) => {
       const date = new Date(val);
       const today = new Date();
       today.setHours(0, 0, 0, 0);

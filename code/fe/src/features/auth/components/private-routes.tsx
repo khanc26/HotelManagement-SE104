@@ -12,7 +12,7 @@ export function PrivateRoutes({ children }: PrivateRoutesProps) {
 
   useEffect(() => {}, [location.pathname, storedValue]);
 
-  return storedValue !== null && storedValue !== undefined ? (
+  return storedValue ? (
     <>{children}</>
   ) : (
     <Navigate to="/auth/not-authenticated" replace state={{ from: location }} />
