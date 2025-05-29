@@ -7,7 +7,7 @@ import { invoiceColumns } from "./invoice-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { payInvoice } from "@/api/payments";
 
-export const InvoiceList = () => {
+export const UserInvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +53,7 @@ export const InvoiceList = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 px-4">
       <Card>
         <CardHeader>
           <CardTitle>My Invoices</CardTitle>

@@ -1,4 +1,4 @@
-export const access_token_expired_time = 300000;
+export const access_token_expired_time = 60000;
 
 export const userStatus = [
   {

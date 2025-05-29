@@ -33,7 +33,7 @@ import { BookingDetailEdit } from "@/features/booking-detail/components/booking-
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
 import { RoleBasedRoutes } from "@/features/auth/components/role-based-routes";
 import InvoicePage from "@/pages/InvoicesPage";
-import { InvoiceList } from "@/features/invoice/components/view-user/invoice-list";
+import { UserInvoiceList } from "@/features/invoice/components/view-user/invoice-list";
 import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
 import LandingLayout from "@/layouts/LandingLayout";
 import HomePage from "@/pages/landing/HomePage";
@@ -49,6 +49,7 @@ import RoomTypePage from "@/pages/RoomTypePage";
 import RoomTypeList from "@/features/roomtype/room-type-list";
 import PaymentResult from "@/pages/PaymentResult";
 import { RoomTypeEdit } from "@/features/roomtype/room-type-edit";
+import { InvoiceList } from "@/features/invoice/components/invoice-list";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -156,7 +157,6 @@ const router = createBrowserRouter([
           },
         ],
       },
-  
       {
         path: "bookings",
         element: (
@@ -302,7 +302,7 @@ const router = createBrowserRouter([
         path: "user-invoices",
         element: (
           <RoleBasedRoutes allowedRoles={[Role.USER]}>
-            <InvoiceList />
+            <UserInvoiceList />
           </RoleBasedRoutes>
         ),
       },

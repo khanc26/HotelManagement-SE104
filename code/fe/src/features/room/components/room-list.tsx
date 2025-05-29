@@ -27,8 +27,8 @@ import { RoomPDFDocument } from "./room-pdf-document";
 import { Printer } from "lucide-react";
 
 const roomSchema = z.object({
-  roomNumber: z.string().optional(),
-  roomType: z.string().optional(),
+  roomNumber: z.string().trim().trim().optional(),
+  roomType: z.string().trim().trim().optional(),
   price: z.number().optional(),
   status: z.enum(["available", "occupied"]).optional(),
 });
