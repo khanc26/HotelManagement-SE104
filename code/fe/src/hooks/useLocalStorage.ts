@@ -11,13 +11,13 @@ export const useLocalStorage = (
 
       const parsed = JSON.parse(item);
       // Check if item has an expiresAt field
-      if (parsed?.expiresAt) {
-        const now = Date.now();
-        if (now > parsed.expiresAt) {
-          // localStorage.removeItem(key);
-          return undefined; // Return undefined if expired
-        }
-      }
+      //   if (parsed?.expiresAt) {
+      //     const now = Date.now();
+      //     if (now > parsed.expiresAt) {
+      //       // localStorage.removeItem(key);
+      //       return undefined; // Return undefined if expired
+      //     }
+      //   }
       return parsed?.value ?? parsed;
     } catch {
       return initialValue;
