@@ -23,6 +23,7 @@ export function MyProfile() {
       nationality: "",
       guest_type: "",
       identity_number: "",
+      phone_number: "",
       status: "",
       dob: "",
     },
@@ -47,6 +48,7 @@ export function MyProfile() {
         nationality: user.profile.nationality || "",
         guest_type: user.userType.typeName || "",
         identity_number: user.profile.identityNumber || "",
+        phone_number: user.profile.phoneNumber || "",
         status: user.profile.status || "",
         dob: user.profile.dob
           ? new Date(user.profile.dob).toISOString().split("T")[0]
@@ -186,6 +188,24 @@ export function MyProfile() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Identity Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              disabled
+                              className="font-semibold"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+<FormField
+                      control={form.control}
+                      name="phone_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
                           <FormControl>
                             <Input
                               {...field}

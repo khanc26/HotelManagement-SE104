@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { User, UserUpdateRequest } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,9 +29,12 @@ const userSchema = z.object({
   phoneNumber: z.string().optional(),
   identityNumber: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional(),
-  dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Please enter a valid date",
-  }).optional(),
+  dob: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Please enter a valid date",
+    })
+    .optional(),
 });
 
 export const ProfileEdit = () => {
@@ -38,9 +42,9 @@ export const ProfileEdit = () => {
 
   const [searchParams] = useSearchParams();
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading } = useQuery({
     queryKey: ["myProfile"],
-    queryFn: getMyProfile,
+    queryFn: () => getMyProfile(),
   });
 
   const userId = searchParams.get("id") || profile?.id;
@@ -59,6 +63,24 @@ export const ProfileEdit = () => {
       dob: "",
     },
   });
+
+  // Thêm useEffect để reset form khi profile thay đổi
+  useEffect(() => {
+    if (profile) {
+      form.reset({
+        fullName: profile.profile.fullName || "",
+        email: profile.email || "",
+        address: profile.profile.address || "",
+        nationality: profile.profile.nationality || "",
+        phoneNumber: profile.profile.phoneNumber || "",
+        identityNumber: profile.profile.identityNumber || "",
+        status: profile.profile.status || "",
+        dob: profile.profile.dob
+          ? new Date(profile.profile.dob).toISOString().split("T")[0]
+          : "",
+      });
+    }
+  }, [profile, form]);
 
   const mutation = useMutation({
     mutationFn: ({
@@ -108,7 +130,6 @@ export const ProfileEdit = () => {
 
     mutation.mutate({ id: userId, updatedUser });
   }
-
   return (
     <div className="flex justify-center items-center">
       <Card className="w-full h-full">
@@ -116,152 +137,162 @@ export const ProfileEdit = () => {
           <CardTitle>Update Your Profile</CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>User Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the user name" {...field} />
-                    </FormControl>
-                    <FormDescription>Type the full name</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          ) : (
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>User Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the user name" {...field} />
+                      </FormControl>
+                      <FormDescription>Type the full name</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Enter your email address"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Valid email address</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the address" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The address must include the city, district, and street
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="nationality"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nationality</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the nationality" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The nationality must be specified
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email address"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>Valid email address</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the address" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The address must include the city, district, and street
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nationality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nationality</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the nationality" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The nationality must be specified
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone_number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the phone_number" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The phone number must be in the format +84..
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="identityNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Identity_number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter the identity_number"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The identity_number is important
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>User Status</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <option value="">Select status</option>
-                        <option value="active">active</option>
-                        <option value="deleted">inactive</option>
-                      </select>
-                    </FormControl>
-                    <FormDescription>
-                      Current status of the user
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone_number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter the phone_number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        The phone number must be in the format +84..
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="identityNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Identity_number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter the identity_number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        The identity_number is important
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>User Status</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        >
+                          <option value="">Select status</option>
+                          <option value="active">active</option>
+                          <option value="deleted">inactive</option>
+                        </select>
+                      </FormControl>
+                      <FormDescription>
+                        Current status of the user
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="dob"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date of Birth</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <Button type="submit" className="w-full">
-                Update Your Profile
-              </Button>
-            </form>
-          </Form>
+                <Button type="submit" className="w-full">
+                  Update Your Profile
+                </Button>
+              </form>
+            </Form>
+          )}
         </CardContent>
       </Card>
     </div>
