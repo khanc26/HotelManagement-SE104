@@ -5,7 +5,6 @@ export function getAccessToken() {
 
     const parsed = JSON.parse(item);
 
-    // Handle expiring token format ({ value, expiresAt })
     if (parsed?.value && parsed?.expiresAt) {
       // const now = Date.now();
       // if (now > parsed.expiresAt) {
@@ -15,7 +14,6 @@ export function getAccessToken() {
       return parsed.value;
     }
 
-    // Handle non-expiring token (direct value)
     return parsed ?? null;
   } catch {
     console.error("Error parsing access_token from localStorage");
