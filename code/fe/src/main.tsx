@@ -26,12 +26,6 @@ const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
       const typedError = error as ResponseError;
-      
-      // // Handle network/CORS errors
-      // if (error.message.includes('Unable to connect to the server')) {
-      //   console.error('Connection Error:', error);
-      //   return; // Don't show toast for network errors
-      // }
 
       if (typedError?.response?.status === 401) {
         toast.error(
