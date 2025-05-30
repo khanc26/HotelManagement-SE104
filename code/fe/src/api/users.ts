@@ -1,16 +1,11 @@
 import { User, UserSearchRequest, UserUpdateRequest } from "@/types/user.type";
-import { getAccessToken } from "@/utils/helpers/getAccessToken";
-import axios from "axios";
+import { createApiInstance } from "./axios-config";
 
-const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/users`,
-});
+const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/users`);
 
 // Get all users
 export const getUsers = async (params?: UserSearchRequest) => {
-  const access_token = getAccessToken();
-
-  console.log("Access Token:", access_token);
+  console.log("Access Token:", localStorage.getItem("access_token"));
 
   const response = await api.get<User[]>("/", {
     params: {
@@ -23,12 +18,7 @@ export const getUsers = async (params?: UserSearchRequest) => {
       identifyNumber: params?.identifyNumber,
       status: params?.status,
       dob: params?.dob,
-
     },
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
   });
   
   console.log("Response Data User:", response.data);
@@ -36,15 +26,7 @@ export const getUsers = async (params?: UserSearchRequest) => {
 };
 
 export const deleteUser = async (id: string) => {
-  const access_token = getAccessToken();
-
-  const response = await api.delete<User>(`/${id}`, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-    withCredentials: true,
-  });
-
+  const response = await api.delete<User>(`/${id}`);
   return response.data;
 };
 
@@ -53,15 +35,7 @@ export const updateUser = async (
   updatedUser: UserUpdateRequest
 ) => {
   try {
-    const access_token = getAccessToken();
-
-    const response = await api.patch<User>(`/${id}`, updatedUser, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      withCredentials: true,
-    });
-
+    const response = await api.patch<User>(`/${id}`, updatedUser);
     return response.data;
   } catch (error) {
     throw error instanceof Error ? error : new Error("Failed to update user");

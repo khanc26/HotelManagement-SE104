@@ -6,10 +6,10 @@ import { TableError } from "@/components/table-error";
 import { DataTable } from "@/components/ui/data-table";
 import { useParams, useSearchParams } from "react-router";
 import { reportDetailColumns } from "./report-detail-columns";
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ReportDetailPDFDocument } from './report-detail-pdf-document';
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ReportDetailPDFDocument } from "./report-detail-pdf-document";
 import { Button } from "@/components/ui/button";
-import { Printer } from 'lucide-react';
+import { Printer } from "lucide-react";
 
 export function ReportDetail() {
   const [searchParams] = useSearchParams();
@@ -33,13 +33,16 @@ export function ReportDetail() {
           <CardTitle>Report Revenue For {month} By Room Type</CardTitle>
           {report && month && (
             <PDFDownloadLink
-              document={<ReportDetailPDFDocument reports={report} month={month} />}
+              key={Date.now()}
+              document={
+                <ReportDetailPDFDocument reports={report} month={month} />
+              }
               fileName={`revenue-report-${month.toLowerCase()}.pdf`}
             >
               {({ loading }) => (
                 <Button variant="outline" disabled={loading}>
                   <Printer className="mr-2 h-4 w-4" />
-                  {loading ? 'Generating PDF...' : 'Print PDF'}
+                  {loading ? "Generating PDF..." : "Print PDF"}
                 </Button>
               )}
             </PDFDownloadLink>

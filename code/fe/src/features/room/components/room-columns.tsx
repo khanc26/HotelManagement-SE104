@@ -54,20 +54,6 @@ export const roomColumns: ColumnDef<Room>[] = [
     },
   },
   {
-    accessorKey: "roomType.maxGuests",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Max Guests
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
     accessorKey: "note",
     header: ({ column }) => {
       return (

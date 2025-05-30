@@ -1,5 +1,5 @@
-"use client";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -8,12 +8,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { access_token_expired_time } from "@/utils/constraints";
-import { Button, Checkbox, Input } from "@heroui/react";
+import { access_token_expired_time } from "@/utils/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -32,7 +31,6 @@ const SignInPage = () => {
   const navigate = useNavigate();
   const [, setAccessTokenValue] = useLocalStorage("access_token", null);
   const [, setRoleLocalStorage] = useLocalStorage("role", null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,39 +41,34 @@ const SignInPage = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/sign-in`,
+        {
+          email: values.email,
+          password: values.password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
-    setTimeout(async () => {
-      setIsLoading(false);
+      const access_token = response.data.accessToken;
+      const role = response.data.role;
+      setAccessTokenValue(access_token, access_token_expired_time);
+      setRoleLocalStorage(role, access_token_expired_time);
 
-      try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/auth/sign-in`,
-          {
-            email: values.email,
-            password: values.password,
-          },
-          {
-            withCredentials: true,
-          }
-        );
+      navigate("/");
 
-        const access_token = response.data.accessToken;
-        const role = response.data.role;
-        setAccessTokenValue(access_token, access_token_expired_time);
-        setRoleLocalStorage(role, access_token_expired_time);
-
-        navigate("/");
-
-        toast.success("Signed in successfully!", {
-          position: "bottom-right",
-        });
-      } catch (err: any) {
-        console.error(err);
-
-        toast.error(err?.response?.data?.message || err?.message);
-      }
-    }, 2500);
+      toast.success("Signed in successfully!", {
+        position: "bottom-right",
+      });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to sign in. Please check your credentials.", {
+        position: "bottom-right",
+      });
+    }
   }
 
   return (
@@ -134,18 +127,17 @@ const SignInPage = () => {
               </Link>
             </p>
 
-            <Checkbox size="sm">Remember me</Checkbox>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="terms" />
+              <label htmlFor="terms" className="text-sm select-none">
+                Remember me
+              </label>
+            </div>
           </div>
 
-          {isLoading ? (
-            <Button isLoading className="w-fit mx-auto" color="primary">
-              Please wait...
-            </Button>
-          ) : (
-            <Button type="submit" className="w-fit mx-auto" color="primary">
-              Sign In
-            </Button>
-          )}
+          <Button type="submit" className="w-fit mx-auto" color="primary">
+            Sign In
+          </Button>
 
           <div className="space-y-2 text-center text-sm">
             <p>

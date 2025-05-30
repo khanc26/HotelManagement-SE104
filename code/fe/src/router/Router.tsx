@@ -1,41 +1,16 @@
-import { PrivateRoutes } from "@/features/auth/components/private-routes";
-import { RoleBasedRoutes } from "@/features/auth/components/role-based-routes";
-import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
-import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
-import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
-import { BookingList } from "@/features/booking/components/booking-list";
 import { ConfigurationEdit } from "@/features/configurations/components/configuraion-edit";
 import { ConfigurationHistory } from "@/features/configurations/components/configuration-history";
 import { ConfigurationParams } from "@/features/configurations/components/configurations-list";
-import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
-import { InvoiceList } from "@/features/invoice/components/invoice-list";
 import { ProfileEdit } from "@/features/profile/profile-edit";
 import { MyProfile } from "@/features/profile/profile-my-profile";
-import { ReportDetail } from "@/features/report/components/report-detail";
-import { ReportList } from "@/features/report/components/report-list";
 import { RoomAddNew } from "@/features/room/components/room-add";
 import { RoomEdit } from "@/features/room/components/room-edit";
 import { RoomList } from "@/features/room/components/room-list";
-import { UserRoomList } from "@/features/room/components/view-user/room-list";
-import { RoomTypeAdd } from "@/features/roomtype/room-type-add";
-import RoomTypeList from "@/features/roomtype/room-type-list";
 import { UserAddNew } from "@/features/user/user-add";
 import { UserEdit } from "@/features/user/user-edit";
 import { UserList } from "@/features/user/user-list";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import LandingLayout from "@/layouts/LandingLayout";
-import BookingsPage from "@/pages/BookingsPage";
 import ConfigurationPage from "@/pages/ConfigurarionPage";
-import ErrorPage from "@/pages/ErrorPage";
-import InvoicePage from "@/pages/InvoicesPage";
-import HomePage from "@/pages/landing/HomePage";
-import NotAuthenticated from "@/pages/NotAuthenticated";
-import NotFound from "@/pages/NotFound";
-import ReportPage from "@/pages/ReportPage";
-import RoomTypePage from "@/pages/RoomTypePage";
-import UserRoomPage from "@/pages/UserRoomPage";
 import UsersPage from "@/pages/UsersPage";
-import { Role } from "@/types/role";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
 import MainLayout from "../layouts/MainLayout";
@@ -48,6 +23,33 @@ import RoomsPage from "../pages/RoomsPage";
 import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
+import ErrorPage from "@/pages/ErrorPage";
+import NotAuthenticated from "@/pages/NotAuthenticated";
+import BookingsPage from "@/pages/BookingsPage";
+import { BookingList } from "@/features/booking/components/booking-list";
+import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
+import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
+import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
+import { PrivateRoutes } from "@/features/auth/components/private-routes";
+import { RoleBasedRoutes } from "@/features/auth/components/role-based-routes";
+import InvoicePage from "@/pages/InvoicesPage";
+import { UserInvoiceList } from "@/features/invoice/components/view-user/invoice-list";
+import { InvoiceDetail } from "@/features/invoice/components/invoice-detail";
+import LandingLayout from "@/layouts/LandingLayout";
+import HomePage from "@/pages/landing/HomePage";
+import NotFound from "@/pages/NotFound";
+import ReportPage from "@/pages/ReportPage";
+import { ReportList } from "@/features/report/components/report-list";
+import { ReportDetail } from "@/features/report/components/report-detail";
+import { UserRoomList } from "@/features/room/components/view-user/room-list";
+import { Role } from "@/types/role";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import UserRoomPage from "@/pages/UserRoomPage";
+import RoomTypePage from "@/pages/RoomTypePage";
+import RoomTypeList from "@/features/roomtype/room-type-list";
+import PaymentResult from "@/pages/PaymentResult";
+import { RoomTypeEdit } from "@/features/roomtype/room-type-edit";
+import { InvoiceList } from "@/features/invoice/components/invoice-list";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -120,6 +122,10 @@ const router = createBrowserRouter([
         ),
         children: [
           {
+            index: true,
+            element: <UserList />,
+          },
+          {
             path: "list",
             element: <UserList />,
           },
@@ -138,16 +144,19 @@ const router = createBrowserRouter([
         element: <RoomTypePage />,
         children: [
           {
+            index: true,
+            element: <RoomTypeList />,
+          },
+          {
             path: "list",
             element: <RoomTypeList />,
           },
           {
-            path: "add",
-            element: <RoomTypeAdd />,
+           path: "Edit",
+           element: <RoomTypeEdit />,
           },
         ],
       },
-  
       {
         path: "bookings",
         element: (
@@ -268,9 +277,13 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "payment-result",
+        element: <PaymentResult />,
+      },
+      {
         path: "profile",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.USER]}>
+          <RoleBasedRoutes allowedRoles={[Role.USER, Role.ADMIN]}>
             <ProfilePage />
           </RoleBasedRoutes>
         ),
@@ -286,10 +299,18 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "error",
-        element: <ErrorPage />,
+        path: "user-invoices",
+        element: (
+          <RoleBasedRoutes allowedRoles={[Role.USER]}>
+            <UserInvoiceList />
+          </RoleBasedRoutes>
+        ),
       },
     ],
+  },
+  {
+    path: "/error",
+    element: <ErrorPage />,
   },
   {
     path: "/auth",

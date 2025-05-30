@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Param } from './entities';
 import { UpdateParamDto } from './dto';
+import { Param } from './entities';
 
 @Injectable()
 export class ParamsService {
