@@ -54,7 +54,6 @@ export const createApiInstance = (baseURL: string): AxiosInstance => {
 
       if (error.response?.status === 401 && !originalRequest._retry) {
         if (isRefreshing) {
-          // Queue the request if refresh is in progress
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject, config: originalRequest });
           });
@@ -76,14 +75,10 @@ export const createApiInstance = (baseURL: string): AxiosInstance => {
 
           isRefreshing = false;
 
-          // Update token in storage or wherever you store it
-          // Assuming you have a function to set the new token
           setAccessToken(newToken);
 
-          // Update all queued requests with new token
           processQueue(null, newToken);
 
-          // Retry the original request
           originalRequest.headers = originalRequest.headers ?? {};
           originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
           return api(originalRequest);
