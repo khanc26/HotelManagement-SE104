@@ -10,7 +10,6 @@ export const useLocalStorage = (
       if (!item) return initialValue;
 
       const parsed = JSON.parse(item);
-      // Check if item has an expiresAt field
       //   if (parsed?.expiresAt) {
       //     const now = Date.now();
       //     if (now > parsed.expiresAt) {
