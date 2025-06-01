@@ -12,13 +12,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { User, UserUpdateRequest } from "@/types/user.type";
+import { UserUpdateRequest } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 const userSchema = z.object({
@@ -34,18 +34,16 @@ const userSchema = z.object({
   }).optional(),
 });
 
-export const ProfileEdit = () => {
+export function ProfileEdit() {
   const queryClient = useQueryClient();
-
   const [searchParams] = useSearchParams();
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, isError } = useQuery({
     queryKey: ["myProfile"],
-    queryFn: () => getMyProfile(),
+    queryFn: getMyProfile,
   });
 
   const userId = searchParams.get("id") || profile?.id;
-  console.log("User ID:", userId);
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
@@ -61,7 +59,6 @@ export const ProfileEdit = () => {
     },
   });
 
-  // Thêm useEffect để reset form khi profile thay đổi
   useEffect(() => {
     if (profile) {
       form.reset({
@@ -80,37 +77,29 @@ export const ProfileEdit = () => {
   }, [profile, form]);
 
   const mutation = useMutation({
-    mutationFn: ({
-      id,
-      updatedUser,
-    }: {
-      id: string;
-      updatedUser: UserUpdateRequest;
-    }) => updateUser(id, updatedUser),
-    onSuccess: (data: User) => {
-      console.log("User updated successfully", data);
-      // Optional: Add success toast
-      toast.success("User updated successfully");
-      // Optional: Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+    mutationFn: ({ id, updatedUser }: { id: string; updatedUser: UserUpdateRequest }) =>
+      updateUser(id, updatedUser),
+    onSuccess: () => {
+      toast.success("Profile updated successfully", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+      queryClient.invalidateQueries({ queryKey: ["myProfile"] });
     },
     onError: (error: unknown) => {
-      console.error("Error updating room", error);
-      // Improved error handling
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      // Optional: Add error toast
-      toast.error(`Failed to update user: ${errorMessage}`);
-    },
-    // Optional: Add loading state handling
-    onMutate: () => {
-      console.log("Starting user update...");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile",
+        {
+          position: "top-right",
+          autoClose: 5000,
+        }
+      );
     },
   });
 
-  async function onSubmit(values: z.infer<typeof userSchema>) {
+  const onSubmit = form.handleSubmit((values) => {
     if (!userId) {
-      toast.error("User ID is required");
+      toast.error("User ID is missing");
       return;
     }
 
@@ -126,172 +115,81 @@ export const ProfileEdit = () => {
     };
 
     mutation.mutate({ id: userId, updatedUser });
-  }
+  });
+
   return (
-    <div className="flex justify-center items-center">
-      <Card className="w-full h-full">
-        <CardHeader>
-          <CardTitle>Update Your Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading...</div>
-          ) : (
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>User Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the user name" {...field} />
-                      </FormControl>
-                      <FormDescription>Type the full name</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Enter your email address"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>Valid email address</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the address" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The address must include the city, district, and street
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="nationality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nationality</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the nationality" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The nationality must be specified
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone_number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter the phone_number"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        The phone number must be in the format +84..
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="identityNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Identity_number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter the identity_number"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        The identity_number is important
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <Card className="w-full h-full mb-4">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold">Edit Profile</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : isError ? (
+          <div>Error loading profile</div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { name: "fullName", label: "Full Name", desc: "Your complete name" },
+                  { name: "email", label: "Email", desc: "Valid email address", type: "email" },
+                  { name: "address", label: "Address", desc: "Your current address" },
+                  { name: "nationality", label: "Nationality", desc: "Your nationality" },
+                  { name: "phoneNumber", label: "Phone Number", desc: "Format: +84..." },
+                  { name: "identityNumber", label: "Identity Number", desc: "Personal ID number" },
+                  { name: "dob", label: "Date of Birth", desc: "Your birth date", type: "date" },
+                ].map(({ name, label, desc, type = "text" }) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name as keyof z.infer<typeof userSchema>}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{label}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type={type}
+                            {...field}
+                            disabled={mutation.isPending}
+                          />
+                        </FormControl>
+                        <FormDescription>{desc}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
                 <FormField
                   control={form.control}
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>User Status</FormLabel>
+                      <FormLabel>Status</FormLabel>
                       <FormControl>
                         <select
                           {...field}
+                          disabled={mutation.isPending}
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                         >
                           <option value="">Select status</option>
                           <option value="active">active</option>
-                          <option value="deleted">inactive</option>
+                          <option value="inactive">inactive</option>
                         </select>
                       </FormControl>
-                      <FormDescription>
-                        Current status of the user
-                      </FormDescription>
+                      <FormDescription>User activity status</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="dob"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" className="w-full">
-                  Update Your Profile
-                </Button>
-              </form>
-            </Form>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              </div>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Saving..." : "Update Profile"}
+              </Button>
+            </form>
+          </Form>
+        )}
+      </CardContent>
+    </Card>
   );
-};
+}
