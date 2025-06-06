@@ -9,6 +9,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -44,7 +45,7 @@ export class User {
   @JoinColumn()
   userType!: UserType;
 
-  @OneToMany(() => Booking, (booking) => booking.user, {
+  @ManyToMany(() => Booking, (booking) => booking.user, {
     orphanedRowAction: 'delete',
     cascade: true,
   })

@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
 import { SearchMonthlyRevenueDto } from 'src/modules/reports/dto';
 import { MonthlyRevenue } from 'src/modules/reports/entities';
 import { Repository } from 'typeorm';
@@ -10,7 +9,6 @@ export class ReportsService {
   constructor(
     @InjectRepository(MonthlyRevenue)
     private readonly monthlyRevenueRepository: Repository<MonthlyRevenue>,
-    private readonly bookingDetailsService: BookingDetailsService,
   ) {}
 
   public handleGetMonthlyRevenue = async (
@@ -50,9 +48,9 @@ export class ReportsService {
     if (!monthlyRevenueDetails)
       throw new NotFoundException(`Month revenue details not found.`);
 
-    return this.bookingDetailsService.getRevenueByRoomTypeInMonth(
-      monthlyRevenueDetails.month,
-    );
+    // return this.bookingDetailsService.getRevenueByRoomTypeInMonth(
+    //   monthlyRevenueDetails.month,
+    // );
   };
 
   public handleGetMonthlyRevenueMonthYear = async (monthYear: string) => {

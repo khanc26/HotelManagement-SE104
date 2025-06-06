@@ -1,5 +1,5 @@
 import { transformDateTime } from 'src/libs/common/helpers';
-import { BookingDetail } from 'src/modules/booking-details/entities/booking-detail.entity';
+import { Booking } from 'src/modules/bookings/entities';
 import {
   Column,
   CreateDateColumn,
@@ -37,11 +37,11 @@ export class Room {
   })
   roomType!: RoomType;
 
-  @OneToMany(() => BookingDetail, (bookingDetail) => bookingDetail.room, {
+  @OneToMany(() => Booking, (booking) => booking.room, {
     orphanedRowAction: 'delete',
     cascade: true,
   })
-  bookingDetails!: BookingDetail[];
+  bookings!: Booking[];
 
   @CreateDateColumn({
     type: 'timestamp',
