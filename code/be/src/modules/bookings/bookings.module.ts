@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BookingDetailsRepository } from 'src/modules/booking-details/booking-details.repository';
-import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
 import { Booking } from 'src/modules/bookings/entities';
 import { Invoice } from 'src/modules/invoices/entities';
 import { InvoicesRepository } from 'src/modules/invoices/invoices.repository';
@@ -39,8 +37,6 @@ import { ParamsService } from '../params/params.service';
   providers: [
     BookingsService,
     BookingsRepository,
-    BookingDetailsService,
-    BookingDetailsRepository,
     InvoicesService,
     ParamsService,
     RoomsService,
