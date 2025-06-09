@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsArray, IsDate, IsOptional, IsUUID } from 'class-validator';
 import { CreateParticipantDto } from './create-participant.dto';
 
 export class UpdateBookingDto {
@@ -16,10 +17,12 @@ export class UpdateBookingDto {
   @ApiProperty()
   @IsDate()
   @IsOptional()
+  @Transform(({ value }: { value: string }) => new Date(value))
   readonly checkInDate?: Date;
 
   @ApiProperty()
   @IsDate()
   @IsOptional()
+  @Transform(({ value }: { value: string }) => new Date(value))
   readonly checkOutDate?: Date;
 }

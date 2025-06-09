@@ -56,13 +56,13 @@ export class BookingsController {
     return this.bookingsService.remove(id, userId);
   }
 
-  // @Roles(RoleEnum.ADMIN, RoleEnum.USER)
-  // @Patch(':id')
-  // async update(
-  //   @Param('id', ParseUUIDPipe) id: string,
-  //   @Body() updateBookingDto: UpdateBookingDto,
-  //   @UserSession('userId') userId: string,
-  // ) {
-  //   return this.bookingsService.update(id, updateBookingDto, userId);
-  // }
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Patch(':id')
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateBookingDto: UpdateBookingDto,
+    @UserSession('userId') userId: string,
+  ) {
+    return this.bookingsService.update(id, updateBookingDto, userId);
+  }
 }

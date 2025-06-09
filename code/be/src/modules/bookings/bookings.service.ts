@@ -19,6 +19,7 @@ import { RoomStatusEnum } from '../rooms/enums';
 import { omit } from 'lodash';
 import { RoomsService } from '../rooms/rooms.service';
 import { LessThan, MoreThan, Not } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BookingsService {
@@ -28,6 +29,7 @@ export class BookingsService {
     private readonly usersService: UsersService,
     private readonly invoicesService: InvoicesService,
     private readonly roomsService: RoomsService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll(userId: string) {
@@ -275,98 +277,145 @@ export class BookingsService {
     return this.findOne(savedBooking.id, userId);
   }
 
-  //   async update(id: string, updateBookingDto: UpdateBookingDto, userId: string) {
-  //     const existingUser = await this.usersService.handleGetUserByField(
-  //       'id',
-  //       userId,
-  //     );
+  async update(id: string, updateBookingDto: UpdateBookingDto, userId: string) {
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
+    if (!existingUser) {
+      throw new NotFoundException(`User not found.`);
+    }
 
-  //     if (!existingUser) {
-  //       throw new NotFoundException(`User not found.`);
-  //     }
+    const existingBooking = await this.bookingsRepository.findOne({
+      where: { id },
+      relations: ['user', 'room', 'room.roomType', 'invoice', 'participants'],
+    });
 
-  //     const booking = await this.bookingsRepository.findOne({
-  //       where: { id },
-  //       relations: ['user', 'room', 'room.roomType', 'invoice', 'participants'],
-  //     });
+    if (!existingBooking) {
+      throw new NotFoundException(`Booking not found.`);
+    }
 
-  //     if (!booking) {
-  //       throw new NotFoundException(`Booking not found.`);
-  //     }
+    if (
+      existingBooking.user.id !== userId &&
+      existingUser.role.roleName !== RoleEnum.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'This booking does not belong to you, so you cannot update it.',
+      );
+    }
 
-  //     if (
-  //       booking.user.id !== userId &&
-  //       existingUser.role.roleName !== RoleEnum.ADMIN
-  //     ) {
-  //       throw new ForbiddenException('You can only update your own bookings.');
-  //     }
+    // Start a transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-  //     if (updateBookingDto.emails) {
-  //       const participants = await Promise.all(
-  //         updateBookingDto.emails.map(async (email) => {
-  //           const user = await this.usersService.handleGetUserByField(
-  //             'email',
-  //             email,
-  //           );
-  //           if (!user) {
-  //             throw new NotFoundException(`User with email ${email} not found.`);
-  //           }
-  //           return user;
-  //         }),
-  //       );
-  //       booking.participants = participants;
-  //     }
+    try {
+      // Update room if provided
+      if (updateBookingDto.roomId) {
+        const newRoom = await this.roomsService.findOne(
+          updateBookingDto.roomId,
+        );
+        if (!newRoom) {
+          throw new NotFoundException(`Room not found.`);
+        }
 
-  //     if (updateBookingDto.checkInDate || updateBookingDto.checkOutDate) {
-  //       const checkInDate = updateBookingDto.checkInDate || booking.checkInDate;
-  //       const checkOutDate =
-  //         updateBookingDto.checkOutDate || booking.checkOutDate;
+        if (newRoom.status === RoomStatusEnum.OCCUPIED) {
+          throw new BadRequestException(
+            `Room ${newRoom.roomNumber} is already occupied.`,
+          );
+        }
 
-  //       if (!checkInDate || !checkOutDate) {
-  //         throw new BadRequestException('Booking dates are required');
-  //       }
+        // Update old room status to available
+        await this.roomsService.handleUpdateStatusOfRoom(
+          existingBooking.room.id,
+          RoomStatusEnum.AVAILABLE,
+        );
 
-  //       if (checkInDate >= checkOutDate) {
-  //         throw new BadRequestException(
-  //           'Check-out date must be after check-in date',
-  //         );
-  //       }
+        // Update new room status to occupied
+        await this.roomsService.handleUpdateStatusOfRoom(
+          newRoom.id,
+          RoomStatusEnum.OCCUPIED,
+        );
 
-  //       if (checkInDate < new Date()) {
-  //         throw new BadRequestException('Check-in date cannot be in the past');
-  //       }
+        existingBooking.room = newRoom;
+      }
 
-  //       const dayRent = Math.ceil(
-  //         (checkOutDate.getTime() - checkInDate.getTime()) /
-  //           (1000 * 60 * 60 * 24),
-  //       );
-  //       const basePrice = booking.room.roomType.roomPrice;
-  //       const totalPrice = basePrice * dayRent;
+      // Update dates if provided
+      if (updateBookingDto.checkInDate) {
+        existingBooking.checkInDate = updateBookingDto.checkInDate;
+      }
+      if (updateBookingDto.checkOutDate) {
+        existingBooking.checkOutDate = updateBookingDto.checkOutDate;
+      }
 
-  //       const existingBookings = await this.bookingsRepository.find({
-  //         where: {
-  //           room: { id: booking.room.id },
-  //           id: Not(booking.id),
-  //           checkInDate: LessThan(checkOutDate),
-  //           checkOutDate: MoreThan(checkInDate),
-  //         },
-  //       });
+      // Update participants if provided
+      if (updateBookingDto.participants) {
+        // Remove existing participants
+        existingBooking.participants = [];
 
-  //       if (existingBookings.length > 0) {
-  //         throw new BadRequestException('Room is already booked for these dates');
-  //       }
+        // Add new participants
+        const participants = await Promise.all(
+          updateBookingDto.participants.map(async (participant) => {
+            const existingParticipant =
+              await this.usersService.handleGetUserByField(
+                'email',
+                participant.email,
+              );
 
-  //       await this.invoicesService.update(booking.invoice.id, {
-  //         dayRent,
-  //         totalPrice,
-  //       });
+            if (existingParticipant) {
+              return existingParticipant;
+            }
 
-  //       booking.totalPrice = totalPrice;
-  //       booking.checkInDate = checkInDate;
-  //       booking.checkOutDate = checkOutDate;
-  //     }
+            return this.usersService.handleCreateDefaultUser(participant);
+          }),
+        );
 
-  //     const updatedBooking = await this.bookingsRepository.save(booking);
-  //     return this.findOne(updatedBooking.id, userId);
-  //   }
+        existingBooking.participants = participants;
+      }
+
+      // Recalculate invoice if room or dates changed
+      if (
+        updateBookingDto.roomId ||
+        updateBookingDto.checkInDate ||
+        updateBookingDto.checkOutDate
+      ) {
+        const checkIn =
+          updateBookingDto.checkInDate || existingBooking.checkInDate;
+        const checkOut =
+          updateBookingDto.checkOutDate || existingBooking.checkOutDate;
+        const room = updateBookingDto.roomId
+          ? existingBooking.room
+          : existingBooking.room;
+
+        const dayRent = Math.ceil(
+          (checkOut!.getTime() - checkIn!.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        const basePrice = room.roomType.roomPrice;
+        const totalPrice = basePrice * dayRent;
+
+        // Update invoice
+        await this.invoicesService.update(existingBooking.invoice.id, {
+          basePrice,
+          totalPrice,
+          dayRent,
+        });
+
+        existingBooking.totalPrice = totalPrice;
+      }
+
+      // Save the updated booking
+      const updatedBooking = await queryRunner.manager.save(existingBooking);
+
+      await queryRunner.commitTransaction();
+
+      // Return the updated booking with relations
+      return this.findOne(updatedBooking.id, userId);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }
