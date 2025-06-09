@@ -2,16 +2,17 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InvoicesService } from '../invoices/invoices.service';
 import { UsersService } from '../users/users.service';
-import { RoleEnum } from '../users/enums';
+import { RoleEnum, UserTypeEnum } from '../users/enums';
 import { BookingsRepository } from './bookings.repository';
 import {
-  CheckParticipantsDto,
   CreateBookingDto,
+  CreateParticipantDto,
   UpdateBookingDto,
 } from './dto';
 import { RoomStatusEnum } from '../rooms/enums';
@@ -121,69 +122,32 @@ export class BookingsService {
     if (
       existingBooking.user.id !== userId &&
       existingUser.role.roleName !== RoleEnum.ADMIN
-    )
+    ) {
       throw new ForbiddenException(
         'This booking does not belong to you, so you cannot view it.',
       );
+    }
 
     return {
-      ...omit(existingBooking, [
+      ...omit(existingBooking, ['deletedAt']),
+      user: omit(existingBooking.user, [
         'password',
         'refresh_token',
-        'user.password',
-        'user.refresh_token',
+        'deletedAt',
       ]),
-      user: omit(existingBooking.user, ['password', 'refresh_token']),
       participants: existingBooking.participants.map((participant) => ({
-        ...omit(participant, [
+        ...omit(participant, ['password', 'refresh_token', 'deletedAt']),
+        profile: omit(participant.profile, [
           'password',
           'refresh_token',
-          'profile.password',
-          'profile.refresh_token',
+          'deletedAt',
         ]),
-        profile: omit(participant.profile, ['password', 'refresh_token']),
       })),
       room: {
-        ...omit(existingBooking.room, [
-          'password',
-          'refresh_token',
-          'roomType.password',
-          'roomType.refresh_token',
-        ]),
-        roomType: omit(existingBooking.room.roomType, [
-          'password',
-          'refresh_token',
-        ]),
+        ...omit(existingBooking.room, ['deletedAt']),
+        roomType: omit(existingBooking.room.roomType, ['deletedAt']),
       },
-      invoice: omit(existingBooking.invoice, ['password', 'refresh_token']),
-    };
-  }
-
-  async checkParticipants(checkParticipantsDto: CheckParticipantsDto) {
-    const results = await Promise.all(
-      checkParticipantsDto.emails.map(async (email) => {
-        const user = await this.usersService.handleGetUserByField(
-          'email',
-          email,
-        );
-        return {
-          email,
-          exists: !!user,
-          user: user
-            ? {
-                id: user.id,
-                email: user.email,
-                fullName: user.profile.fullName,
-              }
-            : null,
-        };
-      }),
-    );
-
-    return {
-      participants: results,
-      allExist: results.every((r) => r.exists),
-      missingEmails: results.filter((r) => !r.exists).map((r) => r.email),
+      invoice: omit(existingBooking.invoice, ['deletedAt']),
     };
   }
 
@@ -224,8 +188,8 @@ export class BookingsService {
   }
 
   async create(createBookingDto: CreateBookingDto, userId: string) {
-    const booker = await this.usersService.handleGetUserByField('id', userId);
-    if (!booker) {
+    const user = await this.usersService.handleGetUserByField('id', userId);
+    if (!user) {
       throw new NotFoundException(`User not found.`);
     }
 
@@ -233,48 +197,23 @@ export class BookingsService {
     if (!room) {
       throw new NotFoundException(`Room not found.`);
     }
-
     if (room.status !== RoomStatusEnum.AVAILABLE) {
-      throw new BadRequestException(`Room is not available for booking.`);
+      throw new BadRequestException(`Room is not available.`);
     }
 
     const { checkInDate, checkOutDate } = createBookingDto;
-
     if (checkInDate >= checkOutDate) {
       throw new BadRequestException(
         'Check-out date must be after check-in date',
       );
     }
-
     if (checkInDate < new Date()) {
       throw new BadRequestException('Check-in date cannot be in the past');
     }
 
-    const dayRent = Math.ceil(
-      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    const participants = await Promise.all(
-      createBookingDto.emails.map(async (email) => {
-        const user = await this.usersService.handleGetUserByField(
-          'email',
-          email,
-        );
-        if (!user) {
-          throw new NotFoundException(
-            `User with email ${email} not found. Please create the user first.`,
-          );
-        }
-        return user;
-      }),
-    );
-
-    const basePrice = room.roomType.roomPrice;
-    const totalPrice = basePrice * dayRent;
-
     const existingBookings = await this.bookingsRepository.find({
       where: {
-        room: { id: createBookingDto.roomId },
+        room: { id: room.id },
         checkInDate: LessThan(checkOutDate),
         checkOutDate: MoreThan(checkInDate),
       },
@@ -284,126 +223,150 @@ export class BookingsService {
       throw new BadRequestException('Room is already booked for these dates');
     }
 
-    const booking = this.bookingsRepository.create({
+    const dayRent = Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    const basePrice = room.roomType.roomPrice;
+    const totalPrice = basePrice * dayRent;
+
+    const participants = await Promise.all(
+      createBookingDto.participants.map(
+        async (participant: CreateParticipantDto) => {
+          const user = await this.usersService.handleGetUserByField(
+            'email',
+            participant.email,
+          );
+
+          if (!user) {
+            return await this.usersService.handleCreateDefaultUser(participant);
+          }
+
+          return user;
+        },
+      ),
+    );
+
+    const invoice = await this.invoicesService.create({
+      dayRent,
       totalPrice,
-      user: booker,
-      room: room,
-      participants: participants,
-      checkInDate,
-      checkOutDate,
+      basePrice,
     });
 
-    const savedBooking = await this.bookingsRepository.save(booking);
+    const booking = this.bookingsRepository.create({
+      totalPrice,
+      user,
+      room,
+      checkInDate,
+      checkOutDate,
+      participants,
+      invoice,
+    });
 
     await this.roomsService.handleUpdateStatusOfRoom(
       room.id,
       RoomStatusEnum.OCCUPIED,
     );
 
-    const invoice = await this.invoicesService.create({
-      basePrice,
-      totalPrice,
-      dayRent,
-    });
-
-    savedBooking.invoice = invoice;
-    await this.bookingsRepository.save(savedBooking);
+    const savedBooking = await this.bookingsRepository.save(booking);
+    if (!savedBooking) {
+      throw new InternalServerErrorException('Failed to create booking');
+    }
 
     return this.findOne(savedBooking.id, userId);
   }
 
-  async update(id: string, updateBookingDto: UpdateBookingDto, userId: string) {
-    const existingUser = await this.usersService.handleGetUserByField(
-      'id',
-      userId,
-    );
+  //   async update(id: string, updateBookingDto: UpdateBookingDto, userId: string) {
+  //     const existingUser = await this.usersService.handleGetUserByField(
+  //       'id',
+  //       userId,
+  //     );
 
-    if (!existingUser) {
-      throw new NotFoundException(`User not found.`);
-    }
+  //     if (!existingUser) {
+  //       throw new NotFoundException(`User not found.`);
+  //     }
 
-    const booking = await this.bookingsRepository.findOne({
-      where: { id },
-      relations: ['user', 'room', 'room.roomType', 'invoice', 'participants'],
-    });
+  //     const booking = await this.bookingsRepository.findOne({
+  //       where: { id },
+  //       relations: ['user', 'room', 'room.roomType', 'invoice', 'participants'],
+  //     });
 
-    if (!booking) {
-      throw new NotFoundException(`Booking not found.`);
-    }
+  //     if (!booking) {
+  //       throw new NotFoundException(`Booking not found.`);
+  //     }
 
-    if (
-      booking.user.id !== userId &&
-      existingUser.role.roleName !== RoleEnum.ADMIN
-    ) {
-      throw new ForbiddenException('You can only update your own bookings.');
-    }
+  //     if (
+  //       booking.user.id !== userId &&
+  //       existingUser.role.roleName !== RoleEnum.ADMIN
+  //     ) {
+  //       throw new ForbiddenException('You can only update your own bookings.');
+  //     }
 
-    if (updateBookingDto.emails) {
-      const participants = await Promise.all(
-        updateBookingDto.emails.map(async (email) => {
-          const user = await this.usersService.handleGetUserByField(
-            'email',
-            email,
-          );
-          if (!user) {
-            throw new NotFoundException(`User with email ${email} not found.`);
-          }
-          return user;
-        }),
-      );
-      booking.participants = participants;
-    }
+  //     if (updateBookingDto.emails) {
+  //       const participants = await Promise.all(
+  //         updateBookingDto.emails.map(async (email) => {
+  //           const user = await this.usersService.handleGetUserByField(
+  //             'email',
+  //             email,
+  //           );
+  //           if (!user) {
+  //             throw new NotFoundException(`User with email ${email} not found.`);
+  //           }
+  //           return user;
+  //         }),
+  //       );
+  //       booking.participants = participants;
+  //     }
 
-    if (updateBookingDto.checkInDate || updateBookingDto.checkOutDate) {
-      const checkInDate = updateBookingDto.checkInDate || booking.checkInDate;
-      const checkOutDate =
-        updateBookingDto.checkOutDate || booking.checkOutDate;
+  //     if (updateBookingDto.checkInDate || updateBookingDto.checkOutDate) {
+  //       const checkInDate = updateBookingDto.checkInDate || booking.checkInDate;
+  //       const checkOutDate =
+  //         updateBookingDto.checkOutDate || booking.checkOutDate;
 
-      if (!checkInDate || !checkOutDate) {
-        throw new BadRequestException('Booking dates are required');
-      }
+  //       if (!checkInDate || !checkOutDate) {
+  //         throw new BadRequestException('Booking dates are required');
+  //       }
 
-      if (checkInDate >= checkOutDate) {
-        throw new BadRequestException(
-          'Check-out date must be after check-in date',
-        );
-      }
+  //       if (checkInDate >= checkOutDate) {
+  //         throw new BadRequestException(
+  //           'Check-out date must be after check-in date',
+  //         );
+  //       }
 
-      if (checkInDate < new Date()) {
-        throw new BadRequestException('Check-in date cannot be in the past');
-      }
+  //       if (checkInDate < new Date()) {
+  //         throw new BadRequestException('Check-in date cannot be in the past');
+  //       }
 
-      const dayRent = Math.ceil(
-        (checkOutDate.getTime() - checkInDate.getTime()) /
-          (1000 * 60 * 60 * 24),
-      );
-      const basePrice = booking.room.roomType.roomPrice;
-      const totalPrice = basePrice * dayRent;
+  //       const dayRent = Math.ceil(
+  //         (checkOutDate.getTime() - checkInDate.getTime()) /
+  //           (1000 * 60 * 60 * 24),
+  //       );
+  //       const basePrice = booking.room.roomType.roomPrice;
+  //       const totalPrice = basePrice * dayRent;
 
-      const existingBookings = await this.bookingsRepository.find({
-        where: {
-          room: { id: booking.room.id },
-          id: Not(booking.id),
-          checkInDate: LessThan(checkOutDate),
-          checkOutDate: MoreThan(checkInDate),
-        },
-      });
+  //       const existingBookings = await this.bookingsRepository.find({
+  //         where: {
+  //           room: { id: booking.room.id },
+  //           id: Not(booking.id),
+  //           checkInDate: LessThan(checkOutDate),
+  //           checkOutDate: MoreThan(checkInDate),
+  //         },
+  //       });
 
-      if (existingBookings.length > 0) {
-        throw new BadRequestException('Room is already booked for these dates');
-      }
+  //       if (existingBookings.length > 0) {
+  //         throw new BadRequestException('Room is already booked for these dates');
+  //       }
 
-      await this.invoicesService.update(booking.invoice.id, {
-        dayRent,
-        totalPrice,
-      });
+  //       await this.invoicesService.update(booking.invoice.id, {
+  //         dayRent,
+  //         totalPrice,
+  //       });
 
-      booking.totalPrice = totalPrice;
-      booking.checkInDate = checkInDate;
-      booking.checkOutDate = checkOutDate;
-    }
+  //       booking.totalPrice = totalPrice;
+  //       booking.checkInDate = checkInDate;
+  //       booking.checkOutDate = checkOutDate;
+  //     }
 
-    const updatedBooking = await this.bookingsRepository.save(booking);
-    return this.findOne(updatedBooking.id, userId);
-  }
+  //     const updatedBooking = await this.bookingsRepository.save(booking);
+  //     return this.findOne(updatedBooking.id, userId);
+  //   }
 }

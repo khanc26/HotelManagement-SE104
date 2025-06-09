@@ -14,7 +14,7 @@ import { Roles, UserSession } from '../../libs/common/decorators';
 import { JwtAuthGuard, RoleAuthGuard } from '../../libs/common/guards';
 import { RoleEnum } from '../users/enums';
 import { BookingsService } from './bookings.service';
-import { CheckParticipantsDto, CreateBookingDto, UpdateBookingDto } from './dto';
+import { CreateBookingDto, UpdateBookingDto } from './dto';
 
 @ApiTags('Bookings')
 @UseGuards(JwtAuthGuard, RoleAuthGuard)
@@ -29,12 +29,6 @@ export class BookingsController {
     return this.bookingsService.findAll(userId);
   }
 
-  @Roles(RoleEnum.USER)
-  @Post('check-participants')
-  async checkParticipants(@Body() checkParticipantsDto: CheckParticipantsDto) {
-    return this.bookingsService.checkParticipants(checkParticipantsDto);
-  }
-
   @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id')
   async findOne(
@@ -44,7 +38,7 @@ export class BookingsController {
     return this.bookingsService.findOne(id, userId);
   }
 
-  @Roles(RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Post()
   async createBooking(
     @Body() createBookingDto: CreateBookingDto,
@@ -62,13 +56,13 @@ export class BookingsController {
     return this.bookingsService.remove(id, userId);
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
-  @Patch(':id')
-  async update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateBookingDto: UpdateBookingDto,
-    @UserSession('userId') userId: string,
-  ) {
-    return this.bookingsService.update(id, updateBookingDto, userId);
-  }
+  // @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  // @Patch(':id')
+  // async update(
+  //   @Param('id', ParseUUIDPipe) id: string,
+  //   @Body() updateBookingDto: UpdateBookingDto,
+  //   @UserSession('userId') userId: string,
+  // ) {
+  //   return this.bookingsService.update(id, updateBookingDto, userId);
+  // }
 }

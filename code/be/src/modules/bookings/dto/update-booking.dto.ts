@@ -1,28 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsEmail, IsOptional } from 'class-validator';
-import { Transform, TransformFnParams } from 'class-transformer';
-
-const toDate = ({ value }: TransformFnParams) => {
-  if (!value) return null;
-  return new Date(value);
-};
+import { IsArray, IsDate, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { CreateParticipantDto } from './create-participant.dto';
 
 export class UpdateBookingDto {
-  @ApiProperty({ type: [String], required: false })
+  @ApiProperty()
+  @IsUUID()
   @IsOptional()
-  @IsArray()
-  @IsEmail({}, { each: true })
-  readonly emails?: string[];
+  roomId?: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ type: [CreateParticipantDto] })
+  @IsArray()
   @IsOptional()
+  readonly participants?: CreateParticipantDto[];
+
+  @ApiProperty()
   @IsDate()
-  @Transform(toDate)
+  @IsOptional()
   readonly checkInDate?: Date;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty()
   @IsDate()
-  @Transform(toDate)
+  @IsOptional()
   readonly checkOutDate?: Date;
 }
