@@ -1,15 +1,23 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { omit } from 'lodash';
-import { InvoicesService } from 'src/modules/invoices/invoices.service';
-import { ReportsService } from 'src/modules/reports/reports.service';
-import { UsersService } from 'src/modules/users/users.service';
+import { InvoicesService } from '../invoices/invoices.service';
+import { UsersService } from '../users/users.service';
 import { RoleEnum } from '../users/enums';
 import { BookingsRepository } from './bookings.repository';
+import {
+  CheckParticipantsDto,
+  CreateBookingDto,
+  UpdateBookingDto,
+} from './dto';
+import { RoomStatusEnum } from '../rooms/enums';
+import { omit } from 'lodash';
+import { RoomsService } from '../rooms/rooms.service';
+import { LessThan, MoreThan, Not } from 'typeorm';
 
 @Injectable()
 export class BookingsService {
@@ -18,65 +26,69 @@ export class BookingsService {
     private readonly bookingsRepository: BookingsRepository,
     private readonly usersService: UsersService,
     private readonly invoicesService: InvoicesService,
-    private readonly reportsService: ReportsService,
+    private readonly roomsService: RoomsService,
   ) {}
 
-  // async findAll(userId: string) {
-  //   const existingUser = await this.usersService.handleGetUserByField(
-  //     'id',
-  //     userId,
-  //   );
+  async findAll(userId: string) {
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
 
-  //   if (!existingUser) {
-  //     throw new NotFoundException(`User not found.`);
-  //   }
+    if (!existingUser) {
+      throw new NotFoundException(`User not found.`);
+    }
 
-  //   let existingBookings: Booking[] = [];
+    const isAdmin = existingUser.role.roleName === RoleEnum.ADMIN;
 
-  //   const relations = [
-  //     'user',
-  //     'bookingDetails',
-  //     'bookingDetails.room',
-  //     'bookingDetails.invoice',
-  //   ];
+    const bookings = await this.bookingsRepository.find({
+      where: isAdmin ? {} : { user: { id: userId } },
+      relations: [
+        'user',
+        'room',
+        'room.roomType',
+        'invoice',
+        'participants',
+        'participants.profile',
+      ],
+    });
 
-  //   const isAdmin =
-  //     existingUser.role.roleName === RoleEnum.ADMIN ? true : false;
-
-  //   existingBookings = await this.bookingsRepository.find({
-  //     where: isAdmin
-  //       ? {}
-  //       : {
-  //           user: {
-  //             id: userId,
-  //           },
-  //         },
-  //     relations,
-  //     select: isAdmin
-  //       ? undefined
-  //       : {
-  //           id: true,
-  //           totalPrice: true,
-  //           createdAt: true,
-  //           bookingDetails: {},
-  //         },
-  //   });
-
-  //   // map bookings to remove sensitive data
-  //   return existingBookings.map((booking) => {
-  //     return omit(booking, [
-  //       'user.password',
-  //       'user.role',
-  //       'user.userType',
-  //       'user.createdAt',
-  //       'user.updatedAt',
-  //       'user.deletedAt',
-  //       'user.profile.createdAt',
-  //       'user.profile.updatedAt',
-  //       'user.profile.deletedAt',
-  //     ]);
-  //   });
-  // }
+    return bookings.map((booking) => ({
+      ...omit(booking, [
+        'password',
+        'refresh_token',
+        'user.password',
+        'user.refresh_token',
+        'participants.password',
+        'participants.refresh_token',
+      ]),
+      user: omit(booking.user, [
+        'password',
+        'refresh_token',
+        'user.password',
+        'user.refresh_token',
+      ]),
+      participants: booking.participants.map((participant) => ({
+        ...omit(participant, [
+          'password',
+          'refresh_token',
+          'profile.password',
+          'profile.refresh_token',
+        ]),
+        profile: omit(participant.profile, ['password', 'refresh_token']),
+      })),
+      room: {
+        ...omit(booking.room, [
+          'password',
+          'refresh_token',
+          'roomType.password',
+          'roomType.refresh_token',
+        ]),
+        roomType: omit(booking.room.roomType, ['password', 'refresh_token']),
+      },
+      invoice: omit(booking.invoice, ['password', 'refresh_token']),
+    }));
+  }
 
   async findOne(id: string, userId: string) {
     const existingUser = await this.usersService.handleGetUserByField(
@@ -94,9 +106,11 @@ export class BookingsService {
       },
       relations: [
         'user',
-        'bookingDetails',
-        'bookingDetails.room',
-        'bookingDetails.invoice',
+        'room',
+        'room.roomType',
+        'invoice',
+        'participants',
+        'participants.profile',
       ],
     });
 
@@ -112,199 +126,284 @@ export class BookingsService {
         'This booking does not belong to you, so you cannot view it.',
       );
 
-    return omit(existingBooking, [
-      'user.password',
-      'user.role',
-      'user.userType',
-      'user.createdAt',
-      'user.updatedAt',
-      'user.deletedAt',
-      'user.profile.createdAt',
-      'user.profile.updatedAt',
-      'user.profile.deletedAt',
-    ]);
+    return {
+      ...omit(existingBooking, [
+        'password',
+        'refresh_token',
+        'user.password',
+        'user.refresh_token',
+      ]),
+      user: omit(existingBooking.user, ['password', 'refresh_token']),
+      participants: existingBooking.participants.map((participant) => ({
+        ...omit(participant, [
+          'password',
+          'refresh_token',
+          'profile.password',
+          'profile.refresh_token',
+        ]),
+        profile: omit(participant.profile, ['password', 'refresh_token']),
+      })),
+      room: {
+        ...omit(existingBooking.room, [
+          'password',
+          'refresh_token',
+          'roomType.password',
+          'roomType.refresh_token',
+        ]),
+        roomType: omit(existingBooking.room.roomType, [
+          'password',
+          'refresh_token',
+        ]),
+      },
+      invoice: omit(existingBooking.invoice, ['password', 'refresh_token']),
+    };
   }
 
-  // async remove(
-  //   id: string,
-  //   userId: string,
-  //   deleteBookingDetailsDto?: DeleteBookingDetailsDto,
-  // ) {
-  //   const existingUser = await this.usersService.handleGetUserByField(
-  //     'id',
-  //     userId,
-  //   );
+  async checkParticipants(checkParticipantsDto: CheckParticipantsDto) {
+    const results = await Promise.all(
+      checkParticipantsDto.emails.map(async (email) => {
+        const user = await this.usersService.handleGetUserByField(
+          'email',
+          email,
+        );
+        return {
+          email,
+          exists: !!user,
+          user: user
+            ? {
+                id: user.id,
+                email: user.email,
+                fullName: user.profile.fullName,
+              }
+            : null,
+        };
+      }),
+    );
 
-  //   if (!existingUser) {
-  //     throw new NotFoundException(`User not found.`);
-  //   }
+    return {
+      participants: results,
+      allExist: results.every((r) => r.exists),
+      missingEmails: results.filter((r) => !r.exists).map((r) => r.email),
+    };
+  }
 
-  //   const existingBooking = await this.bookingsRepository.findOne({
-  //     where: {
-  //       id,
-  //     },
-  //     relations: {
-  //       user: {
-  //         role: true,
-  //       },
-  //       bookingDetails: true,
-  //     },
-  //   });
+  async remove(id: string, userId: string) {
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
 
-  //   if (!existingBooking) {
-  //     throw new NotFoundException(`Booking with id '${id}' not found.`);
-  //   }
+    if (!existingUser) {
+      throw new NotFoundException(`User not found.`);
+    }
 
-  //   if (
-  //     existingBooking.user.role.roleName !==
-  //       (RoleEnum.ADMIN || RoleEnum.SUPER_ADMIN) &&
-  //     existingBooking.user.id !== userId
-  //   ) {
-  //     throw new ForbiddenException(
-  //       'You are only allowed to delete a booking that belongs to you.',
-  //     );
-  //   }
+    const booking = await this.bookingsRepository.findOne({
+      where: { id },
+      relations: ['user', 'room', 'invoice'],
+    });
 
-  //   const bookingIds =
-  //     deleteBookingDetailsDto?.bookingDetailIds ??
-  //     existingBooking.bookingDetails.map((bd) => bd.id);
+    if (!booking) {
+      throw new NotFoundException(`Booking not found.`);
+    }
 
-  //   await this.bookingDetailsService.handleSoftDelete(bookingIds);
+    if (
+      booking.user.id !== userId &&
+      existingUser.role.roleName !== RoleEnum.ADMIN
+    ) {
+      throw new ForbiddenException('You can only delete your own bookings.');
+    }
 
-  //   const newTotalPrice = parseFloat(
-  //     (
-  //       existingBooking.totalPrice -
-  //       (await this.invoicesService.handleCalculatePriceOfInvoicesByBookingDetailIds(
-  //         bookingIds,
-  //       ))
-  //     ).toFixed(2),
-  //   );
+    await this.roomsService.handleUpdateStatusOfRoom(
+      booking.room.id,
+      RoomStatusEnum.AVAILABLE,
+    );
 
-  //   const yearMonth = format(new Date(), 'yyyy-MM');
+    await this.bookingsRepository.softRemove(booking);
 
-  //   await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
-  //     yearMonth,
-  //     newTotalPrice === 0
-  //       ? existingBooking.totalPrice * -1
-  //       : newTotalPrice * -1,
-  //   );
+    return { message: 'Booking deleted successfully' };
+  }
 
-  //   existingBooking.totalPrice = newTotalPrice;
+  async create(createBookingDto: CreateBookingDto, userId: string) {
+    const booker = await this.usersService.handleGetUserByField('id', userId);
+    if (!booker) {
+      throw new NotFoundException(`User not found.`);
+    }
 
-  //   await this.bookingsRepository.save(existingBooking);
+    const room = await this.roomsService.findOne(createBookingDto.roomId);
+    if (!room) {
+      throw new NotFoundException(`Room not found.`);
+    }
 
-  //   return omit(
-  //     newTotalPrice === 0
-  //       ? await this.bookingsRepository.softRemove(existingBooking)
-  //       : existingBooking,
-  //     [
-  //       'user.password',
-  //       'user.role',
-  //       'user.userType',
-  //       'user.createdAt',
-  //       'user.updatedAt',
-  //       'user.deletedAt',
-  //       'user.profile.createdAt',
-  //       'user.profile.updatedAt',
-  //       'user.profile.deletedAt',
-  //     ],
-  //   );
-  // }
+    if (room.status !== RoomStatusEnum.AVAILABLE) {
+      throw new BadRequestException(`Room is not available for booking.`);
+    }
 
-  // async create({ createBookingDetailDtos }: CreateBookingDto, userId: string) {
-  //   const user = await this.usersService.handleGetUserByField('id', userId);
+    const { checkInDate, checkOutDate } = createBookingDto;
 
-  //   if (!user) throw new NotFoundException(`User not found.`);
+    if (checkInDate >= checkOutDate) {
+      throw new BadRequestException(
+        'Check-out date must be after check-in date',
+      );
+    }
 
-  //   const bookingDetails = await Promise.all(
-  //     createBookingDetailDtos.map((dto) =>
-  //       this.bookingDetailsService.create(dto, userId),
-  //     ),
-  //   );
+    if (checkInDate < new Date()) {
+      throw new BadRequestException('Check-in date cannot be in the past');
+    }
 
-  //   const totalPrice = bookingDetails.reduce(
-  //     (acc, curr) => acc + Number(curr.totalPrice),
-  //     0,
-  //   );
+    const dayRent = Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
-  //   const yearMonth = format(new Date(), 'yyyy-MM');
+    const participants = await Promise.all(
+      createBookingDto.emails.map(async (email) => {
+        const user = await this.usersService.handleGetUserByField(
+          'email',
+          email,
+        );
+        if (!user) {
+          throw new NotFoundException(
+            `User with email ${email} not found. Please create the user first.`,
+          );
+        }
+        return user;
+      }),
+    );
 
-  //   await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
-  //     yearMonth,
-  //     totalPrice,
-  //   );
+    const basePrice = room.roomType.roomPrice;
+    const totalPrice = basePrice * dayRent;
 
-  //   const newBooking = this.bookingsRepository.create({
-  //     totalPrice,
-  //   });
+    const existingBookings = await this.bookingsRepository.find({
+      where: {
+        room: { id: createBookingDto.roomId },
+        checkInDate: LessThan(checkOutDate),
+        checkOutDate: MoreThan(checkInDate),
+      },
+    });
 
-  //   newBooking.user = user;
+    if (existingBookings.length > 0) {
+      throw new BadRequestException('Room is already booked for these dates');
+    }
 
-  //   await this.bookingsRepository.save(newBooking);
+    const booking = this.bookingsRepository.create({
+      totalPrice,
+      user: booker,
+      room: room,
+      participants: participants,
+      checkInDate,
+      checkOutDate,
+    });
 
-  //   await this.bookingDetailsService.handleAssignBookingDetailsToBooking(
-  //     bookingDetails,
-  //     newBooking,
-  //   );
+    const savedBooking = await this.bookingsRepository.save(booking);
 
-  //   return omit(
-  //     await this.bookingsRepository.findOne({
-  //       where: {
-  //         id: newBooking.id,
-  //       },
-  //       relations: ['bookingDetails', 'user'],
-  //     }),
-  //     ['user.password'],
-  //   );
-  // }
+    await this.roomsService.handleUpdateStatusOfRoom(
+      room.id,
+      RoomStatusEnum.OCCUPIED,
+    );
 
-  // public handleUpdate = async (
-  //   { updateBookingDetailDtos }: UpdateBookingDto,
-  //   userId: string,
-  //   bookingId: string,
-  // ) => {
-  //   console.log(await this.reportsService.handleGetMonthlyRevenue());
+    const invoice = await this.invoicesService.create({
+      basePrice,
+      totalPrice,
+      dayRent,
+    });
 
-  //   const booking = await this.bookingsRepository.findOne({
-  //     where: { id: bookingId },
-  //     relations: {
-  //       bookingDetails: true,
-  //     },
-  //   });
+    savedBooking.invoice = invoice;
+    await this.bookingsRepository.save(savedBooking);
 
-  //   if (!booking) throw new NotFoundException(`Booking not found.`);
+    return this.findOne(savedBooking.id, userId);
+  }
 
-  //   await Promise.all(
-  //     updateBookingDetailDtos.map((dto) =>
-  //       this.bookingDetailsService.updateOne(dto, userId),
-  //     ),
-  //   );
+  async update(id: string, updateBookingDto: UpdateBookingDto, userId: string) {
+    const existingUser = await this.usersService.handleGetUserByField(
+      'id',
+      userId,
+    );
 
-  //   const newTotalPrice =
-  //     (await this.invoicesService.handleCalculatePriceOfInvoicesByBookingDetailIds(
-  //       booking.bookingDetails.map((bd) => bd.id),
-  //     )) ?? 0;
+    if (!existingUser) {
+      throw new NotFoundException(`User not found.`);
+    }
 
-  //   const monthYear = format(new Date(), 'yyyy-MM');
+    const booking = await this.bookingsRepository.findOne({
+      where: { id },
+      relations: ['user', 'room', 'room.roomType', 'invoice', 'participants'],
+    });
 
-  //   const distanceTotalPrice =
-  //     parseFloat(booking.totalPrice as unknown as string) - newTotalPrice;
+    if (!booking) {
+      throw new NotFoundException(`Booking not found.`);
+    }
 
-  //   if (distanceTotalPrice)
-  //     await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
-  //       monthYear,
-  //       distanceTotalPrice * -1,
-  //     );
+    if (
+      booking.user.id !== userId &&
+      existingUser.role.roleName !== RoleEnum.ADMIN
+    ) {
+      throw new ForbiddenException('You can only update your own bookings.');
+    }
 
-  //   await this.bookingsRepository.update(
-  //     {
-  //       id: booking.id,
-  //     },
-  //     {
-  //       totalPrice: newTotalPrice,
-  //     },
-  //   );
+    if (updateBookingDto.emails) {
+      const participants = await Promise.all(
+        updateBookingDto.emails.map(async (email) => {
+          const user = await this.usersService.handleGetUserByField(
+            'email',
+            email,
+          );
+          if (!user) {
+            throw new NotFoundException(`User with email ${email} not found.`);
+          }
+          return user;
+        }),
+      );
+      booking.participants = participants;
+    }
 
-  //   return this.findOne(bookingId, userId);
-  // };
+    if (updateBookingDto.checkInDate || updateBookingDto.checkOutDate) {
+      const checkInDate = updateBookingDto.checkInDate || booking.checkInDate;
+      const checkOutDate =
+        updateBookingDto.checkOutDate || booking.checkOutDate;
+
+      if (!checkInDate || !checkOutDate) {
+        throw new BadRequestException('Booking dates are required');
+      }
+
+      if (checkInDate >= checkOutDate) {
+        throw new BadRequestException(
+          'Check-out date must be after check-in date',
+        );
+      }
+
+      if (checkInDate < new Date()) {
+        throw new BadRequestException('Check-in date cannot be in the past');
+      }
+
+      const dayRent = Math.ceil(
+        (checkOutDate.getTime() - checkInDate.getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
+      const basePrice = booking.room.roomType.roomPrice;
+      const totalPrice = basePrice * dayRent;
+
+      const existingBookings = await this.bookingsRepository.find({
+        where: {
+          room: { id: booking.room.id },
+          id: Not(booking.id),
+          checkInDate: LessThan(checkOutDate),
+          checkOutDate: MoreThan(checkInDate),
+        },
+      });
+
+      if (existingBookings.length > 0) {
+        throw new BadRequestException('Room is already booked for these dates');
+      }
+
+      await this.invoicesService.update(booking.invoice.id, {
+        dayRent,
+        totalPrice,
+      });
+
+      booking.totalPrice = totalPrice;
+      booking.checkInDate = checkInDate;
+      booking.checkOutDate = checkOutDate;
+    }
+
+    const updatedBooking = await this.bookingsRepository.save(booking);
+    return this.findOne(updatedBooking.id, userId);
+  }
 }

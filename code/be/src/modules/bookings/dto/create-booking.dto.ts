@@ -1,13 +1,33 @@
-// import { ApiProperty } from '@nestjs/swagger';
-// import { Type } from 'class-transformer';
-// import { ArrayNotEmpty, IsArray, ValidateNested } from 'class-validator';
-// import { CreateBookingDetailDto } from 'src/modules/booking-details/dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsDate, IsEmail, IsNotEmpty, IsUUID } from 'class-validator';
+import { Transform, TransformFnParams } from 'class-transformer';
 
-// export class CreateBookingDto {
-//   @ApiProperty({ type: [CreateBookingDetailDto] })
-//   @IsArray()
-//   @ArrayNotEmpty()
-//   @ValidateNested({ each: true })
-//   @Type(() => CreateBookingDetailDto)
-//   readonly createBookingDetailDtos!: CreateBookingDetailDto[];
-// }
+const toDate = ({ value }: TransformFnParams) => {
+  if (!value) return null;
+  return new Date(value);
+};
+
+export class CreateBookingDto {
+  @ApiProperty()
+  @IsUUID()
+  @IsNotEmpty()
+  roomId!: string;
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsEmail({}, { each: true })
+  @IsNotEmpty()
+  readonly emails!: string[];
+
+  @ApiProperty()
+  @IsDate()
+  @IsNotEmpty()
+  @Transform(toDate)
+  readonly checkInDate!: Date;
+
+  @ApiProperty()
+  @IsDate()
+  @IsNotEmpty()
+  @Transform(toDate)
+  readonly checkOutDate!: Date;
+}
