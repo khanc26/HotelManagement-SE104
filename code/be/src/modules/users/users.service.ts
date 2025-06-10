@@ -621,24 +621,40 @@ export class UsersService {
     );
   };
 
-  public handleCreateDefaultUser = async (createUserDto: CreateParticipantDto) => {
-    const { email, fullName, address, identityNumber } = createUserDto;
+  public handleCreateDefaultUser = async (
+    createUserDto: CreateParticipantDto,
+  ) => {
+    const { email, fullName, address, identityNumber, userType } =
+      createUserDto;
 
     const existingUser = await this.handleGetUserByField('email', email);
 
     if (existingUser) {
-      throw new BadRequestException(`User with email '${email}' already exists.`);
+      throw new BadRequestException(
+        `User with email '${email}' already exists.`,
+      );
     }
 
-    const userType = await this.userTypeRepository.findOne({
+    const existingUserType = await this.userTypeRepository.findOne({
       where: {
-        typeName: UserTypeEnum.LOCAL,
+        typeName: userType,
       },
     });
 
-    if (!userType) {
-      throw new NotFoundException(`User type ${UserTypeEnum.LOCAL} not found.`);
+    if (!existingUserType) {
+      throw new NotFoundException(`User type ${userType} not found.`);
     }
+
+    const existingIdentityNumber = await this.profileRepository.findOne({
+      where: {
+        identityNumber,
+      },
+    });
+
+    if (existingIdentityNumber)
+      throw new BadRequestException(
+        `User with identity number '${identityNumber}' already exists.`,
+      );
 
     const newUser = this.userRepository.create({
       email,
@@ -648,7 +664,7 @@ export class UsersService {
         identityNumber,
         status: ProfileStatusEnum.ACTIVE,
       },
-      userType,
+      userType: existingUserType,
       role: {
         roleName: RoleEnum.USER,
       },

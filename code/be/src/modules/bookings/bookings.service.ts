@@ -20,6 +20,7 @@ import { omit } from 'lodash';
 import { RoomsService } from '../rooms/rooms.service';
 import { LessThan, MoreThan, Not } from 'typeorm';
 import { DataSource } from 'typeorm';
+import { ParamsService } from 'src/modules/params/params.service';
 
 @Injectable()
 export class BookingsService {
@@ -30,6 +31,7 @@ export class BookingsService {
     private readonly invoicesService: InvoicesService,
     private readonly roomsService: RoomsService,
     private readonly dataSource: DataSource,
+    private readonly paramsService: ParamsService,
   ) {}
 
   async findAll(userId: string) {
@@ -225,12 +227,6 @@ export class BookingsService {
       throw new BadRequestException('Room is already booked for these dates');
     }
 
-    const dayRent = Math.ceil(
-      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    const basePrice = room.roomType.roomPrice;
-    const totalPrice = basePrice * dayRent;
-
     const participants = await Promise.all(
       createBookingDto.participants.map(
         async (participant: CreateParticipantDto) => {
@@ -247,6 +243,40 @@ export class BookingsService {
         },
       ),
     );
+
+    const dayRent = Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    const basePrice = room.roomType.roomPrice;
+
+    let totalPrice = basePrice * dayRent;
+
+    const numberOfParticipants = participants.length;
+
+    const hasForeignGuest = participants.some(
+      (participant) => participant.userType.typeName === UserTypeEnum.FOREIGN,
+    );
+
+    if (numberOfParticipants > 2) {
+      const surchargeRateFactor =
+        await this.paramsService.handleGetValueByName('surcharge_rate');
+
+      const additionalGuests = numberOfParticipants - 2;
+
+      totalPrice +=
+        totalPrice *
+        (surchargeRateFactor?.paramValue ?? 0.25) *
+        additionalGuests;
+    }
+
+    if (hasForeignGuest) {
+      const foreignGuestFactor = await this.paramsService.handleGetValueByName(
+        'foreign_guest_factor',
+      );
+
+      totalPrice *= foreignGuestFactor?.paramValue ?? 1.5;
+    }
 
     const invoice = await this.invoicesService.create({
       dayRent,
@@ -270,6 +300,7 @@ export class BookingsService {
     );
 
     const savedBooking = await this.bookingsRepository.save(booking);
+
     if (!savedBooking) {
       throw new InternalServerErrorException('Failed to create booking');
     }

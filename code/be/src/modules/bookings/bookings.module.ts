@@ -19,6 +19,7 @@ import { MonthlyRevenue } from '../reports/entities';
 import { Param } from '../params/entities';
 import { ParamsService } from '../params/params.service';
 import { RoomsModule } from '../rooms/rooms.module';
+import { ParamsModule } from 'src/modules/params/params.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RoomsModule } from '../rooms/rooms.module';
     UsersModule,
     InvoicesModule,
     RoomsModule,
+    ParamsModule,
   ],
   controllers: [BookingsController],
   providers: [
