@@ -1,18 +1,18 @@
-import {
-  Injectable,
-  NotFoundException
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ReportsService } from 'src/modules/reports/reports.service';
 import { Repository } from 'typeorm';
-import { Invoice } from './entities';
 import { CreateInvoiceDto } from './dto';
+import { Invoice } from './entities';
 import { InvoicesStatus } from './enums/invoices-status.enum';
+import { format } from 'date-fns';
 
 @Injectable()
 export class InvoicesService {
   constructor(
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
+    private readonly reportsService: ReportsService,
   ) {}
 
   async create(createInvoiceDto: CreateInvoiceDto) {
@@ -60,6 +60,36 @@ export class InvoicesService {
     Object.assign(invoice, updateData);
     return this.invoiceRepository.save(invoice);
   }
+
+  public getInvoicesByMonthOrYear = async (
+    year?: number,
+    month?: number,
+  ): Promise<Invoice[]> => {
+    if (!(year || month)) return this.invoiceRepository.find();
+
+    const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice');
+
+    if (year) {
+      queryBuilder.andWhere('EXTRACT(YEAR FROM invoice.updatedAt) = :year', {
+        year,
+      });
+    }
+
+    if (month) {
+      queryBuilder.andWhere('EXTRACT(MONTH FROM invoice.updatedAt) = :month', {
+        month,
+      });
+
+      if (!year)
+        queryBuilder.andWhere('EXTRACT(YEAR FROM invoice.updatedAt) = :year', {
+          year: new Date().getFullYear(),
+        });
+    }
+
+    queryBuilder.orderBy('invoice.updatedAt', 'ASC');
+
+    return await queryBuilder.getMany();
+  };
 
   // public handleGetInvoices = async (role: string, userId: string) => {
   //   return (
@@ -160,22 +190,36 @@ export class InvoicesService {
   //     })
   //   ).reduce((acc, curr) => acc + Number(curr.totalPrice), 0);
   // };
-  // public handleUpdateStatusOfInvoice = async (
-  //   invoiceId: string,
-  //   vnp_ResponseCode: string,
-  //   vnp_TransactionStatus: string,
-  // ) => {
-  //   const invoice = await this.invoiceRepository.findOne({
-  //     where: {
-  //       id: invoiceId,
-  //     },
-  //   });
-  //   if (!invoice) throw new NotFoundException(`Invoice not found.`);
-  //   const status =
-  //     vnp_ResponseCode === '00' && vnp_TransactionStatus === '00'
-  //       ? InvoicesStatus.PAID
-  //       : InvoicesStatus.UNPAID;
-  //   invoice.status = status;
-  //   await this.invoiceRepository.save(invoice);
-  // };
+
+  public handleUpdateStatusOfInvoice = async (
+    invoiceId: string,
+    vnp_ResponseCode: string,
+    vnp_TransactionStatus: string,
+  ) => {
+    const invoice = await this.invoiceRepository.findOne({
+      where: {
+        id: invoiceId,
+      },
+    });
+
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
+
+    const status =
+      vnp_ResponseCode === '00' && vnp_TransactionStatus === '00'
+        ? InvoicesStatus.PAID
+        : InvoicesStatus.UNPAID;
+
+    invoice.status = status;
+
+    if (status === InvoicesStatus.PAID) {
+      const formattedDateTimeString = format(invoice.updatedAt, 'yyyy-mm');
+
+      await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
+        formattedDateTimeString,
+        invoice.totalPrice,
+      );
+    }
+
+    await this.invoiceRepository.save(invoice);
+  };
 }

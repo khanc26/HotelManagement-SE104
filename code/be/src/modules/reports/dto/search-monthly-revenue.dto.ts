@@ -9,9 +9,20 @@ import {
 
 export class SearchMonthlyRevenueDto {
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  readonly year?: string;
+  @Transform(({ value }) =>
+    typeof value === 'string' ? parseInt(value, 10) : value,
+  )
+  @IsNumber()
+  @IsPositive()
+  readonly year?: number;
+
+  @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? parseInt(value, 10) : value,
+  )
+  @IsNumber()
+  @IsPositive()
+  readonly month?: number;
 
   @IsOptional()
   @IsNumber()

@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from 'src/config/configuration';
 import {
   LoggerMiddleware,
+  MaintenanceMiddleware,
   SessionMiddleware,
 } from 'src/libs/common/middlewares';
 import { RedisProvider } from 'src/libs/common/providers';
@@ -60,6 +61,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MaintenanceMiddleware).forRoutes('*');
     consumer.apply(LoggerMiddleware).forRoutes('*');
 
     consumer

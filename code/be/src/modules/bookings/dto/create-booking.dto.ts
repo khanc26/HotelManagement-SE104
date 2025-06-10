@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsNotEmpty, IsUUID } from 'class-validator';
-import { Transform } from 'class-transformer';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsDate,
+  IsNotEmpty,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { CreateParticipantDto } from './create-participant.dto';
 
 export class CreateBookingDto {
@@ -10,8 +17,11 @@ export class CreateBookingDto {
   roomId!: string;
 
   @ApiProperty({ type: [CreateParticipantDto] })
+  @ValidateNested({ each: true })
+  @Type(() => CreateParticipantDto)
   @IsArray()
-  @IsNotEmpty()
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
   readonly participants!: CreateParticipantDto[];
 
   @ApiProperty()

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { UserTypeEnum } from 'src/modules/users/enums';
 
 export class CreateParticipantDto {
   @ApiProperty()
@@ -21,4 +22,8 @@ export class CreateParticipantDto {
   @IsString()
   @IsNotEmpty()
   readonly identityNumber!: string;
+
+  @ApiProperty()
+  @IsEnum(UserTypeEnum)
+  readonly userType!: UserTypeEnum;
 }

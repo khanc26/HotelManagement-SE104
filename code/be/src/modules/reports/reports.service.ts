@@ -14,7 +14,8 @@ export class ReportsService {
   public handleGetMonthlyRevenue = async (
     searchMonthlyRevenueDto?: SearchMonthlyRevenueDto,
   ) => {
-    const { year, minRevenue, maxRevenue } = searchMonthlyRevenueDto || {};
+    const { year, minRevenue, maxRevenue, month } =
+      searchMonthlyRevenueDto || {};
 
     const queryBuilder =
       this.monthlyRevenueRepository.createQueryBuilder('revenue');
@@ -86,8 +87,7 @@ export class ReportsService {
           id: findMonthlyRevenue.id,
         },
         {
-          totalRevenue:
-            parseFloat(existingTotalRevenue as unknown as string) + revenue,
+          totalRevenue: existingTotalRevenue + revenue,
         },
       );
     }
