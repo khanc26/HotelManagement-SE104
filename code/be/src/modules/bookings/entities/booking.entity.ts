@@ -1,7 +1,7 @@
-import { transformDateTime } from 'src/libs/common/helpers';
-import { Invoice } from 'src/modules/invoices/entities';
-import { Room } from 'src/modules/rooms/entities';
-import { User } from 'src/modules/users/entities';
+import { transformDateTime } from '../../../libs/common/helpers';
+import { Invoice } from '../../invoices/entities';
+import { Room } from '../../rooms/entities';
+import { User } from '../../users/entities';
 import {
   Column,
   CreateDateColumn,
@@ -11,7 +11,6 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -87,4 +86,18 @@ export class Booking {
     transformer: transformDateTime,
   })
   readonly deletedAt?: Date;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime
+  })
+  checkInDate?: Date;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime
+  })
+  checkOutDate?: Date;
 }

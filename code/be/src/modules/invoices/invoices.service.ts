@@ -1,39 +1,66 @@
 import {
-  Injectable
+  Injectable,
+  NotFoundException
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Invoice } from './entities';
+import { CreateInvoiceDto } from './dto';
+import { InvoicesStatus } from './enums/invoices-status.enum';
 
 @Injectable()
 export class InvoicesService {
-  // constructor(
-  //   @InjectRepository(Invoice)
-  //   private readonly invoiceRepository: Repository<Invoice>,
-  // ) {}
-  // public createInvoice = async (createInvoiceDto: CreateInvoiceDto) => {
-  //   const invoice = this.invoiceRepository.create(createInvoiceDto);
-  //   return this.invoiceRepository.save(invoice);
-  // };
-  // public updateInvoice = async (
-  //   invoiceId: string,
-  //   updateInvoiceDto: UpdateInvoiceDto,
-  // ) => {
-  //   const invoice = await this.invoiceRepository.findOne({
-  //     where: {
-  //       id: invoiceId,
-  //     },
-  //   });
-  //   if (!invoice) throw new NotFoundException(`Invoice not found.`);
-  //   await this.invoiceRepository.update(
-  //     {
-  //       id: invoiceId,
-  //     },
-  //     updateInvoiceDto,
-  //   );
-  //   return this.invoiceRepository.findOne({
-  //     where: {
-  //       id: invoiceId,
-  //     },
-  //   });
-  // };
+  constructor(
+    @InjectRepository(Invoice)
+    private readonly invoiceRepository: Repository<Invoice>,
+  ) {}
+
+  async create(createInvoiceDto: CreateInvoiceDto) {
+    const invoice = this.invoiceRepository.create({
+      ...createInvoiceDto,
+      status: InvoicesStatus.UNPAID,
+    });
+    return this.invoiceRepository.save(invoice);
+  }
+
+  async findOne(id: string) {
+    const invoice = await this.invoiceRepository.findOne({
+      where: { id },
+      relations: ['booking', 'payment'],
+    });
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice with id ${id} not found`);
+    }
+
+    return invoice;
+  }
+
+  async updateStatus(id: string, status: InvoicesStatus) {
+    const invoice = await this.findOne(id);
+    invoice.status = status;
+    return this.invoiceRepository.save(invoice);
+  }
+
+  async findByBookingId(bookingId: string) {
+    const invoice = await this.invoiceRepository.findOne({
+      where: { booking: { id: bookingId } },
+      relations: ['booking', 'payment'],
+    });
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice for booking ${bookingId} not found`);
+    }
+
+    return invoice;
+  }
+
+  async update(id: string, updateData: Partial<Invoice>) {
+    const invoice = await this.findOne(id);
+    Object.assign(invoice, updateData);
+    return this.invoiceRepository.save(invoice);
+  }
+
   // public handleGetInvoices = async (role: string, userId: string) => {
   //   return (
   //     await this.invoiceRepository.find({
