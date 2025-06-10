@@ -9,6 +9,7 @@ export const EMAILS_QUEUE = 'emails-queue';
 export const BULLMQ_RETRY_LIMIT = 5;
 export const BULLMQ_RETRY_DELAY = 5000;
 export const DEFAULT_TTL_OTP_EXPIRED = 600000;
+export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 export enum EmailTemplateNameEnum {
   EMAIL_FORGET_PASSWORD = 'email-forget-password',
