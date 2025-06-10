@@ -20,6 +20,10 @@ async function bootstrap() {
     }),
   );
 
+  const expressApp = app.getHttpAdapter().getInstance();
+
+  expressApp.set('trust proxy', 1);
+
   const configService = app.get(ConfigService);
 
   app.enableCors({
