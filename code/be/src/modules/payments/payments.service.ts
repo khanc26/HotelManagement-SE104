@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { omit } from 'lodash';
 import { BookingsService } from 'src/modules/bookings/bookings.service';
 import { Invoice } from 'src/modules/invoices/entities';
+import { InvoicesStatus } from 'src/modules/invoices/enums';
 import { InvoicesService } from 'src/modules/invoices/invoices.service';
 import { CreatePaymentDto } from 'src/modules/payments/dto';
 import { Payment } from 'src/modules/payments/entities';
@@ -63,16 +68,24 @@ export class PaymentsService {
     clientIp: string,
   ) => {
     const { amount, invoiceId, description } = createPaymentDto;
+
     const invoice = await this.invoiceRepository.findOne({
       where: {
         id: invoiceId,
       },
     });
+
     if (!invoice) throw new NotFoundException(`Invoice not found.`);
+
+    if (invoice.status === InvoicesStatus.PAID)
+      throw new BadRequestException(`This invoice has already been paid.`);
+
     const newPayment = this.paymentRepository.create({
       amount,
     });
+
     newPayment.invoice = invoice;
+
     await this.paymentRepository.save(newPayment);
     const params = {
       vnp_Version: '2.1.0',
@@ -93,19 +106,26 @@ export class PaymentsService {
         .replace(/[-:T.]/g, '')
         .slice(0, 14),
     };
+
     const sortedParams = Object.keys(params)
       .sort()
       .reduce((acc, key) => {
         acc[key] = params[key];
         return acc;
       }, {});
+
     const signData = new URLSearchParams(sortedParams).toString();
+
     const secret = this.configService.get<string>('vnpay.secure_secret', '');
+
     const hmac = crypto.createHmac('sha512', secret);
+
     const secureHash = hmac
       .update(Buffer.from(signData, 'utf-8'))
       .digest('hex');
+
     const paymentUrl = `${this.configService.get<string>('vnpay.host', '')}?${signData}&vnp_SecureHash=${secureHash}`;
+
     return { paymentUrl };
   };
 
@@ -114,11 +134,11 @@ export class PaymentsService {
     vnp_ResponseCode: string,
     vnp_TransactionStatus: string,
   ) => {
-    // await this.invoicesService.handleUpdateStatusOfInvoice(
-    //   invoiceId,
-    //   vnp_ResponseCode,
-    //   vnp_TransactionStatus,
-    // );
+    await this.invoicesService.handleUpdateStatusOfInvoice(
+      invoiceId,
+      vnp_ResponseCode,
+      vnp_TransactionStatus,
+    );
 
     const payment = await this.paymentRepository.findOne({
       where: {
