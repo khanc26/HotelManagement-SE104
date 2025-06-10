@@ -70,7 +70,6 @@ export class AppModule implements NestModule {
         '/',
         '/auth/sign-in',
         '/auth/sign-up',
-        '/auth/sign-out',
         '/payments/vnpay/ipn',
         '/auth/forget-password',
         '/auth/verify-otp',
