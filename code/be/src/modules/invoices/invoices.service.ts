@@ -212,7 +212,7 @@ export class InvoicesService {
     invoice.status = status;
 
     if (status === InvoicesStatus.PAID) {
-      const formattedDateTimeString = format(invoice.updatedAt, 'yyyy-mm');
+      const formattedDateTimeString = format(invoice.updatedAt, 'yyyy-MM');
 
       await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
         formattedDateTimeString,
