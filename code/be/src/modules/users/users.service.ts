@@ -361,7 +361,7 @@ export class UsersService {
       where: {
         [field]: value,
       },
-      relations: ['role', 'profile'],
+      relations: ['role', 'profile', 'userType'],
     });
   };
 

@@ -20,6 +20,7 @@ import { Param } from '../params/entities';
 import { ParamsService } from '../params/params.service';
 import { RoomsModule } from '../rooms/rooms.module';
 import { ParamsModule } from 'src/modules/params/params.module';
+import { MonthlyRevenueDetail } from 'src/modules/reports/entities/monthly-revenue-detail.entity';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ParamsModule } from 'src/modules/params/params.module';
       Room,
       RoomType,
       MonthlyRevenue,
+      MonthlyRevenueDetail,
     ]),
     UsersModule,
     InvoicesModule,
