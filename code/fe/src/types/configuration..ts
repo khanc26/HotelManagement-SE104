@@ -2,8 +2,8 @@ export interface ConfigurationParam {
   paramName: string;
   paramValue: number;
   description?: string;
-  createAt?: Date | string;
-  deleteAt?: Date | string;
+  createAt?:  string;
+  deleteAt?: string;
 }
 
 export interface UpdateParamDto {
