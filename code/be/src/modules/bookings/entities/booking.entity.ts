@@ -1,14 +1,17 @@
-import { transformDateTime } from 'src/libs/common/helpers';
-import { BookingDetail } from 'src/modules/booking-details/entities';
-import { User } from 'src/modules/users/entities';
+import { transformDateTime } from '../../../libs/common/helpers';
+import { Invoice } from '../../invoices/entities';
+import { Room } from '../../rooms/entities';
+import { User } from '../../users/entities';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
-  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,14 +36,37 @@ export class Booking {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({
+    name: 'booker_id',
+  })
   user!: User;
 
-  @OneToMany(() => BookingDetail, (bookingDetail) => bookingDetail.booking, {
-    orphanedRowAction: 'delete',
-    cascade: true,
+  @ManyToMany(() => User, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
-  bookingDetails!: BookingDetail[];
+  @JoinTable({
+    name: 'booking_participant',
+    joinColumn: {
+      name: 'booking_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+    },
+  })
+  participants!: User[];
+
+  @ManyToOne(() => Room, (room) => room.bookings, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn()
+  room!: Room;
+
+  @OneToOne(() => Invoice, (invoice) => invoice.booking)
+  invoice!: Invoice;
 
   @CreateDateColumn({
     type: 'timestamp',
@@ -60,4 +86,18 @@ export class Booking {
     transformer: transformDateTime,
   })
   readonly deletedAt?: Date;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime
+  })
+  checkInDate?: Date;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    transformer: transformDateTime
+  })
+  checkOutDate?: Date;
 }

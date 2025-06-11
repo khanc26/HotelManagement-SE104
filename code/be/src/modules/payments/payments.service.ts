@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { omit } from 'lodash';
+import { BookingsService } from 'src/modules/bookings/bookings.service';
 import { Invoice } from 'src/modules/invoices/entities';
+import { InvoicesStatus } from 'src/modules/invoices/enums';
 import { InvoicesService } from 'src/modules/invoices/invoices.service';
 import { CreatePaymentDto } from 'src/modules/payments/dto';
 import { Payment } from 'src/modules/payments/entities';
@@ -20,39 +26,33 @@ export class PaymentsService {
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
     private readonly invoicesService: InvoicesService,
+    private readonly bookingsService: BookingsService,
   ) {}
-
-  public getPayments = async () => {
-    return (
-      await this.paymentRepository.find({
-        relations: {
-          invoice: {
-            bookingDetail: {
-              booking: {
-                user: {
-                  profile: true,
-                },
-              },
-            },
-          },
+  public getPayments = async (userId: string) => {
+    const allPayments = await this.paymentRepository.find({
+      relations: {
+        invoice: {
+          booking: true,
         },
-      })
-    ).map((p) => omit(p, ['invoice.bookingDetail.booking.user.password']));
+      },
+    });
+
+    return Promise.all(
+      allPayments.map(async (payment) =>
+        this.getFormattedPayment(payment, userId),
+      ),
+    );
   };
 
-  public getPayment = async (id: string) => {
+  public getPayment = async (id: string, userId: string) => {
     const payment = await this.paymentRepository.findOne({
       where: {
         id,
       },
       relations: {
         invoice: {
-          bookingDetail: {
-            booking: {
-              user: {
-                profile: true,
-              },
-            },
+          booking: {
+            user: true,
           },
         },
       },
@@ -60,7 +60,7 @@ export class PaymentsService {
 
     if (!payment) throw new NotFoundException(`Payment not found.`);
 
-    return omit(payment, ['invoice.bookingDetail.booking.user.password']);
+    return this.getFormattedPayment(payment, userId);
   };
 
   public createPaymentUrl = async (
@@ -77,6 +77,9 @@ export class PaymentsService {
 
     if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
+    if (invoice.status === InvoicesStatus.PAID)
+      throw new BadRequestException(`This invoice has already been paid.`);
+
     const newPayment = this.paymentRepository.create({
       amount,
     });
@@ -84,7 +87,6 @@ export class PaymentsService {
     newPayment.invoice = invoice;
 
     await this.paymentRepository.save(newPayment);
-
     const params = {
       vnp_Version: '2.1.0',
       vnp_Command: 'pay',
@@ -109,7 +111,6 @@ export class PaymentsService {
       .sort()
       .reduce((acc, key) => {
         acc[key] = params[key];
-
         return acc;
       }, {});
 
@@ -159,5 +160,18 @@ export class PaymentsService {
         : PaymentStatus.UNPAID;
 
     await this.paymentRepository.save(payment);
+  };
+
+  private getFormattedPayment = async (payment: Payment, userId: string) => {
+    return {
+      ...omit(payment, ['invoice.booking']),
+      invoice: {
+        ...payment.invoice,
+        booking: await this.bookingsService.findOne(
+          payment.invoice.booking.id,
+          userId,
+        ),
+      },
+    };
   };
 }

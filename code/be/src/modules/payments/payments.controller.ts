@@ -9,11 +9,11 @@ import {
   Req,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { Roles } from 'src/libs/common/decorators';
+import { Roles, UserSession } from 'src/libs/common/decorators';
 import { VnpParamsType } from 'src/libs/common/types';
 import { CreatePaymentDto } from 'src/modules/payments/dto';
+import { PaymentsService } from 'src/modules/payments/payments.service';
 import { RoleEnum } from 'src/modules/users/enums';
-import { PaymentsService } from './payments.service';
 
 @Controller('payments')
 export class PaymentsController {
@@ -21,8 +21,8 @@ export class PaymentsController {
 
   @Get()
   @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
-  async getPayments() {
-    return this.paymentsService.getPayments();
+  async getPayments(@UserSession('userId') userId: string) {
+    return this.paymentsService.getPayments(userId);
   }
 
   @Post()
@@ -31,7 +31,6 @@ export class PaymentsController {
     @Req() request: Request,
   ) {
     const clientIp = request.ip ?? '::1';
-
     return this.paymentsService.createPaymentUrl(createPaymentDto, clientIp);
   }
 
@@ -42,11 +41,15 @@ export class PaymentsController {
       query['vnp_ResponseCode'],
       query['vnp_TransactionStatus'],
     );
-
     return { RspCode: '00', Message: 'Success' };
   }
 
   @Get(':id')
   @Roles(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN)
-  async getPayment(@Param('id', ParseUUIDPipe) id: string) {}
+  async getPayment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UserSession('userId') userId: string,
+  ) {
+    return this.paymentsService.getPayment(id, userId);
+  }
 }

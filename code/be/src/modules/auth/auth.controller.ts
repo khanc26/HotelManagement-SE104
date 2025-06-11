@@ -53,6 +53,8 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('sign-out')
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
   signOut(@Req() req: Request, @Res() res: Response) {
     req.session.destroy((err) => {
       if (err) return res.status(500).json({ error: 'Failed to log out.' });

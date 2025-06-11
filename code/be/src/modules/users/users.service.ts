@@ -23,6 +23,7 @@ import {
 } from 'src/modules/users/enums';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { UsersRepository } from './users.repository';
+import { CreateParticipantDto } from '../bookings/dto';
 
 @Injectable()
 export class UsersService {
@@ -618,5 +619,59 @@ export class UsersService {
         password: await this.hashingProvider.hashPassword(newPassword),
       },
     );
+  };
+
+  public handleCreateDefaultUser = async (
+    createUserDto: CreateParticipantDto,
+  ) => {
+    const { email, fullName, address, identityNumber, userType } =
+      createUserDto;
+
+    const existingUser = await this.handleGetUserByField('email', email);
+
+    if (existingUser) {
+      throw new BadRequestException(
+        `User with email '${email}' already exists.`,
+      );
+    }
+
+    const existingUserType = await this.userTypeRepository.findOne({
+      where: {
+        typeName: userType,
+      },
+    });
+
+    if (!existingUserType) {
+      throw new NotFoundException(`User type ${userType} not found.`);
+    }
+
+    const existingIdentityNumber = await this.profileRepository.findOne({
+      where: {
+        identityNumber,
+      },
+    });
+
+    if (existingIdentityNumber)
+      throw new BadRequestException(
+        `User with identity number '${identityNumber}' already exists.`,
+      );
+
+    const newUser = this.userRepository.create({
+      email,
+      profile: {
+        fullName,
+        address,
+        identityNumber,
+        status: ProfileStatusEnum.ACTIVE,
+      },
+      userType: existingUserType,
+      role: {
+        roleName: RoleEnum.USER,
+      },
+    });
+
+    await this.userRepository.save(newUser);
+
+    return newUser;
   };
 }
