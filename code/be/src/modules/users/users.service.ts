@@ -361,7 +361,7 @@ export class UsersService {
       where: {
         [field]: value,
       },
-      relations: ['role', 'profile'],
+      relations: ['role', 'profile', 'userType'],
     });
   };
 
@@ -649,9 +649,12 @@ export class UsersService {
       where: {
         identityNumber,
       },
+      relations: {
+        user: true,
+      },
     });
 
-    if (existingIdentityNumber)
+    if (existingIdentityNumber && existingIdentityNumber.user.email !== email)
       throw new BadRequestException(
         `User with identity number '${identityNumber}' already exists.`,
       );

@@ -200,6 +200,13 @@ export class InvoicesService {
       where: {
         id: invoiceId,
       },
+      relations: {
+        booking: {
+          room: {
+            roomType: true,
+          },
+        },
+      },
     });
 
     if (!invoice) throw new NotFoundException(`Invoice not found.`);
@@ -217,6 +224,7 @@ export class InvoicesService {
       await this.reportsService.handleCreateOrUpdateMonthlyRevenue(
         formattedDateTimeString,
         invoice.totalPrice,
+        invoice.booking.room.roomType.id,
       );
     }
 

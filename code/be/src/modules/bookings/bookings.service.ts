@@ -21,6 +21,7 @@ import { RoomsService } from '../rooms/rooms.service';
 import { LessThan, MoreThan, Not } from 'typeorm';
 import { DataSource } from 'typeorm';
 import { ParamsService } from 'src/modules/params/params.service';
+import { User } from 'src/modules/users/entities';
 
 @Injectable()
 export class BookingsService {
@@ -227,22 +228,22 @@ export class BookingsService {
       throw new BadRequestException('Room is already booked for these dates');
     }
 
-    const participants = await Promise.all(
-      createBookingDto.participants.map(
-        async (participant: CreateParticipantDto) => {
-          const user = await this.usersService.handleGetUserByField(
-            'email',
-            participant.email,
-          );
+    const participants: User[] = [];
 
-          if (!user) {
-            return await this.usersService.handleCreateDefaultUser(participant);
-          }
+    for (const participant of createBookingDto.participants) {
+      let user = await this.usersService.handleGetUserByField(
+        'email',
+        participant.email,
+      );
 
-          return user;
-        },
-      ),
-    );
+      if (!user) {
+        user = await this.usersService.handleCreateDefaultUser(participant);
+      } else {
+        await this.checkValidParticipant(user);
+      }
+
+      participants.push(user);
+    }
 
     const dayRent = Math.ceil(
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
@@ -449,4 +450,25 @@ export class BookingsService {
       await queryRunner.release();
     }
   }
+
+  private checkValidParticipant = async (user: User) => {
+    const now = new Date();
+
+    const existingValidBookings = await this.bookingsRepository.find({
+      where: {
+        checkOutDate: MoreThan(now),
+        participants: {
+          id: user.id,
+        },
+      },
+      relations: {
+        participants: true,
+      },
+    });
+
+    if (existingValidBookings.length > 0)
+      throw new BadRequestException(
+        `The user with email '${user.email}' is already part of a booking that hasn't reached its checkout date and cannot be added to another.`,
+      );
+  };
 }
