@@ -9,7 +9,7 @@ import {
   NotebookPen,
   Receipt,
   SettingsIcon,
-  UserCog
+  UserCog,
 } from "lucide-react";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
 import { NavUser } from "./nav-user";
@@ -43,8 +43,8 @@ const menuItems = {
       icon: BookUser,
     },
     {
-      title:"Room Types",
-      url:"/room-types/list",
+      title: "Room Types",
+      url: "/room-types/list",
       icon: BookUser,
     },
     {
@@ -66,7 +66,7 @@ const menuItems = {
       title: "Configuration",
       url: "/configuration/list",
       icon: SettingsIcon,
-    }
+    },
   ],
   [Role.USER]: [
     {
@@ -97,7 +97,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Sidebar</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

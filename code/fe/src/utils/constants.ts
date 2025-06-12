@@ -16,3 +16,13 @@ export const roomPricingRules = {
   GROUP_SURCHARGE_THRESHOLD: 3,
   GROUP_SURCHARGE_PERCENTAGE: 25,
 };
+
+export const GuestTypeMap = {
+  local: "Local",
+  foreign: "Foreign",
+};
+
+export const RoleMap: Record<"user" | "admin", string> = {
+  user: "User",
+  admin: "Admin",
+};
