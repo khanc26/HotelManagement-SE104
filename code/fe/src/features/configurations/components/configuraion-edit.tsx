@@ -68,10 +68,20 @@ export function ConfigurationEdit() {
   }, [params, form]);
 
   const onSubmit = form.handleSubmit((data) => {
+    for (const [paramName, value] of Object.entries(data)) {
+      if (paramName === "max_guests_per_room" && !Number.isInteger(value)) {
+        toast.error("max_guests_per_room must be an integer", {
+          position: "top-right",
+        });
+        return; 
+      }
+    }
+  
     Object.entries(data).forEach(([paramName, value]) => {
       updateMutation.mutate({ paramName, value });
     });
   });
+  
 
   return (
     <Card className="w-full h-full mb-4">
