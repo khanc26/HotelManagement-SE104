@@ -46,7 +46,7 @@ export interface UserSearchRequest {
   address?: string;
   nationality?: string;
   userTypeName?: UserType;
-  identifyNumber?: string;
+  identityNumber?: string;
   status?: "active" | "inactive";
   dob?: string | Date; 
 }

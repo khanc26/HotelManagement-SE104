@@ -33,13 +33,13 @@ import { userColumns } from "./user-columns";
 
 const userSchema = z.object({
   fullname: z.string().trim().optional(),
-  role: z.enum(["admin", "user"]).optional(),
+  role: z.enum(["admin", "user", ""]).optional(),
   email: z.string().trim().optional(),
   address: z.string().trim().optional(),
   nationality: z.string().trim().optional(),
-  guest_type: z.enum(["local", "foreign"]).optional(),
+  guest_type: z.enum(["local", "foreign", ""]).optional(),
   identity_number: z.string().trim().optional(),
-  status: z.enum(["active", "inactive"]).optional(),
+  status: z.enum(["active", "inactive", ""]).optional(),
   dob: z
     .string()
     .refine(
@@ -109,7 +109,7 @@ export function UserList() {
       nationality: values.nationality || undefined,
       userTypeName: (values.guest_type as UserType) || undefined,
       status: values.status || undefined,
-      identifyNumber: values.identity_number || undefined,
+      identityNumber: values.identity_number || undefined,
       dob: values.dob || undefined,
     };
     setSearchParams({ ...params });
@@ -118,14 +118,14 @@ export function UserList() {
   const clearFilters = () => {
     form.reset({
       fullname: "",
-      role: undefined,
+      role: "",
       email: "",
       address: "",
       nationality: "",
-      guest_type: undefined,
+      guest_type: "",
       identity_number: "",
-      status: undefined,
-      dob: undefined,
+      status: "",
+      dob: "",
     });
     setSearchParams({});
     refetchUsers();
@@ -157,7 +157,7 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                        <Input placeholder="Full Name" {...field} />
                       </FormControl>
                       <FormMessage className="text-red-600" />
                     </FormItem>
@@ -197,7 +197,7 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="johndoe01@gmail.com" {...field} />
+                        <Input placeholder="Email" {...field} />
                       </FormControl>
                       <FormMessage className="text-red-600" />
                     </FormItem>
@@ -211,7 +211,7 @@ export function UserList() {
                       <FormLabel>Address</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="123 Main Street, London, England"
+                          placeholder="Address"
                           {...field}
                         />
                       </FormControl>
@@ -226,7 +226,7 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Nationality</FormLabel>
                       <FormControl>
-                        <Input placeholder="England" {...field} />
+                        <Input placeholder="Nationality" {...field} />
                       </FormControl>
                       <FormMessage className="text-red-600" />
                     </FormItem>
@@ -266,7 +266,7 @@ export function UserList() {
                     <FormItem>
                       <FormLabel>Identity Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="123456789" {...field} />
+                        <Input placeholder="Identity Number" {...field} />
                       </FormControl>
                       <FormMessage className="text-red-600" />
                     </FormItem>
@@ -317,12 +317,16 @@ export function UserList() {
               </div>
 
               <div className="flex gap-3 items-center justify-center">
-                <Button type="button" color="primary" onClick={clearFilters}>
-                  Clear
-                </Button>
-
-                <Button type="submit" color="primary">
+                <Button type="submit" className="flex-1">
                   Search
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={clearFilters}
+                >
+                  Clear Filters
                 </Button>
               </div>
             </form>

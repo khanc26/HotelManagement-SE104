@@ -1,5 +1,9 @@
-import { z } from "zod";
+import { getReports } from "@/api/reports";
+import { TableError } from "@/components/table-error";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
 import {
   Form,
   FormControl,
@@ -10,46 +14,47 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { ReportRequest } from "@/types/report.type";
-import { useQuery } from "@tanstack/react-query";
-import { getReports } from "@/api/reports";
-import { useState } from "react";
-import { TableSkeleton } from "@/components/table-skeleton";
-import { TableError } from "@/components/table-error";
-import { DataTable } from "@/components/ui/data-table";
-import { reportColumns } from "./report-columns";
-import { ReportChart } from "./report-chart";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ReportListPDFDocument } from "./report-list-pdf-document";
+import { useQuery } from "@tanstack/react-query";
 import { Printer } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { ReportChart } from "./report-chart";
+import { reportColumns } from "./report-columns";
+import { ReportListPDFDocument } from "./report-list-pdf-document";
 
 const reportSearchSchema = z.object({
-  year: z.coerce
-    .number()
-    .min(0, { message: "Year should be greater than 0" })
-    .optional(),
-  minRevenue: z.coerce
-    .number()
-    .min(0, { message: "Minimum revenue should be greater than 0" })
-    .optional(),
-  maxRevenue: z.coerce
-    .number()
-    .min(0, { message: "Minimum revenue should be greater than 0" })
-    .optional(),
+  year: z
+    .string()
+    .optional()
+    .refine((val) => !val || !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Year must be a positive number",
+    }),
+  minRevenue: z
+    .string()
+    .optional()
+    .refine((val) => !val || !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Minimum revenue must be a positive number",
+    }),
+  maxRevenue: z
+    .string()
+    .optional()
+    .refine((val) => !val || !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Maximum revenue must be a positive number",
+    }),
 });
-
 export function ReportList() {
   const [searchParams, setSearchParams] = useState<ReportRequest>({});
 
   const form = useForm<z.infer<typeof reportSearchSchema>>({
     resolver: zodResolver(reportSearchSchema),
     defaultValues: {
-      year: undefined,
-      minRevenue: undefined,
-      maxRevenue: undefined,
+      year: "",
+      minRevenue: "",
+      maxRevenue: "",
     },
   });
 
@@ -65,24 +70,23 @@ export function ReportList() {
 
   const onSearch = (values: z.infer<typeof reportSearchSchema>) => {
     const searchRequest: ReportRequest = {
-      year: values.year || undefined,
-      minRevenue: values.minRevenue || undefined,
-      maxRevenue: values.maxRevenue || undefined,
+      year: values.year ? Number(values.year) : undefined,
+      minRevenue: values.minRevenue ? Number(values.minRevenue) : undefined,
+      maxRevenue: values.maxRevenue ? Number(values.maxRevenue) : undefined,
     };
-
-    setSearchParams((prev) => {
-      return {
-        ...prev,
-        ...searchRequest,
-      };
-    });
+  
+    setSearchParams((prev) => ({
+      ...prev,
+      ...searchRequest,
+    }));
   };
+  
 
   const clearFilters = () => {
     form.reset({
-      year: undefined,
-      minRevenue: undefined,
-      maxRevenue: undefined,
+      year: "",
+      minRevenue: "",
+      maxRevenue: "",
     });
     setSearchParams({});
   };
