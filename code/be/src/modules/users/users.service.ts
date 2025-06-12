@@ -178,9 +178,23 @@ export class UsersService {
       }
     }
 
-    return (await qb.getMany()).filter(
-      (user) => user.role.roleName !== RoleEnum.SUPER_ADMIN,
-    );
+    const allUsers = await qb.getMany();
+
+    let result = allUsers;
+
+    if (role === 'admin') {
+      result = allUsers.filter(
+        (user) =>
+          user.role.roleName !== RoleEnum.ADMIN &&
+          user.role.roleName !== RoleEnum.SUPER_ADMIN,
+      );
+    } else if (role === 'superadmin') {
+      result = allUsers;
+    } else {
+      result = [];
+    }
+
+    return result;
   }
 
   async findOne(email: string) {

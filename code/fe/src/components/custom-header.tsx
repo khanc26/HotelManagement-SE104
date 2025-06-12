@@ -24,13 +24,23 @@ import { clearAuthLocalStorage } from "@/utils/helpers/clearAuthLocalStorage";
 import { toast } from "react-toastify";
 
 const signOut = async () => {
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/sign-out`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const tokenData = localStorage.getItem("access_token");
+
+  if (!tokenData) return;
+
+  const { value: accessToken } = JSON.parse(tokenData);
+
+  const response = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/auth/sign-out`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -55,7 +65,9 @@ const CustomHeader = () => {
     onSuccess: () => {
       clearAuthLocalStorage();
       queryClient.clear();
-      toast.success("Signed out successfully");
+      toast.success("Signed out successfully", {
+        position: "bottom-right",
+      });
       navigate("/auth/sign-in");
     },
     onError: (error: unknown) => {
