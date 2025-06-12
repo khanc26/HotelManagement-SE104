@@ -139,6 +139,9 @@ export function UserList() {
       <Card className="w-full h-full mb-4 border-black/10">
         <CardHeader>
           <CardTitle className="text-xl font-bold">Search User</CardTitle>
+          <p className="text-sm text-gray-600">
+            Use the filters below to search through user records.
+          </p>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -171,7 +174,7 @@ export function UserList() {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select a role" />
                           </SelectTrigger>
                           <SelectContent>
@@ -280,7 +283,7 @@ export function UserList() {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full select-none">
                             <SelectValue placeholder="Select a status" />
                           </SelectTrigger>
                           <SelectContent>
@@ -313,13 +316,13 @@ export function UserList() {
                 />
               </div>
 
-              <div className="flex gap-4 items-center justify-center">
-                <Button type="submit" color="primary">
-                  Search
+              <div className="flex gap-3 items-center justify-center">
+                <Button type="button" color="primary" onClick={clearFilters}>
+                  Clear
                 </Button>
 
-                <Button type="button" color="primary" onClick={clearFilters}>
-                  Clear Filters
+                <Button type="submit" color="primary">
+                  Search
                 </Button>
               </div>
             </form>
@@ -330,6 +333,9 @@ export function UserList() {
       <Card className="w-full h-full mb-4 border-black/10">
         <CardHeader>
           <CardTitle className="text-xl font-bold">Users List</CardTitle>
+          <p className="text-sm text-gray-600">
+            View all registered users in the system.
+          </p>
         </CardHeader>
         <CardContent>
           {isUsersLoading ? (

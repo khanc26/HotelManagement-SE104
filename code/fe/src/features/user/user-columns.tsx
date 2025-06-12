@@ -3,6 +3,8 @@ import { User } from "@/types/user.type";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { UserActionsCell } from "./user-action-cell";
+import { GuestTypeMap, RoleMap } from "@/utils/constants";
+import { format } from "date-fns";
 
 export const userColumns: ColumnDef<User>[] = [
   {
@@ -13,25 +15,28 @@ export const userColumns: ColumnDef<User>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Fullname
+          Full Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "role.roleName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Role
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+    id: "roleName",
+    accessorFn: (row) => row.role?.roleName,
+    cell: ({ getValue }) => {
+      const value = getValue() as keyof typeof RoleMap;
+      return RoleMap[value] || value || "Unknown";
     },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Role
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
     accessorKey: "email",
@@ -41,7 +46,7 @@ export const userColumns: ColumnDef<User>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Price( per night )
+          Email
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -76,31 +81,42 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "userType.typeName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Guest_type
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+    id: "guestType", // cần có id khi dùng accessorFn
+    accessorFn: (row) => row.userType?.typeName,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Guest Type
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ getValue }) => {
+      const value = getValue() as keyof typeof GuestTypeMap;
+      return GuestTypeMap[value] || value || "Unknown";
     },
   },
   {
-    accessorKey: "profile.dob",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Dob
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+    id: "dob",
+    accessorFn: (row) => row.profile?.dob,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date Of Birth
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ getValue }) => {
+      const value = getValue() as string;
+      if (!value) return "N/A";
+      try {
+        return format(new Date(value), "dd/MM/yyyy");
+      } catch {
+        return value;
+      }
     },
   },
   {
@@ -132,11 +148,11 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-      id: "actions",
-      cell: ({ row }) => {
-        const user = row.original;
-  
-        return <UserActionsCell user={user} />;
-      },
+    id: "actions",
+    cell: ({ row }) => {
+      const user = row.original;
+
+      return <UserActionsCell user={user} />;
     },
+  },
 ];
