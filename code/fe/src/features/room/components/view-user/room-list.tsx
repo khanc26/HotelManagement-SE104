@@ -1,6 +1,12 @@
 import { DataTable } from "@/components/ui/data-table";
 import { roomColumns } from "./room-columns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -32,18 +38,24 @@ const bookingSchema = z
   .object({
     roomId: z.string().trim(),
     guestCount: z.number().min(1, "Guest count must be at least 1"),
-    startDate: z.string().trim().refine((val) => {
-      const date = new Date(val);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return date >= today;
-    }, "Start date must be today or later"),
-    endDate: z.string().trim().refine((val) => {
-      const date = new Date(val);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return date > today;
-    }, "End date must be after today"),
+    startDate: z
+      .string()
+      .trim()
+      .refine((val) => {
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return date >= today;
+      }, "Start date must be today or later"),
+    endDate: z
+      .string()
+      .trim()
+      .refine((val) => {
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return date > today;
+      }, "End date must be after today"),
     hasForeigners: z.boolean(),
   })
   .refine(
@@ -356,7 +368,12 @@ export function UserRoomList() {
     <div className="w-full max-w-[1400px] mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Available Rooms</CardTitle>
+          <CardTitle className="text-xl font-bold">
+            Pick your favorite room
+          </CardTitle>
+          <CardDescription>
+            We still have a few rooms available for today — grab yours now!
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isRoomsLoading ? (
