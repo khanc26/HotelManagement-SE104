@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -160,41 +159,35 @@ export function ProfileEdit() {
                   {
                     name: "fullName",
                     label: "Full Name",
-                    desc: "Your complete name",
+                    type: "text",
                   },
                   {
                     name: "email",
                     label: "Email",
-                    desc: "Valid email address",
                     type: "email",
                   },
                   {
                     name: "address",
                     label: "Address",
-                    desc: "Your current address",
                   },
                   {
                     name: "nationality",
                     label: "Nationality",
-                    desc: "Your nationality",
                   },
                   {
                     name: "phoneNumber",
                     label: "Phone Number",
-                    desc: "Format: +84...",
                   },
                   {
                     name: "identityNumber",
                     label: "Identity Number",
-                    desc: "Personal ID number",
                   },
                   {
                     name: "dob",
                     label: "Date of Birth",
-                    desc: "Your birth date",
                     type: "date",
                   },
-                ].map(({ name, label, desc, type = "text" }) => (
+                ].map(({ name, label, type = "text" }) => (
                   <FormField
                     key={name}
                     control={form.control}
@@ -209,7 +202,6 @@ export function ProfileEdit() {
                             disabled={mutation.isPending}
                           />
                         </FormControl>
-                        <FormDescription>{desc}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
