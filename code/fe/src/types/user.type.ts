@@ -55,7 +55,6 @@ export interface UserUpdateRequest {
   email?: string;
   fullName?: string;
   nationality?: string;
-  status?: "active" | "inactive";
   dob?: Date;
   phoneNumber?: string;
   address?: string;

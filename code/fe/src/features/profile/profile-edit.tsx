@@ -28,7 +28,6 @@ const userSchema = z.object({
   nationality: z.string().trim().optional(),
   phoneNumber: z.string().trim().optional(),
   identityNumber: z.string().trim().optional(),
-  status: z.enum(["active", "inactive"]).optional(),
   dob: z.string().trim().refine((val) => !isNaN(Date.parse(val)), {
     message: "Please enter a valid date",
   }).optional(),
@@ -54,7 +53,6 @@ export function ProfileEdit() {
       nationality: "",
       phoneNumber: "",
       identityNumber: "",
-      status: undefined,
       dob: "",
     },
   });
@@ -68,13 +66,28 @@ export function ProfileEdit() {
         nationality: profile.profile.nationality || "",
         phoneNumber: profile.profile.phoneNumber || "",
         identityNumber: profile.profile.identityNumber || "",
-        status: profile.profile.status || "",
         dob: profile.profile.dob
           ? new Date(profile.profile.dob).toISOString().split("T")[0]
           : "",
       });
     }
   }, [profile, form]);
+
+  const handleResetToCurrentProfile = () => {
+    if (profile) {
+      form.reset({
+        fullName: profile.profile.fullName || "",
+        email: profile.email || "",
+        address: profile.profile.address || "",
+        nationality: profile.profile.nationality || "",
+        phoneNumber: profile.profile.phoneNumber || "",
+        identityNumber: profile.profile.identityNumber || "",
+        dob: profile.profile.dob
+          ? new Date(profile.profile.dob).toISOString().split("T")[0]
+          : "",
+      });
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: ({ id, updatedUser }: { id: string; updatedUser: UserUpdateRequest }) =>
@@ -110,7 +123,6 @@ export function ProfileEdit() {
       nationality: values.nationality || undefined,
       phoneNumber: values.phoneNumber || undefined,
       identityNumber: values.identityNumber || undefined,
-      status: values.status || undefined,
       dob: values.dob ? new Date(values.dob) : undefined,
     };
 
@@ -160,32 +172,24 @@ export function ProfileEdit() {
                     )}
                   />
                 ))}
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          disabled={mutation.isPending}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                        >
-                          <option value="">Select status</option>
-                          <option value="active">active</option>
-                          <option value="inactive">inactive</option>
-                        </select>
-                      </FormControl>
-                      <FormDescription>User activity status</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
               </div>
-              <Button type="submit" disabled={mutation.isPending}>
+              <div className="flex gap-4">
+              <Button type="submit" className="flex-1" disabled={mutation.isPending}>
                 {mutation.isPending ? "Saving..." : "Update Profile"}
               </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleResetToCurrentProfile}
+                  disabled={mutation.isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
+              
             </form>
           </Form>
         )}
