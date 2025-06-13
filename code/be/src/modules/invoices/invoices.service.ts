@@ -1,11 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { format } from 'date-fns';
+import { omit } from 'lodash';
 import { ReportsService } from 'src/modules/reports/reports.service';
 import { Repository } from 'typeorm';
 import { CreateInvoiceDto } from './dto';
 import { Invoice } from './entities';
 import { InvoicesStatus } from './enums/invoices-status.enum';
-import { format } from 'date-fns';
 
 @Injectable()
 export class InvoicesService {
@@ -91,105 +96,74 @@ export class InvoicesService {
     return await queryBuilder.getMany();
   };
 
-  // public handleGetInvoices = async (role: string, userId: string) => {
-  //   return (
-  //     await this.invoiceRepository.find({
-  //       where:
-  //         role === 'admin'
-  //           ? {}
-  //           : {
-  //               bookingDetail: {
-  //                 booking: {
-  //                   user: {
-  //                     id: userId,
-  //                   },
-  //                 },
-  //               },
-  //             },
-  //       relations: [
-  //         'bookingDetail',
-  //         'bookingDetail.booking',
-  //         'bookingDetail.booking.user',
-  //         'bookingDetail.room',
-  //       ],
-  //     })
-  //   ).map((invoice) => ({
-  //     ...invoice,
-  //     bookingDetail: {
-  //       ...invoice.bookingDetail,
-  //       booking: {
-  //         ...invoice.bookingDetail.booking,
-  //         user: omit(invoice.bookingDetail.booking.user, ['password']),
-  //       },
-  //     },
-  //   }));
-  // };
-  // public handleGetInvoice = async (
-  //   role: string,
-  //   userId: string,
-  //   invoiceId: string,
-  // ) => {
-  //   const invoice = await this.invoiceRepository.findOne({
-  //     where: {
-  //       id: invoiceId,
-  //     },
-  //     relations: {
-  //       bookingDetail: {
-  //         booking: {
-  //           user: true,
-  //         },
-  //         room: true,
-  //       },
-  //     },
-  //   });
-  //   if (!invoice) throw new NotFoundException(`Invoice not found.`);
-  //   if (invoice.bookingDetail.booking.user.id !== userId && role !== 'admin')
-  //     throw new ForbiddenException(
-  //       `You can have permission to get the invoice that belongs to you.`,
-  //     );
-  //   return {
-  //     ...invoice,
-  //     bookingDetail: {
-  //       ...invoice.bookingDetail,
-  //       booking: {
-  //         ...invoice.bookingDetail.booking,
-  //         user: omit(invoice.bookingDetail.booking.user, ['password']),
-  //       },
-  //       room: {
-  //         ...invoice.bookingDetail.room,
-  //       },
-  //     },
-  //   };
-  // };
-  // public handleDeleteInvoice = async (invoiceId: string) => {
-  //   const invoice = await this.invoiceRepository.findOne({
-  //     where: {
-  //       id: invoiceId,
-  //     },
-  //   });
-  //   if (!invoice) throw new NotFoundException(`Invoice not found.`);
-  //   await this.invoiceRepository.delete(invoiceId);
-  //   return {
-  //     success: true,
-  //     message: `Invoice '${invoiceId}' deleted successfully.`,
-  //   };
-  // };
-  // public handleCalculatePriceOfInvoicesByBookingDetailIds = async (
-  //   bookingDetailIds: string[],
-  // ) => {
-  //   return (
-  //     await this.invoiceRepository.find({
-  //       where: {
-  //         bookingDetail: {
-  //           id: In(bookingDetailIds),
-  //         },
-  //       },
-  //       relations: {
-  //         bookingDetail: true,
-  //       },
-  //     })
-  //   ).reduce((acc, curr) => acc + Number(curr.totalPrice), 0);
-  // };
+  public handleGetInvoices = async (role: string, userId: string) => {
+    return (
+      await this.invoiceRepository.find({
+        where:
+          role === 'admin'
+            ? {}
+            : {
+                booking: {
+                  user: {
+                    id: userId,
+                  },
+                },
+              },
+        relations: ['booking', 'booking.user', 'booking.room'],
+      })
+    ).map((invoice) => ({
+      ...invoice,
+      booking: {
+        ...invoice.booking,
+        user: omit(invoice.booking.user, ['password']),
+      },
+    }));
+  };
+  public handleGetInvoice = async (
+    role: string,
+    userId: string,
+    invoiceId: string,
+  ) => {
+    const invoice = await this.invoiceRepository.findOne({
+      where: {
+        id: invoiceId,
+      },
+      relations: {
+        booking: {
+          user: true,
+          room: true,
+        },
+      },
+    });
+
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
+
+    if (invoice.booking.user.id !== userId && role !== 'admin')
+      throw new ForbiddenException(
+        `You can have permission to get the invoice that belongs to you.`,
+      );
+
+    return {
+      ...invoice,
+      booking: {
+        ...invoice.booking,
+        user: omit(invoice.booking.user, ['password']),
+      },
+    };
+  };
+  public handleDeleteInvoice = async (invoiceId: string) => {
+    const invoice = await this.invoiceRepository.findOne({
+      where: {
+        id: invoiceId,
+      },
+    });
+    if (!invoice) throw new NotFoundException(`Invoice not found.`);
+    await this.invoiceRepository.delete(invoiceId);
+    return {
+      success: true,
+      message: `Invoice '${invoiceId}' deleted successfully.`,
+    };
+  };
 
   public handleUpdateStatusOfInvoice = async (
     invoiceId: string,
