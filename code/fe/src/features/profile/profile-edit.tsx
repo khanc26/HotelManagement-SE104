@@ -28,16 +28,24 @@ const userSchema = z.object({
   nationality: z.string().trim().optional(),
   phoneNumber: z.string().trim().optional(),
   identityNumber: z.string().trim().optional(),
-  dob: z.string().trim().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Please enter a valid date",
-  }).optional(),
+  dob: z
+    .string()
+    .trim()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Please enter a valid date",
+    })
+    .optional(),
 });
 
 export function ProfileEdit() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
-  const { data: profile, isLoading, isError } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["myProfile"],
     queryFn: getMyProfile,
   });
@@ -90,8 +98,13 @@ export function ProfileEdit() {
   };
 
   const mutation = useMutation({
-    mutationFn: ({ id, updatedUser }: { id: string; updatedUser: UserUpdateRequest }) =>
-      updateUser(id, updatedUser),
+    mutationFn: ({
+      id,
+      updatedUser,
+    }: {
+      id: string;
+      updatedUser: UserUpdateRequest;
+    }) => updateUser(id, updatedUser),
     onSuccess: () => {
       toast.success("Profile updated successfully", {
         position: "top-right",
@@ -144,13 +157,43 @@ export function ProfileEdit() {
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "fullName", label: "Full Name", desc: "Your complete name" },
-                  { name: "email", label: "Email", desc: "Valid email address", type: "email" },
-                  { name: "address", label: "Address", desc: "Your current address" },
-                  { name: "nationality", label: "Nationality", desc: "Your nationality" },
-                  { name: "phoneNumber", label: "Phone Number", desc: "Format: +84..." },
-                  { name: "identityNumber", label: "Identity Number", desc: "Personal ID number" },
-                  { name: "dob", label: "Date of Birth", desc: "Your birth date", type: "date" },
+                  {
+                    name: "fullName",
+                    label: "Full Name",
+                    desc: "Your complete name",
+                  },
+                  {
+                    name: "email",
+                    label: "Email",
+                    desc: "Valid email address",
+                    type: "email",
+                  },
+                  {
+                    name: "address",
+                    label: "Address",
+                    desc: "Your current address",
+                  },
+                  {
+                    name: "nationality",
+                    label: "Nationality",
+                    desc: "Your nationality",
+                  },
+                  {
+                    name: "phoneNumber",
+                    label: "Phone Number",
+                    desc: "Format: +84...",
+                  },
+                  {
+                    name: "identityNumber",
+                    label: "Identity Number",
+                    desc: "Personal ID number",
+                  },
+                  {
+                    name: "dob",
+                    label: "Date of Birth",
+                    desc: "Your birth date",
+                    type: "date",
+                  },
                 ].map(({ name, label, desc, type = "text" }) => (
                   <FormField
                     key={name}
@@ -172,12 +215,15 @@ export function ProfileEdit() {
                     )}
                   />
                 ))}
-                
               </div>
               <div className="flex gap-4">
-              <Button type="submit" className="flex-1" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Update Profile"}
-              </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={mutation.isPending}
+                >
+                  {mutation.isPending ? "Saving..." : "Update Profile"}
+                </Button>
 
                 <Button
                   type="button"
@@ -189,7 +235,6 @@ export function ProfileEdit() {
                   Cancel
                 </Button>
               </div>
-              
             </form>
           </Form>
         )}
