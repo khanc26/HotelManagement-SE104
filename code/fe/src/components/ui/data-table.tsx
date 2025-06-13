@@ -41,6 +41,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState<any>([]);
+  const [inputValue, setInputValue] = React.useState<string>("");
 
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -81,10 +82,19 @@ export function DataTable<TData, TValue>({
       >
         <Input
           placeholder="Search for any keyword..."
-          value={globalFilter ?? ""}
+          value={inputValue}
           onChange={(e) => {
-            setGlobalFilter(e.target.value);
-            table.setGlobalFilter(String(e.target.value));
+            const value = e.target.value;
+            setInputValue(value);
+
+            if (value.trim() === "") {
+              setGlobalFilter("");
+              table.setGlobalFilter("");
+            } else {
+              const trimmedValue = value.trim();
+              setGlobalFilter(trimmedValue);
+              table.setGlobalFilter(trimmedValue);
+            }
           }}
           className="max-w-sm"
         />

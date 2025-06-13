@@ -1,24 +1,26 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BookingDetailsRepository } from 'src/modules/booking-details/booking-details.repository';
-import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
-import { Booking } from 'src/modules/bookings/entities';
-import { Invoice } from 'src/modules/invoices/entities';
-import { InvoicesRepository } from 'src/modules/invoices/invoices.repository';
-import { InvoicesService } from 'src/modules/invoices/invoices.service';
-import { RoomType } from 'src/modules/room-types/entities';
-import { RoomTypesService } from 'src/modules/room-types/room-types.service';
-import { Room } from 'src/modules/rooms/entities';
-import { RoomsService } from 'src/modules/rooms/rooms.service';
-import { Profile, Role, UserType } from 'src/modules/users/entities';
-import { UsersModule } from 'src/modules/users/users.module';
+import { Booking } from './entities';
+import { Invoice } from '../invoices/entities';
+import { InvoicesRepository } from '../invoices/invoices.repository';
+import { InvoicesService } from '../invoices/invoices.service';
+import { RoomType } from '../room-types/entities';
+import { RoomTypesService } from '../room-types/room-types.service';
+import { Room } from '../rooms/entities';
+import { RoomsService } from '../rooms/rooms.service';
+import { Profile, Role, UserType } from '../users/entities';
+import { UsersModule } from '../users/users.module';
+import { InvoicesModule } from '../invoices/invoices.module';
 import { BookingsController } from './bookings.controller';
 import { BookingsRepository } from './bookings.repository';
 import { BookingsService } from './bookings.service';
-import { ReportsService } from 'src/modules/reports/reports.service';
-import { MonthlyRevenue } from 'src/modules/reports/entities';
+import { ReportsService } from '../reports/reports.service';
+import { MonthlyRevenue } from '../reports/entities';
 import { Param } from '../params/entities';
 import { ParamsService } from '../params/params.service';
+import { RoomsModule } from '../rooms/rooms.module';
+import { ParamsModule } from 'src/modules/params/params.module';
+import { MonthlyRevenueDetail } from 'src/modules/reports/entities/monthly-revenue-detail.entity';
 
 @Module({
   imports: [
@@ -32,15 +34,17 @@ import { ParamsService } from '../params/params.service';
       Room,
       RoomType,
       MonthlyRevenue,
+      MonthlyRevenueDetail,
     ]),
     UsersModule,
+    InvoicesModule,
+    RoomsModule,
+    ParamsModule,
   ],
   controllers: [BookingsController],
   providers: [
     BookingsService,
     BookingsRepository,
-    BookingDetailsService,
-    BookingDetailsRepository,
     InvoicesService,
     ParamsService,
     RoomsService,

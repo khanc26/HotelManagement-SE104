@@ -9,6 +9,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -24,8 +25,8 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
-  @Column()
-  password!: string;
+  @Column({ nullable: true })
+  password?: string;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile!: Profile;
@@ -44,7 +45,7 @@ export class User {
   @JoinColumn()
   userType!: UserType;
 
-  @OneToMany(() => Booking, (booking) => booking.user, {
+  @ManyToMany(() => Booking, (booking) => booking.user, {
     orphanedRowAction: 'delete',
     cascade: true,
   })

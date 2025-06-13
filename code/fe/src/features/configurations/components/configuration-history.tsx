@@ -44,7 +44,13 @@ export function ConfigurationHistory() {
   return (
     <Card className="w-full h-full mb-4 border-black/10">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Configuration Histtory</CardTitle>
+        <CardTitle className="text-xl font-bold">
+          Configuration History
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          View a log of recent changes made to the system configuration,
+          including updates to guest limits, fees, and more.
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (

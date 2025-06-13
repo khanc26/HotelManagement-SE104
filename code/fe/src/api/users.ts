@@ -15,7 +15,7 @@ export const getUsers = async (params?: UserSearchRequest) => {
       address: params?.address,
       nationality: params?.nationality,
       userTypeName: params?.userTypeName,
-      identifyNumber: params?.identifyNumber,
+      identityNumber: params?.identityNumber,
       status: params?.status,
       dob: params?.dob,
     },

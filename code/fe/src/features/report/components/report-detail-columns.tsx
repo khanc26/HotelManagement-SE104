@@ -6,7 +6,7 @@ import { ArrowUpDown } from "lucide-react";
 
 export const reportDetailColumns: ColumnDef<MonthlyRevenueByRoomType>[] = [
   {
-    accessorKey: "roomType",
+    accessorKey: "roomTypeName",
     header: ({ column }) => {
       return (
         <Button
@@ -52,7 +52,7 @@ export const reportDetailColumns: ColumnDef<MonthlyRevenueByRoomType>[] = [
       );
     },
     cell: ({ row }) => {
-      const percent = row.original.percent;
+      const percent = row.original.percentage;
 
       return `${percent}%`;
     },

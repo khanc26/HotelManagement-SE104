@@ -20,8 +20,8 @@ export class Profile {
   @Column()
   fullName!: string;
 
-  @Column()
-  nationality!: string;
+  @Column({ nullable: true })
+  nationality?: string;
 
   @Column({
     type: 'enum',
@@ -30,11 +30,11 @@ export class Profile {
   })
   status!: ProfileStatusEnum;
 
-  @Column({ type: 'timestamp' })
-  dob!: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  dob?: Date;
 
-  @Column()
-  phoneNumber!: string;
+  @Column({ nullable: true })
+  phoneNumber?: string;
 
   @Column()
   address!: string;

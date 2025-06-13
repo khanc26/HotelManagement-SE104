@@ -6,7 +6,7 @@ import { RedisStore } from 'connect-redis';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import { SESSION_MAX_AGE } from 'src/libs/common/constants';
+import { IS_PRODUCTION, SESSION_MAX_AGE } from 'src/libs/common/constants';
 import { RedisProvider } from 'src/libs/common/providers';
 import { AppModule } from './app.module';
 
@@ -19,6 +19,10 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  const expressApp = app.getHttpAdapter().getInstance();
+
+  expressApp.set('trust proxy', 1);
 
   const configService = app.get(ConfigService);
 
@@ -42,10 +46,10 @@ async function bootstrap() {
         prefix: 'sess:',
       }),
       cookie: {
-        secure: false,
+        secure: IS_PRODUCTION,
         maxAge: SESSION_MAX_AGE,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: IS_PRODUCTION ? 'none' : 'lax',
       },
     }),
   );

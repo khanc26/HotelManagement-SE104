@@ -40,6 +40,7 @@ export const reportColumns: ColumnDef<MonthlyRevenue>[] = [
     },
   },
   {
+    accessorKey: "Actions",
     id: "actions",
     cell: ({ row }) => {
       const report = row.original;

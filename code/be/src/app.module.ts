@@ -4,11 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from 'src/config/configuration';
 import {
   LoggerMiddleware,
+  MaintenanceMiddleware,
   SessionMiddleware,
 } from 'src/libs/common/middlewares';
 import { RedisProvider } from 'src/libs/common/providers';
 import { AuthModule } from 'src/modules/auth/auth.module';
-import { BookingDetailsModule } from 'src/modules/booking-details/booking-details.module';
 import { BookingsModule } from 'src/modules/bookings/bookings.module';
 import { InvoicesModule } from 'src/modules/invoices/invoices.module';
 import { RoomTypesModule } from 'src/modules/room-types/room-types.module';
@@ -17,10 +17,10 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { EmailsModule } from './modules/emails/emails.module';
 import { ParamsModule } from './modules/params/params.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ReportsModule } from './modules/reports/reports.module';
-import { EmailsModule } from './modules/emails/emails.module';
 
 @Module({
   imports: [
@@ -51,7 +51,6 @@ import { EmailsModule } from './modules/emails/emails.module';
     RoomTypesModule,
     InvoicesModule,
     BookingsModule,
-    BookingDetailsModule,
     ParamsModule,
     ReportsModule,
     PaymentsModule,
@@ -62,6 +61,7 @@ import { EmailsModule } from './modules/emails/emails.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MaintenanceMiddleware).forRoutes('*');
     consumer.apply(LoggerMiddleware).forRoutes('*');
 
     consumer
@@ -70,8 +70,10 @@ export class AppModule implements NestModule {
         '/',
         '/auth/sign-in',
         '/auth/sign-up',
-        '/auth/sign-out',
         '/payments/vnpay/ipn',
+        '/auth/forget-password',
+        '/auth/verify-otp',
+        '/auth/reset-password',
       )
       .forRoutes('*');
   }

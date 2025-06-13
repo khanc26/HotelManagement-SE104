@@ -1,17 +1,16 @@
 import { transformDateTime } from 'src/libs/common/helpers';
+import { MonthlyRevenueDetail } from 'src/modules/reports/entities/monthly-revenue-detail.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
+  OneToMany,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity()
 export class MonthlyRevenue {
-  @PrimaryGeneratedColumn('uuid')
-  readonly id!: string;
-
-  @Column({ unique: true })
+  @PrimaryColumn()
   month!: string;
 
   @Column({
@@ -25,6 +24,9 @@ export class MonthlyRevenue {
     },
   })
   totalRevenue!: number;
+
+  @OneToMany(() => MonthlyRevenueDetail, (detail) => detail.monthlyRevenue)
+  details!: MonthlyRevenueDetail[];
 
   @CreateDateColumn({
     type: 'timestamp',

@@ -1,5 +1,10 @@
+import { getRoomTypes } from "@/api/room-types";
+import { getRooms } from "@/api/rooms";
+import { TableError } from "@/components/table-error";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { roomColumns } from "./room-columns";
 import {
   Form,
   FormControl,
@@ -9,28 +14,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { getRooms } from "@/api/rooms";
-import { getRoomTypes } from "@/api/room-types";
 import { RoomRequest } from "@/types/room.type";
-import { TableSkeleton } from "@/components/table-skeleton";
-import { TableError } from "@/components/table-error";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { RoomPDFDocument } from "./room-pdf-document";
+import { useQuery } from "@tanstack/react-query";
 import { Printer } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { roomColumns } from "./room-columns";
+import { RoomPDFDocument } from "./room-pdf-document";
 
 const roomSchema = z.object({
   roomNumber: z.string().trim().trim().optional(),
   roomType: z.string().trim().trim().optional(),
-  price: z.number().optional(),
-  status: z.enum(["available", "occupied"]).optional(),
+  price: z.string().optional(),
+  status: z.enum(["available", "occupied", ""]).optional(),
 });
 
 export function RoomList() {
@@ -68,7 +68,10 @@ export function RoomList() {
     const params: RoomRequest = {
       roomNumber: values.roomNumber || undefined,
       roomType: values.roomType || undefined,
-      price: values.price || undefined,
+      price:
+      values.price && values.price.trim() !== ""
+        ? Number(values.price)
+        : undefined,
       status: values.status || undefined,
     };
     setSearchParams((prev) => {
@@ -80,8 +83,8 @@ export function RoomList() {
     form.reset({
       roomNumber: "",
       roomType: "",
-      price: undefined,
-      status: undefined,
+      price: "",
+      status: "",
     });
     setSearchParams({});
   };
@@ -146,6 +149,9 @@ export function RoomList() {
                           type="number"
                           placeholder="Room Price"
                           {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                          }}
                         />
                       </FormControl>
                       <FormDescription>

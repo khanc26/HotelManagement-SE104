@@ -1,17 +1,14 @@
 import { Transform } from 'class-transformer';
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  IsString,
-} from 'class-validator';
+import { IsNumber, IsOptional, IsPositive } from 'class-validator';
 
 export class SearchMonthlyRevenueDto {
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  readonly year?: string;
+  @Transform(({ value }) =>
+    typeof value === 'string' ? parseInt(value, 10) : value,
+  )
+  @IsNumber()
+  @IsPositive()
+  readonly year?: number;
 
   @IsOptional()
   @IsNumber()

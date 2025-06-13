@@ -1,13 +1,38 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, ValidateNested } from 'class-validator';
-import { CreateBookingDetailDto } from 'src/modules/booking-details/dto';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsDate,
+  IsNotEmpty,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { CreateParticipantDto } from './create-participant.dto';
 
 export class CreateBookingDto {
-  @ApiProperty({ type: [CreateBookingDetailDto] })
+  @ApiProperty()
+  @IsUUID()
+  @IsNotEmpty()
+  roomId!: string;
+
+  @ApiProperty({ type: [CreateParticipantDto] })
+  @ValidateNested({ each: true })
+  @Type(() => CreateParticipantDto)
   @IsArray()
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => CreateBookingDetailDto)
-  readonly createBookingDetailDtos!: CreateBookingDetailDto[];
+  @IsNotEmpty({ each: true })
+  readonly participants!: CreateParticipantDto[];
+
+  @ApiProperty()
+  @IsDate()
+  @IsNotEmpty()
+  @Transform(({ value }: { value: string }) => new Date(value))
+  readonly checkInDate!: Date;
+
+  @ApiProperty()
+  @IsDate()
+  @IsNotEmpty()
+  @Transform(({ value }: { value: string }) => new Date(value))
+  readonly checkOutDate!: Date;
 }

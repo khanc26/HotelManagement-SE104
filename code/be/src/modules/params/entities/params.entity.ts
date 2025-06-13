@@ -4,7 +4,6 @@ import {
   DeleteDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { transformDateTime } from '../../../libs/common/helpers';
 

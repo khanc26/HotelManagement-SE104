@@ -1,5 +1,5 @@
 import { transformDateTime } from 'src/libs/common/helpers';
-import { BookingDetail } from 'src/modules/booking-details/entities';
+import { Booking } from 'src/modules/bookings/entities';
 import { InvoicesStatus } from 'src/modules/invoices/enums/invoices-status.enum';
 import { Payment } from 'src/modules/payments/entities';
 import {
@@ -50,13 +50,13 @@ export class Invoice {
   })
   status!: InvoicesStatus;
 
-  @OneToOne(() => BookingDetail, (bookingDetail) => bookingDetail.invoice, {
+  @OneToOne(() => Booking, (booking) => booking.invoice, {
     cascade: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinColumn()
-  bookingDetail!: BookingDetail;
+  booking!: Booking;
 
   @OneToOne(() => Payment, (payment) => payment.invoice, { nullable: true })
   payment?: Payment;

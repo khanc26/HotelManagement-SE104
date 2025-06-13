@@ -5,6 +5,6 @@ export const transformDateTime = {
   from: (value: Date | string | null) => {
     if (!value) return null;
     const date = value instanceof Date ? value : new Date(value);
-    return formatInTimeZone(date, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
+    return formatInTimeZone(date, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
   },
 };

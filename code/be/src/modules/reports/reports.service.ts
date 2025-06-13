@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BookingDetailsService } from 'src/modules/booking-details/booking-details.service';
 import { SearchMonthlyRevenueDto } from 'src/modules/reports/dto';
 import { MonthlyRevenue } from 'src/modules/reports/entities';
+import { MonthlyRevenueDetail } from 'src/modules/reports/entities/monthly-revenue-detail.entity';
+import { RoomTypesService } from 'src/modules/room-types/room-types.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -10,7 +11,9 @@ export class ReportsService {
   constructor(
     @InjectRepository(MonthlyRevenue)
     private readonly monthlyRevenueRepository: Repository<MonthlyRevenue>,
-    private readonly bookingDetailsService: BookingDetailsService,
+    @InjectRepository(MonthlyRevenueDetail)
+    private readonly monthlyRevenueDetailRepository: Repository<MonthlyRevenueDetail>,
+    private readonly roomTypesService: RoomTypesService,
   ) {}
 
   public handleGetMonthlyRevenue = async (
@@ -40,19 +43,38 @@ export class ReportsService {
     return queryBuilder.getMany();
   };
 
-  public handleGetMonthlyRevenueDetails = async (id: string) => {
-    const monthlyRevenueDetails = await this.monthlyRevenueRepository.findOne({
-      where: {
-        id,
+  public handleGetMonthlyRevenueDetails = async (month: string) => {
+    const allRoomTypes = await this.roomTypesService.findAll();
+
+    const details = await this.monthlyRevenueDetailRepository.find({
+      where: { month },
+      relations: {
+        monthlyRevenue: true,
+        roomType: true,
       },
     });
 
-    if (!monthlyRevenueDetails)
-      throw new NotFoundException(`Month revenue details not found.`);
-
-    return this.bookingDetailsService.getRevenueByRoomTypeInMonth(
-      monthlyRevenueDetails.month,
+    const detailMap = new Map(
+      details.map((detail) => [detail.roomTypeId, detail]),
     );
+
+    const totalRevenue = details[0]?.monthlyRevenue?.totalRevenue ?? 0;
+
+    const result = allRoomTypes.map((roomType) => {
+      const detail = detailMap.get(roomType.id);
+      const revenue = detail?.revenue ?? 0;
+      const percentage = totalRevenue
+        ? parseFloat(((revenue / totalRevenue) * 100).toFixed(2))
+        : 0;
+
+      return {
+        roomTypeName: roomType.name,
+        revenue,
+        percentage,
+      };
+    });
+
+    return result;
   };
 
   public handleGetMonthlyRevenueMonthYear = async (monthYear: string) => {
@@ -66,6 +88,7 @@ export class ReportsService {
   public handleCreateOrUpdateMonthlyRevenue = async (
     monthYear: string,
     revenue: number,
+    room_type_id: string,
   ) => {
     const findMonthlyRevenue = await this.monthlyRevenueRepository.findOne({
       where: {
@@ -85,11 +108,49 @@ export class ReportsService {
 
       await this.monthlyRevenueRepository.update(
         {
-          id: findMonthlyRevenue.id,
+          month: findMonthlyRevenue.month,
         },
         {
-          totalRevenue:
-            parseFloat(existingTotalRevenue as unknown as string) + revenue,
+          totalRevenue: existingTotalRevenue + revenue,
+        },
+      );
+    }
+
+    await this.handleUpdateMonthlyRevenueDetail(
+      monthYear,
+      room_type_id,
+      revenue,
+    );
+  };
+
+  private handleUpdateMonthlyRevenueDetail = async (
+    month: string,
+    room_type_id: string,
+    revenue: number,
+  ) => {
+    const existingRecord = await this.monthlyRevenueDetailRepository.findOne({
+      where: {
+        month,
+        roomTypeId: room_type_id,
+      },
+    });
+
+    if (!existingRecord) {
+      const newRecord = this.monthlyRevenueDetailRepository.create({
+        month,
+        roomTypeId: room_type_id,
+        revenue,
+      });
+
+      await this.monthlyRevenueDetailRepository.save(newRecord);
+    } else {
+      await this.monthlyRevenueDetailRepository.update(
+        {
+          roomTypeId: room_type_id,
+          month,
+        },
+        {
+          revenue: existingRecord.revenue + revenue,
         },
       );
     }
