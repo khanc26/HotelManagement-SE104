@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ParamMap } from "@/utils/constants";
 import { GetAPIErrorResponseData } from "@/utils/helpers/getAPIErrorResponseData";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -23,7 +24,6 @@ type ParamItem = {
 };
 
 export function ConfigurationParams() {
-
   const navigate = useNavigate();
 
   const form = useForm<Record<string, number>>({
@@ -34,7 +34,7 @@ export function ConfigurationParams() {
     data: params,
     isLoading,
     isError,
-    error
+    error,
   } = useQuery({
     queryKey: ["params"],
     queryFn: getConfiguration,
@@ -59,15 +59,21 @@ export function ConfigurationParams() {
   useEffect(() => {
     if (params) {
       params.forEach((param: ParamItem) => {
-        form.setValue(param.paramName, param.paramValue); 
+        form.setValue(param.paramName, param.paramValue);
       });
     }
   }, [params, form]);
-  
+
   return (
     <Card className="w-full h-full mb-4">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">System Configuration</CardTitle>
+        <CardTitle className="text-xl font-bold">
+          System Configuration
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Manage system-level settings such as maximum guests, surcharge rate,
+          and foreign guest surcharge.
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -87,7 +93,13 @@ export function ConfigurationParams() {
                         name={param.paramName}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{param.paramName}</FormLabel>
+                            <FormLabel>
+                              {
+                                ParamMap[
+                                  param.paramName as keyof typeof ParamMap
+                                ]
+                              }
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -97,8 +109,8 @@ export function ConfigurationParams() {
                               />
                             </FormControl>
                             {param.description && (
-                              <p className="text-sm text-muted-foreground">
-                                {param.description}
+                              <p className="text-sm text-muted-foreground truncate">
+                                {param.description}.
                               </p>
                             )}
                             <FormMessage />

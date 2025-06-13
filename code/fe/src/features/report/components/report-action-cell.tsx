@@ -11,7 +11,7 @@ export const ReportActionCell = ({ report }: ReportActionCellProps) => {
   return (
     <div className="flex items-center gap-2">
       <Button variant="ghost" size="icon" asChild>
-        <Link to={`/reports/${report.id}?month=${report.month}`}>
+        <Link to={`/reports/${report.month}`}>
           <Eye className="h4 w4" />
         </Link>
       </Button>

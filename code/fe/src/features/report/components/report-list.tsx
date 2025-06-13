@@ -7,7 +7,6 @@ import { DataTable } from "@/components/ui/data-table";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,19 +29,19 @@ const reportSearchSchema = z.object({
   year: z
     .string()
     .optional()
-    .refine((val) => !val || !isNaN(Number(val)) && Number(val) >= 0, {
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
       message: "Year must be a positive number",
     }),
   minRevenue: z
     .string()
     .optional()
-    .refine((val) => !val || !isNaN(Number(val)) && Number(val) >= 0, {
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
       message: "Minimum revenue must be a positive number",
     }),
   maxRevenue: z
     .string()
     .optional()
-    .refine((val) => !val || !isNaN(Number(val)) && Number(val) >= 0, {
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
       message: "Maximum revenue must be a positive number",
     }),
 });
@@ -74,13 +73,12 @@ export function ReportList() {
       minRevenue: values.minRevenue ? Number(values.minRevenue) : undefined,
       maxRevenue: values.maxRevenue ? Number(values.maxRevenue) : undefined,
     };
-  
+
     setSearchParams((prev) => ({
       ...prev,
       ...searchRequest,
     }));
   };
-  
 
   const clearFilters = () => {
     form.reset({
@@ -98,6 +96,10 @@ export function ReportList() {
           <CardTitle className="text-xl font-bold">
             Report Search Form
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Use this form to search for reports by year, minimum revenue, or
+            maximum revenue.
+          </p>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -108,17 +110,10 @@ export function ReportList() {
                   name="year"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Enter Year</FormLabel>
+                      <FormLabel>Year</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Report by year..."
-                          {...field}
-                        />
+                        <Input type="number" placeholder="2025" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Return the report in specific year.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -128,18 +123,10 @@ export function ReportList() {
                   name="minRevenue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Minimum revenue</FormLabel>
+                      <FormLabel>Minimum Revenue</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Minimum revenue..."
-                          {...field}
-                        />
+                        <Input type="number" placeholder="2000000" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Only show the months that have revenue greater than
-                        this.
-                      </FormDescription>
                     </FormItem>
                   )}
                 />
@@ -150,31 +137,19 @@ export function ReportList() {
                     <FormItem>
                       <FormLabel>Maximum Revenue</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Maximum Revenue"
-                          {...field}
-                        />
+                        <Input type="number" placeholder="5000000" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Only show the months that have revenue less than this.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-2 w-fit mx-auto">
+                <Button type="button" className="flex-1" onClick={clearFilters}>
+                  Clear
+                </Button>
                 <Button type="submit" className="flex-1">
                   Search
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={clearFilters}
-                >
-                  Clear Filters
                 </Button>
               </div>
             </form>
