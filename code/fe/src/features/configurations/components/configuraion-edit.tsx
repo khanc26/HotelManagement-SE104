@@ -11,12 +11,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ConfigurationParam } from "@/types/configuration.";
+import { ParamMap } from "@/utils/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-
-
 
 export function ConfigurationEdit() {
   const queryClient = useQueryClient();
@@ -73,20 +72,25 @@ export function ConfigurationEdit() {
         toast.error("max_guests_per_room must be an integer", {
           position: "top-right",
         });
-        return; 
+        return;
       }
     }
-  
+
     Object.entries(data).forEach(([paramName, value]) => {
       updateMutation.mutate({ paramName, value });
     });
   });
-  
 
   return (
     <Card className="w-full h-full mb-4">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Edit System Configuration</CardTitle>
+        <CardTitle className="text-xl font-bold">
+          Edit System Configuration
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Modify global settings that determine how the system handles maximum
+          guests per room, guest limits, and surcharge rules.
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -106,13 +110,21 @@ export function ConfigurationEdit() {
                         name={param.paramName}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{param.paramName}</FormLabel>
+                            <FormLabel>
+                              {
+                                ParamMap[
+                                  param.paramName as keyof typeof ParamMap
+                                ]
+                              }
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 {...field}
                                 disabled={updateMutation.isPending}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
                               />
                             </FormControl>
                             {param.description && (

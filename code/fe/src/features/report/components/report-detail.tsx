@@ -1,20 +1,19 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { getReportById } from "@/api/reports";
-import { TableSkeleton } from "@/components/table-skeleton";
 import { TableError } from "@/components/table-error";
-import { DataTable } from "@/components/ui/data-table";
-import { useParams, useSearchParams } from "react-router";
-import { reportDetailColumns } from "./report-detail-columns";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ReportDetailPDFDocument } from "./report-detail-pdf-document";
+import { TableSkeleton } from "@/components/table-skeleton";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { useQuery } from "@tanstack/react-query";
+import { format, parse } from "date-fns";
 import { Printer } from "lucide-react";
+import { useParams } from "react-router";
+import { reportDetailColumns } from "./report-detail-columns";
+import { ReportDetailPDFDocument } from "./report-detail-pdf-document";
 
 export function ReportDetail() {
-  const [searchParams] = useSearchParams();
   const { id } = useParams();
-  const month = searchParams.get("month");
 
   const {
     data: report,
@@ -26,18 +25,28 @@ export function ReportDetail() {
     enabled: !!id,
   });
 
+  const formattedDate = format(
+    parse(`${id}-01`, "yyyy-MM-dd", new Date()),
+    "MMMM yyyy"
+  );
+
   return (
     <div className="w-full max-w-[1400px] mx-auto">
       <Card className="w-full mb-4">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Report Revenue For {month} By Room Type</CardTitle>
-          {report && month && (
+          <CardTitle className="font-medium">
+            Revenue by Room Type - {formattedDate}
+          </CardTitle>
+          {report && id && (
             <PDFDownloadLink
               key={Date.now()}
               document={
-                <ReportDetailPDFDocument reports={report} month={month} />
+                <ReportDetailPDFDocument
+                  reports={report}
+                  month={formattedDate}
+                />
               }
-              fileName={`revenue-report-${month.toLowerCase()}.pdf`}
+              fileName={`revenue-report-${id.toLowerCase()}.pdf`}
             >
               {({ loading }) => (
                 <Button variant="outline" disabled={loading}>

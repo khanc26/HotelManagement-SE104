@@ -5,9 +5,9 @@ export interface ReportRequest {
 }
 
 export interface MonthlyRevenueByRoomType {
-  roomType: string;
+  roomTypeName: string;
   revenue: number;
-  percent: string;
+  percentage: string;
 }
 
 export interface MonthlyRevenue {

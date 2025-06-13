@@ -26,3 +26,9 @@ export const RoleMap: Record<"user" | "admin", string> = {
   user: "User",
   admin: "Admin",
 };
+
+export const ParamMap = {
+  max_guests_per_room: "Maximum Guests per Room",
+  surcharge_rate: "Additional Fee (%)",
+  foreign_guest_factor: "Foreign Guest Surcharge",
+};
