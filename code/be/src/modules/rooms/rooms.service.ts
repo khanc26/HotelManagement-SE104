@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ParamsService } from 'src/modules/params/params.service';
 import { RoomType } from 'src/modules/room-types/entities';
 import { RoomTypesService } from 'src/modules/room-types/room-types.service';
 import {
@@ -20,6 +21,7 @@ export class RoomsService {
   constructor(
     @InjectRepository(Room) private readonly roomRepository: Repository<Room>,
     private readonly roomTypeService: RoomTypesService,
+    private readonly paramsService: ParamsService,
   ) {}
 
   async createRoom(createRoomDto: CreateRoomDto) {
@@ -49,6 +51,10 @@ export class RoomsService {
   }
 
   async findAll(searchRoomsDto?: SearchRoomsDto) {
+    const maxGuests =
+      (await this.paramsService.handleGetValueByName('max_guests_per_room'))
+        ?.paramValue ?? 3;
+
     const qb = this.roomRepository
       .createQueryBuilder('rooms')
       .leftJoinAndSelect('rooms.roomType', 'roomType');
@@ -77,7 +83,13 @@ export class RoomsService {
       });
     }
 
-    return await qb.getMany();
+    return (await qb.getMany()).map((d) => ({
+      ...d,
+      roomType: {
+        ...d.roomType,
+        maxGuests,
+      },
+    }));
   }
 
   async findOne(id: string) {

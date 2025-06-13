@@ -6,11 +6,18 @@ import { Room } from 'src/modules/rooms/entities/room.entity';
 import { RoomsController } from './rooms.controller';
 import { RoomsService } from './rooms.service';
 import { RoomTypesModule } from 'src/modules/room-types/room-types.module';
+import { ParamsModule } from 'src/modules/params/params.module';
+import { Param } from 'src/modules/params/entities';
+import { ParamsService } from 'src/modules/params/params.service';
 
 @Module({
-  imports: [RoomTypesModule, TypeOrmModule.forFeature([Room, RoomType])],
+  imports: [
+    RoomTypesModule,
+    TypeOrmModule.forFeature([Room, RoomType, Param]),
+    ParamsModule,
+  ],
   controllers: [RoomsController],
-  providers: [RoomsService, RoomTypesService],
+  providers: [RoomsService, RoomTypesService, ParamsService],
   exports: [RoomsService],
 })
 export class RoomsModule {}
