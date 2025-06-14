@@ -1,11 +1,21 @@
-import { BookingDetail } from "./booking-detail";
-import { User } from "./user.type";
+export interface Participant {
+  email: string;
+  fullName: string;
+  address: string;
+  identityNumber: string;
+  userType: "local" | "foreign";
+}
 
 export interface Booking {
   id: string;
-  totalPrice: number;
-  user: User;
-  bookingDetails: BookingDetail[];
+  roomNumber: string;
+  checkInDate: Date;
+  checkOutDate: Date;
+  booker: {
+    email: string;
+    fullName: string;
+  };
+  participants: Participant[];
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;

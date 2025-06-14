@@ -1,4 +1,3 @@
-import { UpdateBookingDetailRequest } from "@/types/booking-detail";
 import { Booking } from "@/types/booking.type";
 import { createApiInstance } from "./axios-config";
 
@@ -38,32 +37,26 @@ export const getBookingById = async (id: string) => {
 };
 
 // Delete a booking
-export const deleteBookingDetail = async (
-  id: string,
-  bookingDetailIds: string[]
-) => {
-  const bookingDetailIdsString = bookingDetailIds.join(",");
-  const response = await api.delete<Booking>(
-    `/${id}?bookingDetailIds=${bookingDetailIdsString}`
-  );
+export const deleteBooking = async (id: string) => {
+  const response = await api.delete<Booking>(`/${id}`);
   return response.data;
 };
 
 // Update a booking
-export const updateBooking = async (
-  id: string,
-  updatedBookingDetail: UpdateBookingDetailRequest
-) => {
-  try {
-    const requestBody = {
-      updateBookingDetailDtos: [updatedBookingDetail],
-    };
+// export const updateBooking = async (
+//   id: string,
+//   updatedBookingDetail: UpdateBookingDetailRequest
+// ) => {
+//   try {
+//     const requestBody = {
+//       updateBookingDetailDtos: [updatedBookingDetail],
+//     };
 
-    const response = await api.patch(`/${id}`, requestBody);
-    return response.data;
-  } catch (error) {
-    throw error instanceof Error
-      ? error
-      : new Error("Failed to update booking");
-  }
-};
+//     const response = await api.patch(`/${id}`, requestBody);
+//     return response.data;
+//   } catch (error) {
+//     throw error instanceof Error
+//       ? error
+//       : new Error("Failed to update booking");
+//   }
+// };

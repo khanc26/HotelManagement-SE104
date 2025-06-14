@@ -3,26 +3,32 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Invoice, InvoicesStatus } from "@/types/invoice.type";
 import { formatCurrency } from "@/lib/utils";
 import { InvoiceStatusBadge } from "../invoice-status-badge";
+import { format } from "date-fns";
 
 export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
-    accessorKey: "bookingDetail.room.roomNumber",
+    accessorKey: "booking.room.roomNumber",
     header: "Room",
   },
   {
-    accessorKey: "bookingDetail.startDate",
+    accessorKey: "booking.checkInDate",
     header: "Check In",
     cell: ({ row }) => {
-      return new Date(
-        row.original.bookingDetail.startDate
-      ).toLocaleDateString();
+      return format(new Date(row.original.booking.checkInDate), "MMM dd, yyyy");
     },
   },
   {
-    accessorKey: "bookingDetail.endDate",
+    accessorKey: "booking.checkOutDate",
     header: "Check Out",
     cell: ({ row }) => {
-      return new Date(row.original.bookingDetail.endDate).toLocaleDateString();
+      return format(new Date(row.original.booking.checkOutDate), "MMM dd, yyyy");
+    },
+  },
+  {
+    accessorKey: "basePrice",
+    header: "Base Price",
+    cell: ({ row }) => {
+      return formatCurrency(row.original.basePrice);
     },
   },
   {
@@ -31,6 +37,10 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     cell: ({ row }) => {
       return formatCurrency(row.original.totalPrice);
     },
+  },
+  {
+    accessorKey: "dayRent",
+    header: "Days Rented",
   },
   {
     accessorKey: "status",

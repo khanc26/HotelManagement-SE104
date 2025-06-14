@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { invoiceColumns } from "./invoice-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { payInvoice } from "@/api/payments";
+import { payInvoice } from "@/api/invoices";
 
 export const UserInvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -28,16 +28,14 @@ export const UserInvoiceList = () => {
 
     const handlePayInvoice = (event: Event) => {
       const customEvent = event as CustomEvent<{ invoice: Invoice }>;
-      payInvoice(
-        customEvent.detail.invoice.id,
-        customEvent.detail.invoice.totalPrice
-      )
-        .then((response) => {
-          window.location.href = response.paymentUrl;
+      payInvoice(customEvent.detail.invoice.id)
+        .then(() => {
+          toast.success("Invoice paid successfully");
+          fetchInvoices(); // Refresh the list after payment
         })
         .catch((error) => {
-          console.error("Error initiating payment:", error);
-          toast.error("Failed to initiate payment");
+          console.error("Error paying invoice:", error);
+          toast.error("Failed to pay invoice");
         });
     };
 
