@@ -1,26 +1,10 @@
-import { Booking } from "@/types/booking.type";
+import { Booking, CreateBookingDto } from "@/types/booking.type";
 import { createApiInstance } from "./axios-config";
 
 const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/bookings`);
 
-interface CreateBookingDetailDto {
-  roomId: string;
-  guestCount: number;
-  startDate: string;
-  endDate: string;
-  hasForeigners: boolean;
-}
-
-interface CreateBookingRequest {
-  createBookingDetailDtos: CreateBookingDetailDto[];
-}
-
-export const createBooking = async (bookingDetails: CreateBookingDetailDto[]) => {
-  const requestBody: CreateBookingRequest = {
-    createBookingDetailDtos: bookingDetails,
-  };
-
-  const response = await api.post("/", requestBody);
+export const createBooking = async (bookingData: CreateBookingDto) => {
+  const response = await api.post("/", bookingData);
   return response.data;
 };
 

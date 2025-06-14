@@ -66,20 +66,17 @@ export function BookingDetail() {
 
   React.useEffect(() => {
     if (booking) {
+      console.log(booking);
       form.reset({
         id: booking.id,
-        roomNumber: booking.roomNumber,
+        roomNumber: booking.room.roomNumber,
         checkInDate: format(new Date(booking.checkInDate), "yyyy-MM-dd"),
         checkOutDate: format(new Date(booking.checkOutDate), "yyyy-MM-dd"),
         booker: {
-          email: booking.booker.email,
-          fullName: booking.booker.fullName,
+          email: booking.user.email,
         },
         createdAt: format(new Date(booking.createdAt), "yyyy-MM-dd"),
         updatedAt: format(new Date(booking.updatedAt), "yyyy-MM-dd"),
-        deletedAt: booking.deletedAt
-          ? format(new Date(booking.deletedAt), "yyyy-MM-dd")
-          : null,
       });
     }
   }, [booking, form]);
@@ -101,21 +98,6 @@ export function BookingDetail() {
             <Form {...form}>
               <form className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Booking ID</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled />
-                        </FormControl>
-                        <FormDescription>
-                          Unique identifier for the booking
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     control={form.control}
                     name="roomNumber"
@@ -169,19 +151,6 @@ export function BookingDetail() {
                           <Input {...field} disabled />
                         </FormControl>
                         <FormDescription>Booker's email address</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="booker.fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Booker Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled />
-                        </FormControl>
-                        <FormDescription>Booker's full name</FormDescription>
                       </FormItem>
                     )}
                   />
