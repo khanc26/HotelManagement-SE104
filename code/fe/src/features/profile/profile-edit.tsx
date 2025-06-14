@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,17 +27,24 @@ const userSchema = z.object({
   nationality: z.string().trim().optional(),
   phoneNumber: z.string().trim().optional(),
   identityNumber: z.string().trim().optional(),
-  status: z.enum(["active", "inactive"]).optional(),
-  dob: z.string().trim().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Please enter a valid date",
-  }).optional(),
+  dob: z
+    .string()
+    .trim()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Please enter a valid date",
+    })
+    .optional(),
 });
 
 export function ProfileEdit() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
-  const { data: profile, isLoading, isError } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["myProfile"],
     queryFn: getMyProfile,
   });
@@ -54,7 +60,6 @@ export function ProfileEdit() {
       nationality: "",
       phoneNumber: "",
       identityNumber: "",
-      status: undefined,
       dob: "",
     },
   });
@@ -68,7 +73,6 @@ export function ProfileEdit() {
         nationality: profile.profile.nationality || "",
         phoneNumber: profile.profile.phoneNumber || "",
         identityNumber: profile.profile.identityNumber || "",
-        status: profile.profile.status || "",
         dob: profile.profile.dob
           ? new Date(profile.profile.dob).toISOString().split("T")[0]
           : "",
@@ -76,9 +80,30 @@ export function ProfileEdit() {
     }
   }, [profile, form]);
 
+  const handleResetToCurrentProfile = () => {
+    if (profile) {
+      form.reset({
+        fullName: profile.profile.fullName || "",
+        email: profile.email || "",
+        address: profile.profile.address || "",
+        nationality: profile.profile.nationality || "",
+        phoneNumber: profile.profile.phoneNumber || "",
+        identityNumber: profile.profile.identityNumber || "",
+        dob: profile.profile.dob
+          ? new Date(profile.profile.dob).toISOString().split("T")[0]
+          : "",
+      });
+    }
+  };
+
   const mutation = useMutation({
-    mutationFn: ({ id, updatedUser }: { id: string; updatedUser: UserUpdateRequest }) =>
-      updateUser(id, updatedUser),
+    mutationFn: ({
+      id,
+      updatedUser,
+    }: {
+      id: string;
+      updatedUser: UserUpdateRequest;
+    }) => updateUser(id, updatedUser),
     onSuccess: () => {
       toast.success("Profile updated successfully", {
         position: "top-right",
@@ -110,7 +135,6 @@ export function ProfileEdit() {
       nationality: values.nationality || undefined,
       phoneNumber: values.phoneNumber || undefined,
       identityNumber: values.identityNumber || undefined,
-      status: values.status || undefined,
       dob: values.dob ? new Date(values.dob) : undefined,
     };
 
@@ -132,14 +156,38 @@ export function ProfileEdit() {
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "fullName", label: "Full Name", desc: "Your complete name" },
-                  { name: "email", label: "Email", desc: "Valid email address", type: "email" },
-                  { name: "address", label: "Address", desc: "Your current address" },
-                  { name: "nationality", label: "Nationality", desc: "Your nationality" },
-                  { name: "phoneNumber", label: "Phone Number", desc: "Format: +84..." },
-                  { name: "identityNumber", label: "Identity Number", desc: "Personal ID number" },
-                  { name: "dob", label: "Date of Birth", desc: "Your birth date", type: "date" },
-                ].map(({ name, label, desc, type = "text" }) => (
+                  {
+                    name: "fullName",
+                    label: "Full Name",
+                    type: "text",
+                  },
+                  {
+                    name: "email",
+                    label: "Email",
+                    type: "email",
+                  },
+                  {
+                    name: "address",
+                    label: "Address",
+                  },
+                  {
+                    name: "nationality",
+                    label: "Nationality",
+                  },
+                  {
+                    name: "phoneNumber",
+                    label: "Phone Number",
+                  },
+                  {
+                    name: "identityNumber",
+                    label: "Identity Number",
+                  },
+                  {
+                    name: "dob",
+                    label: "Date of Birth",
+                    type: "date",
+                  },
+                ].map(({ name, label, type = "text" }) => (
                   <FormField
                     key={name}
                     control={form.control}
@@ -154,38 +202,31 @@ export function ProfileEdit() {
                             disabled={mutation.isPending}
                           />
                         </FormControl>
-                        <FormDescription>{desc}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 ))}
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          disabled={mutation.isPending}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                        >
-                          <option value="">Select status</option>
-                          <option value="active">active</option>
-                          <option value="inactive">inactive</option>
-                        </select>
-                      </FormControl>
-                      <FormDescription>User activity status</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Update Profile"}
-              </Button>
+              <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={mutation.isPending}
+                >
+                  {mutation.isPending ? "Saving..." : "Update Profile"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleResetToCurrentProfile}
+                  disabled={mutation.isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
             </form>
           </Form>
         )}
