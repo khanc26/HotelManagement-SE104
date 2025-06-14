@@ -1,4 +1,8 @@
-import { Booking, CreateBookingDto } from "@/types/booking.type";
+import {
+  Booking,
+  CreateBookingDto,
+  UpdateBookingDto,
+} from "@/types/booking.type";
 import { createApiInstance } from "./axios-config";
 
 const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/bookings`);
@@ -17,6 +21,14 @@ export const getBookings = async () => {
 // Get a single booking by ID
 export const getBookingById = async (id: string) => {
   const response = await api.get<Booking>(`/${id}`);
+  return response.data;
+};
+
+export const updateBooking = async (
+  id: string,
+  updatedBooking: UpdateBookingDto
+) => {
+  const response = await api.patch(`/${id}`, updatedBooking);
   return response.data;
 };
 

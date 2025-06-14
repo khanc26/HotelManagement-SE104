@@ -1,12 +1,12 @@
 import { Room } from "./room.type";
-import { User } from "./user.type";
+import { User, UserType } from "./user.type";
 
 export interface Participant {
   email: string;
   fullName: string;
   address: string;
   identityNumber: string;
-  userType: "local" | "foreign";
+  userType: UserType;
 }
 
 export interface Booking {
@@ -26,4 +26,11 @@ export interface CreateBookingDto {
   participants: Participant[];
   checkInDate: Date;
   checkOutDate: Date;
+}
+
+export interface UpdateBookingDto {
+  roomId?: string;
+  participants?: Participant[];
+  checkInDate?: Date | string;
+  checkOutDate?: Date | string;
 }

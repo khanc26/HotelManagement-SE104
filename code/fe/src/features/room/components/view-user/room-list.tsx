@@ -17,7 +17,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRooms } from "@/api/rooms";
 import { createBooking } from "@/api/bookings";
@@ -32,12 +31,24 @@ import { formatCurrency } from "@/utils/helpers/formatCurrency";
 import { toast } from "react-toastify";
 import { roomPricingRules } from "@/utils/constants";
 import { InputDatePicker } from "@/components/ui/input-date-picker";
+import { UserTableInput } from "@/features/booking/components/user-table-input";
+import { UserType } from "@/types/user.type";
 
 // Zod schema for a single booking
 const bookingSchema = z
   .object({
     roomId: z.string().trim(),
-    guestCount: z.number().min(1, "Guest count must be at least 1"),
+    participants: z
+      .array(
+        z.object({
+          email: z.string().email(),
+          fullName: z.string().min(1),
+          address: z.string().min(1),
+          identityNumber: z.string().min(1),
+          userType: z.nativeEnum(UserType),
+        })
+      )
+      .min(1, "At least one participant is required"),
     startDate: z
       .string()
       .trim()
@@ -56,7 +67,6 @@ const bookingSchema = z
         today.setHours(0, 0, 0, 0);
         return date > today;
       }, "End date must be after today"),
-    hasForeigners: z.boolean(),
   })
   .refine(
     (data) => {
@@ -99,10 +109,9 @@ function BookingCard({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       roomId: room.id,
-      guestCount: 1,
+      participants: [],
       startDate: today,
       endDate: tomorrowStr,
-      hasForeigners: false,
     },
   });
 
@@ -127,16 +136,16 @@ function BookingCard({
 
     let basePrice = nights * room.roomType.roomPrice;
     const { watch } = form;
-    const guestCount = watch("guestCount");
-    const hasForeigners = watch("hasForeigners");
+    const participants = watch("participants");
 
     // Apply foreign multiplier if applicable
-    if (hasForeigners) {
+    if (participants.some((p) => p.userType === UserType.FOREIGN)) {
       basePrice *= roomPricingRules.FOREIGN_MULTIPLIER;
     }
 
     // Apply group surcharge if applicable
-    if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
+    console.log(participants);
+    if (participants.length >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
       const surchargePercentage = roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
       const surcharge = (basePrice * surchargePercentage) / 100;
       basePrice += surcharge;
@@ -198,46 +207,21 @@ function BookingCard({
 
             <FormField
               control={form.control}
-              name="guestCount"
+              name="participants"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Guests</FormLabel>
+                  <FormLabel>Participants</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      min={1}
-                      max={room.roomType.maxGuests}
+                    <UserTableInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      maxUsers={room.roomType.maxGuests}
                     />
                   </FormControl>
                   <FormDescription>
                     Maximum {room.roomType.maxGuests} guests allowed
                   </FormDescription>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="hasForeigners"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-2">
-                  <FormControl>
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      className="h-4 w-4 rounded border-black bg-white checked:bg-black checked:border-black focus:ring-2 focus:ring-black focus:ring-offset-white"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Foreign Guests</FormLabel>
-                    <FormDescription>
-                      Check if any guests are foreigners
-                    </FormDescription>
-                  </div>
                 </FormItem>
               )}
             />
@@ -274,7 +258,7 @@ export function UserRoomList() {
       const form = formRefs.current.get(room.id);
       if (form) {
         const values = form.getValues();
-        const { startDate, endDate, guestCount, hasForeigners } = values;
+        const { startDate, endDate, participants } = values;
 
         if (startDate && endDate) {
           const start = new Date(startDate);
@@ -285,12 +269,14 @@ export function UserRoomList() {
           let roomTotal = nights * room.roomType.roomPrice;
 
           // Apply foreign multiplier if applicable
-          if (hasForeigners) {
+          if (participants.some((p) => p.userType === UserType.FOREIGN)) {
             roomTotal *= roomPricingRules.FOREIGN_MULTIPLIER;
           }
 
           // Apply group surcharge if applicable
-          if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
+          if (
+            participants.length >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD
+          ) {
             const surchargePercentage =
               roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
             const surcharge = (roomTotal * surchargePercentage) / 100;
@@ -318,7 +304,7 @@ export function UserRoomList() {
     queryFn: () => getRooms(),
   });
 
-  const { mutate: bookRooms, isPending: isSubmitting } = useMutation({
+  const { mutate: bookRoom, isPending: isSubmitting } = useMutation({
     mutationFn: createBooking,
     onSuccess: () => {
       toast.success("Your rooms have been booked successfully!");
@@ -346,6 +332,16 @@ export function UserRoomList() {
     const validationResults = await Promise.all(formPromises);
 
     if (!validationResults.every(Boolean)) {
+      // Log validation errors for each form
+      forms.forEach((form) => {
+        const errors = form.formState.errors;
+        if (Object.keys(errors).length > 0) {
+          console.error(
+            `Validation errors for room ${form.getValues().roomId}:`,
+            errors
+          );
+        }
+      });
       toast.error("Please check all fields and try again.");
       return;
     }
@@ -354,14 +350,27 @@ export function UserRoomList() {
       const values = form.getValues();
       return {
         roomId: values.roomId,
-        guestCount: values.guestCount,
-        startDate: new Date(values.startDate).toISOString(),
-        endDate: new Date(values.endDate).toISOString(),
-        hasForeigners: values.hasForeigners,
+        participants: values.participants,
+        checkInDate: new Date(values.startDate),
+        checkOutDate: new Date(values.endDate),
       };
     });
 
-    bookRooms(bookingData);
+    console.log("BOOK DATA", bookingData);
+
+    for (const booking of bookingData) {
+      try {
+        await new Promise((resolve, reject) => {
+          bookRoom(booking, {
+            onSuccess: () => resolve(undefined),
+            onError: (error) => reject(error),
+          });
+        });
+      } catch (error) {
+        console.error(`Failed to book room ${booking.roomId}:`, error);
+        return;
+      }
+    }
   };
 
   return (

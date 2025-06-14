@@ -50,6 +50,7 @@ import PaymentResult from "@/pages/PaymentResult";
 import { RoomTypeEdit } from "@/features/roomtype/room-type-edit";
 import { InvoiceList } from "@/features/invoice/components/invoice-list";
 import { BookingDetail } from "@/features/booking/components/booking-detail";
+import { BookingEdit } from "@/features/booking/components/booking-edit";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -177,10 +178,10 @@ const router = createBrowserRouter([
             path: ":id",
             element: <BookingDetail />,
           },
-          // {
-          //   path: ":id/edit",
-          //   element: <BookingDetailEdit />,
-          // },
+          {
+            path: ":id/edit",
+            element: <BookingEdit />,
+          },
         ],
       },
       {

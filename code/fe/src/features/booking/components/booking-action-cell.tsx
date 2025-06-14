@@ -33,7 +33,9 @@ export function BookingActionCell({ booking }: { booking: Booking }) {
       toast.success("Booking deleted successfully");
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to delete booking");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete booking"
+      );
     },
   });
 
@@ -59,6 +61,12 @@ export function BookingActionCell({ booking }: { booking: Booking }) {
             </Link>
           </DropdownMenuItem>
 
+          <DropdownMenuItem>
+            <Link to={`/bookings/${booking.id}/edit`}>
+              <p className="text-sm font-normal">Edit</p>
+            </Link>
+          </DropdownMenuItem>
+
           <DialogTrigger asChild>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               Delete
@@ -73,7 +81,7 @@ export function BookingActionCell({ booking }: { booking: Booking }) {
           <DialogDescription>
             Are you sure you want to delete booking for room{" "}
             <span className="font-semibold inline text-black underline">
-              {booking.roomNumber}
+              {booking.room.roomNumber}
             </span>
             ?
           </DialogDescription>
