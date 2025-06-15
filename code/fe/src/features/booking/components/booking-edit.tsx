@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -92,7 +91,6 @@ type BookingEditFormValues = z.infer<typeof bookingEditSchema>;
 export function BookingEdit() {
   const { id } = useParams();
   const queryClient = useQueryClient();
-  const [maxGuests, setMaxGuests] = useState<number>(6); // Default max guests
 
   // Fetch booking details
   const {
@@ -184,12 +182,11 @@ export function BookingEdit() {
                   </FormItem>
                 )}
               />
-
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="startDate"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormControl>
                         <InputDatePicker
@@ -207,7 +204,7 @@ export function BookingEdit() {
                 <FormField
                   control={form.control}
                   name="endDate"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormControl>
                         <InputDatePicker
@@ -239,9 +236,6 @@ export function BookingEdit() {
                         notUser={true}
                       />
                     </FormControl>
-                    <FormDescription>
-                      Maximum {maxGuests} guests allowed
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

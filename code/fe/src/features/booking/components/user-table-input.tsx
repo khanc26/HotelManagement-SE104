@@ -30,7 +30,7 @@ export function UserTableInput({
   onChange,
   notUser = false
 }: UserTableInputProps) {
-  const updateTimeoutRef = useRef<NodeJS.Timeout>();
+  const updateTimeoutRef = useRef<NodeJS.Timeout>(undefined);
 
   const {
     data: myProfile,
