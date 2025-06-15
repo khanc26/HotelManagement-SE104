@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  // DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -63,11 +63,11 @@ export function RoomTypeActionCell({ roomType }: { roomType: RoomType }) {
             </Link>
           </DropdownMenuItem>
 
-          <DialogTrigger asChild>
+          {/* <DialogTrigger asChild>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               Delete
             </DropdownMenuItem>
-          </DialogTrigger>
+          </DialogTrigger> */}
         </DropdownMenuContent>
       </DropdownMenu>
 
