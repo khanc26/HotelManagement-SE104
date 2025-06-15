@@ -14,7 +14,7 @@ const PaymentResult = () => {
   useEffect(() => {
     // Redirect to invoices page after 5 seconds
     const timer = setTimeout(() => {
-      navigate("/invoices");
+      navigate("/user-invoices");
     }, 5000);
 
     return () => clearTimeout(timer);
