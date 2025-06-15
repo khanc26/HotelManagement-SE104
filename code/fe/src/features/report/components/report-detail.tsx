@@ -1,4 +1,4 @@
-import { getReportById } from "@/api/reports";
+import {  getReportByMonth } from "@/api/reports";
 import { TableError } from "@/components/table-error";
 import { TableSkeleton } from "@/components/table-skeleton";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ export function ReportDetail() {
     isError: isError,
   } = useQuery({
     queryKey: ["report-detail", id],
-    queryFn: () => getReportById(id!),
+    queryFn: () => getReportByMonth(id!),
     enabled: !!id,
   });
 

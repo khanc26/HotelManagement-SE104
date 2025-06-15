@@ -11,7 +11,7 @@ export class ParamsController {
   constructor(private readonly paramsService: ParamsService) {}
 
   @Get()
-  @Roles(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN)
+  @Roles(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN, RoleEnum.USER)
   async findAll() {
     return this.paramsService.findAll();
   }

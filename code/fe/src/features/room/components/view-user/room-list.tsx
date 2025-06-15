@@ -1,6 +1,12 @@
 import { DataTable } from "@/components/ui/data-table";
 import { roomColumns } from "./room-columns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,10 +17,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRooms } from "@/api/rooms";
 import { createBooking } from "@/api/bookings";
+import { getConfiguration } from "@/api/configurations";
 import { TableSkeleton } from "@/components/table-skeleton";
 import { TableError } from "@/components/table-error";
 import { useState, useRef, useEffect } from "react";
@@ -24,27 +30,52 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { formatCurrency } from "@/utils/helpers/formatCurrency";
 import { toast } from "react-toastify";
-import { roomPricingRules } from "@/utils/constants";
 import { InputDatePicker } from "@/components/ui/input-date-picker";
+import { UserTableInput } from "@/features/booking/components/user-table-input";
+import { UserType } from "@/types/user.type";
+
+interface Configuration {
+  id: string;
+  paramName: string;
+  paramValue: number;
+  description: string;
+  createdAt: string;
+  deletedAt: string | null;
+}
 
 // Zod schema for a single booking
 const bookingSchema = z
   .object({
     roomId: z.string().trim(),
-    guestCount: z.number().min(1, "Guest count must be at least 1"),
-    startDate: z.string().trim().refine((val) => {
-      const date = new Date(val);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return date >= today;
-    }, "Start date must be today or later"),
-    endDate: z.string().trim().refine((val) => {
-      const date = new Date(val);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return date > today;
-    }, "End date must be after today"),
-    hasForeigners: z.boolean(),
+    participants: z
+      .array(
+        z.object({
+          email: z.string().email(),
+          fullName: z.string().min(1),
+          address: z.string().min(1),
+          identityNumber: z.string().min(1),
+          userType: z.nativeEnum(UserType),
+        })
+      )
+      .min(1, "At least one participant is required"),
+    startDate: z
+      .string()
+      .trim()
+      .refine((val) => {
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return date >= today;
+      }, "Start date must be today or later"),
+    endDate: z
+      .string()
+      .trim()
+      .refine((val) => {
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return date > today;
+      }, "End date must be after today"),
   })
   .refine(
     (data) => {
@@ -83,14 +114,18 @@ function BookingCard({
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
+  const { data: configuration } = useQuery<Configuration[]>({
+    queryKey: ["params"],
+    queryFn: getConfiguration,
+  });
+
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       roomId: room.id,
-      guestCount: 1,
+      participants: [],
       startDate: today,
       endDate: tomorrowStr,
-      hasForeigners: false,
     },
   });
 
@@ -107,7 +142,7 @@ function BookingCard({
   };
 
   const calculateTotalPrice = () => {
-    if (!startDate || !endDate) return 0;
+    if (!startDate || !endDate || !configuration) return 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -115,20 +150,30 @@ function BookingCard({
 
     let basePrice = nights * room.roomType.roomPrice;
     const { watch } = form;
-    const guestCount = watch("guestCount");
-    const hasForeigners = watch("hasForeigners");
+    const participants = watch("participants");
 
-    // Apply foreign multiplier if applicable
-    if (hasForeigners) {
-      basePrice *= roomPricingRules.FOREIGN_MULTIPLIER;
-    }
-
-    // Apply group surcharge if applicable
-    if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
-      const surchargePercentage = roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
-      const surcharge = (basePrice * surchargePercentage) / 100;
+    // Apply group surcharge if applicable (for 3rd person onwards)
+    if (participants.length > 2) {
+      const surchargeRate =
+        configuration.find(
+          (c: Configuration) => c.paramName === "surcharge_rate"
+        )?.paramValue || 25;
+      const additionalGuests = participants.length - 2;
+      const surcharge =
+        basePrice * (Number(surchargeRate)) * additionalGuests;
       basePrice += surcharge;
     }
+
+    // Apply foreign multiplier last if applicable
+    if (participants.some((p) => p.userType === UserType.FOREIGN)) {
+      const foreignFactor =
+        configuration.find(
+          (c: Configuration) => c.paramName === "foreign_guest_factor"
+        )?.paramValue || 1.5;
+      basePrice *= Number(foreignFactor);
+    }
+
+    console.log('ITEM', basePrice);
 
     return basePrice;
   };
@@ -158,7 +203,6 @@ function BookingCard({
         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
           <p className="font-medium">Room Details:</p>
           <p>Type: {room.roomType.name}</p>
-          <p>Max Guests: {room.roomType.maxGuests}</p>
           <p>Price per night: {formatCurrency(room.roomType.roomPrice)}</p>
           <p className="mt-2 font-semibold">
             Total for {calculateTotalNights()} nights:{" "}
@@ -186,46 +230,25 @@ function BookingCard({
 
             <FormField
               control={form.control}
-              name="guestCount"
+              name="participants"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Guests</FormLabel>
+                  <FormLabel>Participants</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      min={1}
-                      max={room.roomType.maxGuests}
+                    <UserTableInput
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormDescription>
-                    Maximum {room.roomType.maxGuests} guests allowed
+                    Maximum{" "}
+                    {configuration?.find(
+                      (c: Configuration) =>
+                        c.paramName === "max_guests_per_room"
+                    )?.paramValue || 3}{" "}
+                    guests allowed
                   </FormDescription>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="hasForeigners"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-2">
-                  <FormControl>
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      className="h-4 w-4 rounded border-black bg-white checked:bg-black checked:border-black focus:ring-2 focus:ring-black focus:ring-offset-white"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Foreign Guests</FormLabel>
-                    <FormDescription>
-                      Check if any guests are foreigners
-                    </FormDescription>
-                  </div>
                 </FormItem>
               )}
             />
@@ -243,6 +266,11 @@ export function UserRoomList() {
     new Map()
   );
   const queryClient = useQueryClient();
+
+  const { data: configuration } = useQuery<Configuration[]>({
+    queryKey: ["configuration"],
+    queryFn: getConfiguration,
+  });
 
   const registerForm = (
     roomId: string,
@@ -262,7 +290,7 @@ export function UserRoomList() {
       const form = formRefs.current.get(room.id);
       if (form) {
         const values = form.getValues();
-        const { startDate, endDate, guestCount, hasForeigners } = values;
+        const { startDate, endDate, participants } = values;
 
         if (startDate && endDate) {
           const start = new Date(startDate);
@@ -272,17 +300,28 @@ export function UserRoomList() {
 
           let roomTotal = nights * room.roomType.roomPrice;
 
-          // Apply foreign multiplier if applicable
-          if (hasForeigners) {
-            roomTotal *= roomPricingRules.FOREIGN_MULTIPLIER;
+          // Apply group surcharge if applicable
+          if (participants.length > 2) {
+            const surchargeRate =
+              configuration?.find(
+                (c: Configuration) => c.paramName === "surcharge_rate"
+              )?.paramValue || 25;
+            const additionalGuests = participants.length - 2;
+            console.log(surchargeRate);
+            console.log(roomTotal, Number(surchargeRate), additionalGuests);
+            const surcharge =
+              roomTotal * (Number(surchargeRate)) * additionalGuests;
+            roomTotal += surcharge;
+            console.log("AFTER", roomTotal);
           }
 
-          // Apply group surcharge if applicable
-          if (guestCount >= roomPricingRules.GROUP_SURCHARGE_THRESHOLD) {
-            const surchargePercentage =
-              roomPricingRules.GROUP_SURCHARGE_PERCENTAGE;
-            const surcharge = (roomTotal * surchargePercentage) / 100;
-            roomTotal += surcharge;
+          // Apply foreign multiplier last if applicable
+          if (participants.some((p) => p.userType === UserType.FOREIGN)) {
+            const foreignFactor =
+              configuration?.find(
+                (c: Configuration) => c.paramName === "foreign_guest_factor"
+              )?.paramValue || 1.5;
+            roomTotal *= Number(foreignFactor);
           }
 
           total += roomTotal;
@@ -306,7 +345,7 @@ export function UserRoomList() {
     queryFn: () => getRooms(),
   });
 
-  const { mutate: bookRooms, isPending: isSubmitting } = useMutation({
+  const { mutate: bookRoom, isPending: isSubmitting } = useMutation({
     mutationFn: createBooking,
     onSuccess: () => {
       toast.success("Your rooms have been booked successfully!");
@@ -334,6 +373,16 @@ export function UserRoomList() {
     const validationResults = await Promise.all(formPromises);
 
     if (!validationResults.every(Boolean)) {
+      // Log validation errors for each form
+      forms.forEach((form) => {
+        const errors = form.formState.errors;
+        if (Object.keys(errors).length > 0) {
+          console.error(
+            `Validation errors for room ${form.getValues().roomId}:`,
+            errors
+          );
+        }
+      });
       toast.error("Please check all fields and try again.");
       return;
     }
@@ -342,21 +391,39 @@ export function UserRoomList() {
       const values = form.getValues();
       return {
         roomId: values.roomId,
-        guestCount: values.guestCount,
-        startDate: new Date(values.startDate).toISOString(),
-        endDate: new Date(values.endDate).toISOString(),
-        hasForeigners: values.hasForeigners,
+        participants: values.participants,
+        checkInDate: new Date(values.startDate),
+        checkOutDate: new Date(values.endDate),
       };
     });
 
-    bookRooms(bookingData);
+    console.log("BOOK DATA", bookingData);
+
+    for (const booking of bookingData) {
+      try {
+        await new Promise((resolve, reject) => {
+          bookRoom(booking, {
+            onSuccess: () => resolve(undefined),
+            onError: (error) => reject(error),
+          });
+        });
+      } catch (error) {
+        console.error(`Failed to book room ${booking.roomId}:`, error);
+        return;
+      }
+    }
   };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Available Rooms</CardTitle>
+          <CardTitle className="text-xl font-bold">
+            Pick your favorite room
+          </CardTitle>
+          <CardDescription>
+            We still have a few rooms available for today — grab yours now!
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isRoomsLoading ? (

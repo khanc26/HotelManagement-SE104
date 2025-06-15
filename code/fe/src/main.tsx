@@ -11,10 +11,18 @@ import App from "./App.tsx";
 import { Button } from "./components/ui/button.tsx";
 import "./index.css";
 
-interface ResponseError extends Error {
+interface AxiosErrorResponse {
+  message?: string;
+  error?: string;
+  statusCode?: number;
+}
+
+interface CustomAxiosError {
   response?: {
     status: number;
+    data?: AxiosErrorResponse;
   };
+  message: string;
 }
 
 const queryClient = new QueryClient({
@@ -25,9 +33,9 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error) => {
-      const typedError = error as ResponseError;
+      const axiosError = error as CustomAxiosError;
 
-      if (typedError?.response?.status === 401) {
+      if (axiosError?.response?.status === 401) {
         toast.error(
           <div>
             <p>Your session has expired. Return to login page?</p>
@@ -48,6 +56,11 @@ const queryClient = new QueryClient({
         );
         localStorage.removeItem("access_token");
       } else {
+        const errorMessage =
+          axiosError?.response?.data?.message ||
+          axiosError?.message ||
+          "An unknown error occurred";
+        toast.error(`API Error: ${errorMessage}`);
         toast.error(`API Error: ${error.message || "An error occurred"}`);
       }
     },
@@ -55,9 +68,9 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error, _, __, mutation) => {
       const { mutationKey } = mutation.options;
-      const typedError = error as ResponseError;
+      const axiosError = error as CustomAxiosError;
 
-      if (typedError?.response?.status === 401) {
+      if (axiosError?.response?.status === 401) {
         toast.error(
           <div>
             <p>Your session has expired. Return to login page?</p>
@@ -78,10 +91,14 @@ const queryClient = new QueryClient({
         );
         localStorage.removeItem("access_token");
       } else {
+        const errorMessage =
+          axiosError?.response?.data?.message ||
+          axiosError?.message ||
+          "An unknown error occurred";
         toast.error(
           `API Mutation Error${
-            mutationKey ? `: ${mutationKey.join(", ")}` : ""
-          }`
+            mutationKey ? ` (${mutationKey.join(", ")})` : ""
+          }: ${errorMessage}`
         );
       }
     },

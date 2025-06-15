@@ -1,75 +1,81 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { InvoiceActionsCell } from "./invoice-action-cell";
+import { Invoice } from "@/types/invoice.type";
+import { format } from "date-fns";
 import { formatCurrency } from "@/utils/helpers/formatCurrency";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { Booking } from "@/types/booking.type";
+import { InvoiceActionCell } from "./invoice-action-cell";
+import { InvoiceStatusBadge } from "./invoice-status-badge";
 
 interface RowData {
-  original: Booking;
+  original: Invoice;
 }
 
-export const invoiceColumns: ColumnDef<Booking>[] = [
+export const columns: ColumnDef<Invoice>[] = [
   {
-    accessorKey: "user.email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Payer
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+    accessorKey: "booking.room.roomNumber",
+    header: "Room Number",
+  },
+  {
+    accessorKey: "booking.checkInDate",
+    header: "Check In",
+    cell: ({ row }: { row: RowData }) => {
+      return format(new Date(row.original.booking.checkInDate), "MMM dd, yyyy");
+    },
+  },
+  {
+    accessorKey: "booking.checkOutDate",
+    header: "Check Out",
+    cell: ({ row }: { row: RowData }) => {
+      return format(new Date(row.original.booking.checkOutDate), "MMM dd, yyyy");
+    },
+  },
+  {
+    accessorKey: "basePrice",
+    header: "Base Price",
+    cell: ({ row }: { row: RowData }) => {
+      return formatCurrency(row.original.basePrice);
     },
   },
   {
     accessorKey: "totalPrice",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Total Price
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: "Total Price",
     cell: ({ row }: { row: RowData }) => {
       return formatCurrency(row.original.totalPrice);
     },
   },
   {
-    accessorKey: "createdAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Created At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    accessorKey: "dayRent",
+    header: "Days Rented",
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
     cell: ({ row }: { row: RowData }) => {
-      const date = new Date(row.original.createdAt);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      return <InvoiceStatusBadge status={row.original.status} />;
+    },
+  },
+  {
+    accessorKey: "booking.user.email",
+    header: "Payer",
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }: { row: RowData }) => {
+      return format(new Date(row.original.createdAt), "MMM dd, yyyy HH:mm");
+    },
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "Updated At",
+    cell: ({ row }: { row: RowData }) => {
+      return format(new Date(row.original.updatedAt), "MMM dd, yyyy HH:mm");
     },
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const booking = row.original;
-      return <InvoiceActionsCell bookingId={booking.id} />;
+    cell: ({ row }: { row: RowData }) => {
+      const invoice = row.original;
+      return <InvoiceActionCell invoice={invoice} />;
     },
   },
 ];

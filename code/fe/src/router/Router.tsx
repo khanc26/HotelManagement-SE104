@@ -27,9 +27,8 @@ import ErrorPage from "@/pages/ErrorPage";
 import NotAuthenticated from "@/pages/NotAuthenticated";
 import BookingsPage from "@/pages/BookingsPage";
 import { BookingList } from "@/features/booking/components/booking-list";
-import { BookingDetailList } from "@/features/booking/components/booking-detail-list";
-import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
-import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
+// import { BookingDetail } from "@/features/booking-detail/components/booking-detail";
+// import { BookingDetailEdit } from "@/features/booking-detail/components/booking-detail-edit";
 import { PrivateRoutes } from "@/features/auth/components/private-routes";
 import { RoleBasedRoutes } from "@/features/auth/components/role-based-routes";
 import InvoicePage from "@/pages/InvoicesPage";
@@ -50,6 +49,8 @@ import RoomTypeList from "@/features/roomtype/room-type-list";
 import PaymentResult from "@/pages/PaymentResult";
 import { RoomTypeEdit } from "@/features/roomtype/room-type-edit";
 import { InvoiceList } from "@/features/invoice/components/invoice-list";
+import { BookingDetail } from "@/features/booking/components/booking-detail";
+import { BookingEdit } from "@/features/booking/components/booking-edit";
 
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
@@ -175,15 +176,11 @@ const router = createBrowserRouter([
           },
           {
             path: ":id",
-            element: <BookingDetailList />,
-          },
-          {
-            path: ":id/:detailId",
             element: <BookingDetail />,
           },
           {
-            path: ":id/:detailId/edit",
-            element: <BookingDetailEdit />,
+            path: ":id/edit",
+            element: <BookingEdit />,
           },
         ],
       },
