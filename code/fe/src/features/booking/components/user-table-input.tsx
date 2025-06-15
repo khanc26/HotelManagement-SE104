@@ -5,20 +5,30 @@ import { UserType } from "@/types/user.type";
 import { Participant } from "@/types/booking.type";
 import { useQuery } from "@tanstack/react-query";
 import { getMyProfile } from "@/api/profile";
+import { getConfiguration } from "@/api/configurations";
 import { Plus, User } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRef } from "react";
 
+interface Configuration {
+  id: string;
+  paramName: string;
+  paramValue: number;
+  description: string;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
 interface UserTableInputProps {
   value?: Participant[];
   onChange?: (value: Participant[]) => void;
-  maxUsers?: number;
+  notUser?: boolean
 }
 
 export function UserTableInput({
   value = [],
   onChange,
-  maxUsers = 5,
+  notUser = false
 }: UserTableInputProps) {
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -27,8 +37,15 @@ export function UserTableInput({
     isLoading: isProfileLoading,
   } = useQuery({
     queryKey: ["myProfile"],
-    queryFn: () => getMyProfile(),
+    queryFn: getMyProfile,
   });
+
+  const { data: configuration } = useQuery<Configuration[]>({
+    queryKey: ["configuration"],
+    queryFn: getConfiguration,
+  });
+
+  const maxUsers = configuration?.find((c: Configuration) => c.paramName === 'max_guests_per_room')?.paramValue || 3;
 
   // Check if current user is already added as a participant
   const isSelfAdded = myProfile && value.some(
@@ -196,7 +213,7 @@ export function UserTableInput({
             variant="outline"
             size="sm"
             onClick={handleAddSelf}
-            disabled={value.length >= maxUsers || isProfileLoading || isSelfAdded}
+            disabled={notUser || value.length >= maxUsers || isProfileLoading || isSelfAdded}
           >
             <User className="h-4 w-4 mr-2" />
             Add Myself

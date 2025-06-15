@@ -13,12 +13,6 @@ export const getInvoiceById = async (id: string) => {
   return response.data;
 };
 
-export const payInvoice = async (id: string) => {
-  console.log(id);
-  // const response = await api.patch<Invoice>(`/${id}/pay`);
-  // return response.data;
-};
-
 export const deleteInvoice = async (id: string) => {
   const response = await api.delete<Invoice>(`/${id}`);
   return response.data;

@@ -1,54 +1,16 @@
 import { DataTable } from "@/components/ui/data-table";
-import { Invoice } from "@/types/invoice.type";
 import { getInvoices } from "@/api/invoices";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { invoiceColumns } from "./invoice-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { payInvoice } from "@/api/invoices";
+import { useQuery } from "@tanstack/react-query";
+import { TableSkeleton } from "@/components/table-skeleton";
+import { TableError } from "@/components/table-error";
 
 export const UserInvoiceList = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchInvoices = async () => {
-    try {
-      const data = await getInvoices();
-      setInvoices(data);
-    } catch (error) {
-      console.error("Error fetching invoices:", error);
-      toast.error("Failed to fetch invoices");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchInvoices();
-
-    const handlePayInvoice = (event: Event) => {
-      const customEvent = event as CustomEvent<{ invoice: Invoice }>;
-      payInvoice(customEvent.detail.invoice.id)
-        .then(() => {
-          toast.success("Invoice paid successfully");
-          fetchInvoices(); // Refresh the list after payment
-        })
-        .catch((error) => {
-          console.error("Error paying invoice:", error);
-          toast.error("Failed to pay invoice");
-        });
-    };
-
-    window.addEventListener("pay-invoice", handlePayInvoice);
-
-    return () => {
-      window.removeEventListener("pay-invoice", handlePayInvoice);
-    };
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const { data: invoices, isLoading, isError } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: getInvoices,
+  });
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -57,7 +19,15 @@ export const UserInvoiceList = () => {
           <CardTitle>My Invoices</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable columns={invoiceColumns} data={invoices} />
+          {isLoading ? (
+            <TableSkeleton />
+          ) : isError ? (
+            <TableError errorMessage="Error fetching invoices" />
+          ) : invoices ? (
+            <DataTable columns={invoiceColumns} data={invoices} />
+          ) : (
+            <div>No invoices found</div>
+          )}
         </CardContent>
       </Card>
     </div>

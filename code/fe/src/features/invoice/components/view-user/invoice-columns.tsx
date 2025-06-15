@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { Invoice, InvoicesStatus } from "@/types/invoice.type";
+import { Invoice } from "@/types/invoice.type";
 import { formatCurrency } from "@/lib/utils";
 import { InvoiceStatusBadge } from "../invoice-status-badge";
 import { format } from "date-fns";
+import { InvoicePaymentButton } from "./invoice-payment-button";
 
 export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
@@ -21,7 +21,10 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     accessorKey: "booking.checkOutDate",
     header: "Check Out",
     cell: ({ row }) => {
-      return format(new Date(row.original.booking.checkOutDate), "MMM dd, yyyy");
+      return format(
+        new Date(row.original.booking.checkOutDate),
+        "MMM dd, yyyy"
+      );
     },
   },
   {
@@ -53,24 +56,7 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
       const invoice = row.original;
 
       return (
-        <div className="flex items-center gap-2">
-          {invoice.status === InvoicesStatus.UNPAID && (
-            <Button
-              onClick={() => {
-                // This will be handled by the parent component
-                window.dispatchEvent(
-                  new CustomEvent("pay-invoice", {
-                    detail: { invoice },
-                  })
-                );
-              }}
-              variant="default"
-              size="sm"
-            >
-              Pay Now
-            </Button>
-          )}
-        </div>
+        <InvoicePaymentButton invoiceId={invoice.id} amount={invoice.totalPrice} status={invoice.status} />
       );
     },
   },

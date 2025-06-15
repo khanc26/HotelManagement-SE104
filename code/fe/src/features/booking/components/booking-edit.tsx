@@ -90,7 +90,7 @@ const bookingEditSchema = z
 type BookingEditFormValues = z.infer<typeof bookingEditSchema>;
 
 export function BookingEdit() {
-      const { id } = useParams();
+  const { id } = useParams();
   const queryClient = useQueryClient();
   const [maxGuests, setMaxGuests] = useState<number>(6); // Default max guests
 
@@ -125,28 +125,29 @@ export function BookingEdit() {
           id: booking.room.id,
           roomNumber: booking.room.roomNumber || "",
         },
-        participants: booking.participants || [],
+        participants: [],
         startDate: new Date(booking.checkInDate).toISOString().split("T")[0],
         endDate: new Date(booking.checkOutDate).toISOString().split("T")[0],
       });
-    //   setMaxGuests(booking.room.roomType.name?.maxGuests || 5);
+      //   setMaxGuests(booking.room.roomType.name?.maxGuests || 5);
     }
   }, [booking, form]);
 
   // Mutation for updating booking
-  const { mutate: updateBookingMutation, isPending: isSubmitting } = useMutation({
-    mutationFn: (data: BookingEditFormValues) =>
-      updateBooking(id!, {
-        roomId: data.room.id,
-        participants: data.participants,
-        checkInDate: new Date(data.startDate).toISOString(),
-        checkOutDate: new Date(data.endDate).toISOString(),
-      }),
-    onSuccess: () => {
-      toast.success("Booking updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["booking", id!] });
-    }
-  });
+  const { mutate: updateBookingMutation, isPending: isSubmitting } =
+    useMutation({
+      mutationFn: (data: BookingEditFormValues) =>
+        updateBooking(id!, {
+          roomId: data.room.id,
+          participants: data.participants,
+          checkInDate: new Date(data.startDate).toISOString(),
+          checkOutDate: new Date(data.endDate).toISOString(),
+        }),
+      onSuccess: () => {
+        toast.success("Booking updated successfully!");
+        queryClient.invalidateQueries({ queryKey: ["booking", id!] });
+      },
+    });
 
   const onSubmit = async (data: BookingEditFormValues) => {
     await updateBookingMutation(data);
@@ -235,7 +236,7 @@ export function BookingEdit() {
                       <UserTableInput
                         value={field.value}
                         onChange={field.onChange}
-                        maxUsers={maxGuests}
+                        notUser={true}
                       />
                     </FormControl>
                     <FormDescription>
