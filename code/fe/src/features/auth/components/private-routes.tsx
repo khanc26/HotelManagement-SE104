@@ -9,12 +9,12 @@ type PrivateRoutesProps = {
 export function PrivateRoutes({ children }: PrivateRoutesProps) {
   const [storedValue] = useLocalStorage("access_token", null);
   const location = useLocation();
-
+    
   useEffect(() => {}, [location.pathname, storedValue]);
 
   return storedValue ? (
     <>{children}</>
   ) : (
-    <Navigate to="/auth/not-authenticated" replace state={{ from: location }} />
+    <Navigate to="/auth/sign-in" replace state={{ from: location }} />
   );
 }

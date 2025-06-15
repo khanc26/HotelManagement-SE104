@@ -68,6 +68,48 @@ const menuItems = {
       icon: SettingsIcon,
     },
   ],
+  [Role.SUPER_ADMIN]: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: Home,
+    },
+    {
+      title: "Rooms",
+      url: "/rooms/list",
+      icon: Bed,
+    },
+    {
+      title: "Users",
+      url: "/users/list",
+      icon: BookUser,
+    },
+    {
+      title: "Room Types",
+      url: "/room-types/list",
+      icon: BookUser,
+    },
+    {
+      title: "Bookings",
+      url: "/bookings/list",
+      icon: NotebookPen,
+    },
+    {
+      title: "Invoices",
+      url: "/invoices/list",
+      icon: Receipt,
+    },
+    {
+      title: "Reports",
+      url: "/reports/list",
+      icon: ChartNoAxesCombined,
+    },
+    {
+      title: "Configuration",
+      url: "/configuration/list",
+      icon: SettingsIcon,
+    },
+  ],
   [Role.USER]: [
     {
       title: "Rooms",

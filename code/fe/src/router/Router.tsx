@@ -55,7 +55,7 @@ import { BookingEdit } from "@/features/booking/components/booking-edit";
 const RootPath = () => {
   const [role] = useLocalStorage("role", null);
 
-  if (role === Role.ADMIN) {
+  if (role === Role.ADMIN || role === Role.SUPER_ADMIN) {
     return <DashboardPage />;
   } else if (role === Role.USER) {
     return <UserRoomList />;
@@ -69,7 +69,7 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <PrivateRoutes>
-        <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.USER]}>
+        <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,  Role.USER]}>
           <MainLayout />
         </RoleBasedRoutes>
       </PrivateRoutes>
@@ -83,7 +83,7 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <DashboardPage />
           </RoleBasedRoutes>
         ),
@@ -91,7 +91,7 @@ const router = createBrowserRouter([
       {
         path: "rooms",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <RoomsPage />
           </RoleBasedRoutes>
         ),
@@ -117,7 +117,7 @@ const router = createBrowserRouter([
       {
         path: "users",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <UsersPage />
           </RoleBasedRoutes>
         ),
@@ -161,7 +161,7 @@ const router = createBrowserRouter([
       {
         path: "bookings",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <BookingsPage />
           </RoleBasedRoutes>
         ),
@@ -187,7 +187,7 @@ const router = createBrowserRouter([
       {
         path: "invoices",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <InvoicePage />
           </RoleBasedRoutes>
         ),
@@ -209,7 +209,7 @@ const router = createBrowserRouter([
       {
         path: "configuration",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <ConfigurationPage />
           </RoleBasedRoutes>
         ),
@@ -235,7 +235,7 @@ const router = createBrowserRouter([
       {
         path: "reports",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN,]}>
             <ReportPage />
           </RoleBasedRoutes>
         ),
@@ -280,7 +280,7 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: (
-          <RoleBasedRoutes allowedRoles={[Role.USER, Role.ADMIN]}>
+          <RoleBasedRoutes allowedRoles={[Role.USER, Role.ADMIN, Role.SUPER_ADMIN,]}>
             <ProfilePage />
           </RoleBasedRoutes>
         ),

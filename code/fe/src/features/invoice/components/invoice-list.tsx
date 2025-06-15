@@ -19,7 +19,7 @@ export function InvoiceList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Invoices</CardTitle>
+        <CardTitle className="text-xl font-bold">Invoices</CardTitle>
       </CardHeader>
       <div className="flex">
         <CardContent className="flex-1 w-1">
