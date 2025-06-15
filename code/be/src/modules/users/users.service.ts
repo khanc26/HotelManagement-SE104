@@ -22,8 +22,8 @@ import {
   UserTypeEnum,
 } from 'src/modules/users/enums';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
-import { UsersRepository } from './users.repository';
 import { CreateParticipantDto } from '../bookings/dto';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
@@ -659,6 +659,16 @@ export class UsersService {
       throw new NotFoundException(`User type ${userType} not found.`);
     }
 
+    const existingUserRole = await this.roleRepository.findOne({
+      where: {
+        roleName: RoleEnum.USER,
+      },
+    });
+
+    if (!existingUserRole) {
+      throw new NotFoundException(`Role user not found.`);
+    }
+
     const existingIdentityNumber = await this.profileRepository.findOne({
       where: {
         identityNumber,
@@ -682,9 +692,7 @@ export class UsersService {
         status: ProfileStatusEnum.ACTIVE,
       },
       userType: existingUserType,
-      role: {
-        roleName: RoleEnum.USER,
-      },
+      role: existingUserRole,
     });
 
     await this.userRepository.save(newUser);
