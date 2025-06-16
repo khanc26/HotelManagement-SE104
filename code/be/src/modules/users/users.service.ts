@@ -176,6 +176,18 @@ export class UsersService {
           status: searchUsersDto.status,
         });
       }
+
+      if (searchUsersDto?.dob) {
+        qb.andWhere('profile.dob = :dob', {
+          dob: new Date(searchUsersDto.dob),
+        });
+      }
+
+      if (searchUsersDto?.nationality) {
+        qb.andWhere('LOWER(profile.nationality) LIKE LOWER(:nationality)', {
+          nationality: `%${searchUsersDto.nationality}%`,
+        });
+      }
     }
 
     const allUsers = await qb.getMany();
@@ -185,6 +197,7 @@ export class UsersService {
     if (role === 'admin') {
       result = allUsers.filter(
         (user) =>
+          user.role &&
           user.role.roleName !== RoleEnum.ADMIN &&
           user.role.roleName !== RoleEnum.SUPER_ADMIN,
       );
