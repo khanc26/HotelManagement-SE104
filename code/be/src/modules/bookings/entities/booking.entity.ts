@@ -90,14 +90,14 @@ export class Booking {
   @Column({
     type: 'timestamp',
     nullable: true,
-    transformer: transformDateTime
+    transformer: transformDateTime,
   })
   checkInDate?: Date;
 
   @Column({
     type: 'timestamp',
     nullable: true,
-    transformer: transformDateTime
+    transformer: transformDateTime,
   })
   checkOutDate?: Date;
 }

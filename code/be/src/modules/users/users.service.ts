@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { HashingProvider } from 'src/libs/common/providers';
 import { SignUpDto } from 'src/modules/auth/dto';
+import { Booking } from 'src/modules/bookings/entities';
 import {
   AssignRoleDto,
   LockAccountDto,
@@ -15,7 +16,7 @@ import {
   UnlockAccountDto,
   UpdateUserDto,
 } from 'src/modules/users/dto';
-import { Profile, Role, User, UserType } from 'src/modules/users/entities';
+import { Profile, Role, UserType } from 'src/modules/users/entities';
 import {
   ProfileStatusEnum,
   RoleEnum,
@@ -37,6 +38,8 @@ export class UsersService {
     private readonly userTypeRepository: Repository<UserType>,
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
   ) {}
 
   async createUser(signUpDto: SignUpDto) {
@@ -241,24 +244,6 @@ export class UsersService {
       },
     });
   }
-
-  public handleDeleteUser = async (userId: string, role: string) => {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['profile'],
-    });
-
-    if (!user)
-      throw new NotFoundException(`User with id: '${userId}' not found.`);
-
-    user.profile.status = ProfileStatusEnum.INACTIVE;
-
-    await this.profileRepository.softDelete({ id: user.profile.id });
-
-    await this.userRepository.save(user);
-
-    return this.findAll(role);
-  };
 
   public handleGetProfileByUserId = async (userId: string) => {
     const user = await this.userRepository.findOne({
@@ -515,51 +500,56 @@ export class UsersService {
       throw new NotFoundException(`Role admin not found in the system.`);
     }
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    const userRepository = queryRunner.manager.getRepository(User);
-    try {
-      await Promise.all(
-        userIds.map(async (userId) => {
-          const user = await userRepository.findOne({
-            where: {
-              id: userId,
+    await Promise.all(
+      userIds.map(async (userId) => {
+        const user = await this.userRepository.findOne({
+          where: {
+            id: userId,
+          },
+          relations: {
+            role: true,
+            profile: true,
+          },
+        });
+
+        if (!user) {
+          throw new BadRequestException(
+            `User not found in the system or already locked.`,
+          );
+        }
+
+        const isAllowed =
+          user.role.roleName !== RoleEnum.ADMIN ||
+          role === RoleEnum.SUPER_ADMIN;
+
+        if (!isAllowed) {
+          throw new BadRequestException(
+            `User cannot be locked as they have ADMIN privileges.`,
+          );
+        }
+
+        await this.userRepository.softRemove(user);
+
+        await this.profileRepository.update(
+          {
+            user: {
+              id: user.id,
             },
-            relations: {
-              role: true,
-              profile: true,
-            },
-          });
+          },
+          {
+            status: ProfileStatusEnum.INACTIVE,
+          },
+        );
 
-          if (!user) {
-            throw new BadRequestException(
-              `User not found in the system or already locked.`,
-            );
-          }
+        await this.bookingRepository.softDelete({
+          user: {
+            id: user.id,
+          },
+        });
+      }),
+    );
 
-          const isAllowed =
-            user.role.roleName !== RoleEnum.ADMIN ||
-            role === RoleEnum.SUPER_ADMIN;
-
-          if (!isAllowed) {
-            throw new BadRequestException(
-              `User cannot be locked as they have ADMIN privileges.`,
-            );
-          }
-
-          await userRepository.softRemove(user);
-        }),
-      );
-      await queryRunner.commitTransaction();
-
-      return this.findAll(role);
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    return this.findAll(role);
   }
 
   async handleUnlockAccount(
@@ -588,53 +578,68 @@ export class UsersService {
       throw new NotFoundException(`Role admin not found in the system.`);
     }
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    const userRepository = queryRunner.manager.getRepository(User);
-    try {
-      await Promise.all(
-        userIds.map(async (userId) => {
-          const user = await userRepository.findOne({
-            withDeleted: true,
-            where: {
-              id: userId,
-              deletedAt: Not(IsNull()),
+    await Promise.all(
+      userIds.map(async (userId) => {
+        const user = await this.userRepository.findOne({
+          withDeleted: true,
+          where: {
+            id: userId,
+            deletedAt: Not(IsNull()),
+          },
+          relations: {
+            role: true,
+            profile: true,
+          },
+        });
+
+        if (!user) {
+          throw new BadRequestException(
+            `User not found in the system or already unlocked.`,
+          );
+        }
+
+        const isAllowed =
+          user.role.roleName !== RoleEnum.ADMIN ||
+          role === RoleEnum.SUPER_ADMIN;
+
+        if (!isAllowed) {
+          throw new BadRequestException(
+            `User '${user.profile.fullName}' cannot be unlocked as they have ADMIN privileges.`,
+          );
+        }
+
+        await this.userRepository.recover(user);
+
+        await this.profileRepository.update(
+          {
+            user: {
+              id: user.id,
             },
-            relations: {
-              role: true,
-              profile: true,
+          },
+          {
+            status: ProfileStatusEnum.ACTIVE,
+          },
+        );
+
+        const deletedBookings = await this.bookingRepository.find({
+          where: {
+            user: {
+              id: user.id,
             },
-          });
+            deletedAt: Not(IsNull()),
+          },
+          withDeleted: true,
+        });
 
-          if (!user) {
-            throw new BadRequestException(
-              `User not found in the system or already unlocked.`,
-            );
-          }
+        await Promise.all(
+          deletedBookings.map((booking) =>
+            this.bookingRepository.recover(booking),
+          ),
+        );
+      }),
+    );
 
-          const isAllowed =
-            user.role.roleName !== RoleEnum.ADMIN ||
-            role === RoleEnum.SUPER_ADMIN;
-
-          if (!isAllowed) {
-            throw new BadRequestException(
-              `User '${user.profile.fullName}' cannot be unlocked as they have ADMIN privileges.`,
-            );
-          }
-
-          await userRepository.recover(user);
-        }),
-      );
-      await queryRunner.commitTransaction();
-
-      return this.findAll(role);
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    return this.findAll(role);
   }
 
   public updatePassword = async (email: string, newPassword: string) => {

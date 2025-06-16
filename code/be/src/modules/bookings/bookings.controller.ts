@@ -23,13 +23,13 @@ import { CreateBookingDto, UpdateBookingDto } from './dto';
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   @Get()
   async findAll(@UserSession('userId') userId: string) {
     return this.bookingsService.findAll(userId);
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   @Get(':id')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -38,7 +38,7 @@ export class BookingsController {
     return this.bookingsService.findOne(id, userId);
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   @Post()
   async createBooking(
     @Body() createBookingDto: CreateBookingDto,
@@ -47,7 +47,7 @@ export class BookingsController {
     return this.bookingsService.create(createBookingDto, userId);
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   @Delete(':id')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
@@ -56,7 +56,7 @@ export class BookingsController {
     return this.bookingsService.remove(id, userId);
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   @Patch(':id')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
