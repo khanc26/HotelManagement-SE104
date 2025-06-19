@@ -138,8 +138,6 @@ export class InvoicesService {
 
     if (!invoice) throw new NotFoundException(`Invoice not found.`);
 
-    console.log('Invoice: ', invoice);
-
     if (invoice.booking.user.id !== userId && role !== 'admin')
       throw new ForbiddenException(
         `You can have permission to get the invoice that belongs to you.`,
