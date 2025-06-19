@@ -17,7 +17,7 @@ export class InvoicesController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RoleAuthGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   async getAll(
     @UserSession('role') role: string,
     @UserSession('userId') userId: string,
@@ -27,7 +27,7 @@ export class InvoicesController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RoleAuthGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   async getOne(
     @UserSession('role') role: string,
     @UserSession('userId') userId: string,
@@ -38,7 +38,7 @@ export class InvoicesController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RoleAuthGuard)
-  @Roles(RoleEnum.ADMIN)
+  @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
   async deleteOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.invoicesService.handleDeleteInvoice(id);
   }

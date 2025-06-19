@@ -20,7 +20,7 @@ import {
 
 @Controller('room-types')
 @UseGuards(JwtAuthGuard, RoleAuthGuard)
-@Roles(RoleEnum.ADMIN)
+@Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
 export class RoomTypesController {
   constructor(private readonly roomTypesService: RoomTypesService) {}
 

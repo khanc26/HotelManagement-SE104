@@ -26,6 +26,7 @@ export class PaymentsController {
   }
 
   @Post()
+  @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN, RoleEnum.USER)
   async createPayment(
     @Body() createPaymentDto: CreatePaymentDto,
     @Req() request: Request,
