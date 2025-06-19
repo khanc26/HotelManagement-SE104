@@ -189,6 +189,8 @@ export class BookingsService {
 
     await this.bookingsRepository.softRemove(booking);
 
+    await this.invoicesService.handleDeleteInvoice(booking.invoice.id);
+
     return { message: 'Booking deleted successfully' };
   }
 
