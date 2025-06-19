@@ -52,7 +52,6 @@ export function ReportListPDFDocument({ reports }: ReportListPDFDocumentProps) {
         <View style={[styles.tableRow, styles.tableHeader]}>
           <Text style={styles.tableCell}>Month</Text>
           <Text style={styles.tableCell}>Total Revenue</Text>
-          <Text style={styles.tableCell}>Created At</Text>
         </View>
         
         {/* Table Rows */}
@@ -60,7 +59,6 @@ export function ReportListPDFDocument({ reports }: ReportListPDFDocumentProps) {
           <View key={report.id} style={styles.tableRow}>
             <Text style={styles.tableCell}>{report.month}</Text>
             <Text style={styles.tableCell}>{report.totalRevenue.toLocaleString('en-US')} VND</Text>
-            <Text style={styles.tableCell}>{new Date(report.createAt).toLocaleDateString()}</Text>
           </View>
         ))}
       </Page>
