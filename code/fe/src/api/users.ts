@@ -1,4 +1,4 @@
-import { LockAccountDto, User, UserSearchRequest, UserUpdateRequest } from "@/types/user.type";
+import { User, UserSearchRequest, UserUpdateRequest } from "@/types/user.type";
 import { createApiInstance } from "./axios-config";
 
 const api = createApiInstance(`${import.meta.env.VITE_API_BASE_URL}/users`);
@@ -25,10 +25,6 @@ export const getUsers = async (params?: UserSearchRequest) => {
   return response.data;
 };
 
-export const lockAccount = async (data: LockAccountDto) => {
-  const response = await api.post<User[]>('/lock-account', data);
-  return response.data;
-};
 
 export const updateUser = async (
   id: string,
