@@ -1,9 +1,9 @@
+import { getRoomTypes } from "@/api/room-types";
+import { getRoom, updateRoom } from "@/api/rooms";
+import { CardContentError } from "@/components/card-content-error";
+import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
@@ -13,16 +13,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useSearchParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
 import { Room, RoomUpdateRequest } from "@/types/room.type";
-import { getRoom, updateRoom } from "@/api/rooms";
-import { getRoomTypes } from "@/api/room-types";
-import { toast } from "react-toastify";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React from "react";
-import { CardContentSkeleton } from "@/components/card-content-skeleton";
-import { CardContentError } from "@/components/card-content-error";
+import { useForm } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { z } from "zod";
 
 const roomSchema = z.object({
   roomNumber: z.string().trim().optional(),
@@ -64,6 +64,7 @@ export function RoomEdit() {
     queryKey: ["room", roomId],
     queryFn: () => getRoom(roomId!),
   });
+  
 
   React.useEffect(() => {
     console.log(room);
@@ -155,7 +156,7 @@ export function RoomEdit() {
     <div className="flex justify-center items-center">
       <Card className="w-full h-full">
         <CardHeader>
-          <CardTitle>Add New Room</CardTitle>
+          <CardTitle>Edit Room</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
