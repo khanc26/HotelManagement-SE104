@@ -55,8 +55,13 @@ export function UserActionsCell({ user }: { user: User }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Link to={`/users/edit?id=${user.id}`}>
+          <DropdownMenuItem asChild>
+            <Link
+              to={`/users/edit?id=${user.id}`}
+              onClick={() =>
+                queryClient.setQueryData<User>(["edit-user"], user)
+              }
+            >
               <p className="text-sm font-normal">Edit</p>
             </Link>
           </DropdownMenuItem>

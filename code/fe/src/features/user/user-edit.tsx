@@ -14,9 +14,11 @@ import { Input } from "@/components/ui/input";
 import { User, UserUpdateRequest } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
+
 import { z } from "zod";
 
 const userSchema = z.object({
@@ -27,9 +29,12 @@ const userSchema = z.object({
   phoneNumber: z.string().trim().optional(),
   identityNumber: z.string().trim().optional(),
   status: z.enum(["active", "inactive"]).optional(),
-  dob: z.string().trim().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Please enter a valid date",
-  }),
+  dob: z
+    .string()
+    .trim()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Please enter a valid date",
+    }),
 });
 
 export const UserEdit = () => {
@@ -37,6 +42,9 @@ export const UserEdit = () => {
 
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("id");
+
+  const cachedUser = queryClient.getQueryData<User>(["edit-user"]);
+
   console.log("update user id: ", userId);
 
   const form = useForm<z.infer<typeof userSchema>>({
@@ -53,6 +61,24 @@ export const UserEdit = () => {
     },
   });
 
+  useEffect(() => {
+    if (cachedUser) {
+      form.setValue("fullName", cachedUser.profile.fullName || "");
+      form.setValue("email", cachedUser.email || "");
+      form.setValue("address", cachedUser.profile.address || "");
+      form.setValue("nationality", cachedUser.profile.nationality || "");
+      form.setValue("phoneNumber", cachedUser.profile.phoneNumber || "");
+      form.setValue("identityNumber", cachedUser.profile.identityNumber || "");
+      form.setValue("status", cachedUser.profile.status || undefined);
+      form.setValue(
+        "dob",
+        cachedUser.profile.dob
+          ? new Date(cachedUser.profile.dob).toISOString().split("T")[0]
+          : ""
+      );
+    }
+  }, [cachedUser, userId, form]);
+
   const mutation = useMutation({
     mutationFn: ({
       id,
@@ -65,7 +91,6 @@ export const UserEdit = () => {
       console.log("User updated successfully", data);
       // Optional: Add success toast
       toast.success("User updated successfully");
-      // Optional: Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error: unknown) => {
