@@ -151,6 +151,7 @@ export class InvoicesService {
       },
     };
   };
+
   public handleDeleteInvoice = async (invoiceId: string) => {
     const invoice = await this.invoiceRepository.findOne({
       where: {
@@ -158,7 +159,9 @@ export class InvoicesService {
       },
     });
     if (!invoice) throw new NotFoundException(`Invoice not found.`);
-    await this.invoiceRepository.delete(invoiceId);
+    await this.invoiceRepository.softDelete({
+      id: invoiceId,
+    });
     return {
       success: true,
       message: `Invoice '${invoiceId}' deleted successfully.`,
