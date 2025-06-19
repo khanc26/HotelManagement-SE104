@@ -1,4 +1,5 @@
-import { deleteUser } from "@/api/users";
+
+import { lockAccount } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,17 +28,18 @@ export function UserActionsCell({ user }: { user: User }) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteUser(id),
+    mutationFn: (id: string) => lockAccount({ userIds: [id] }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      console.log(`User ${user.id} deleted successfully`);
+      console.log(`User ${user.id} locked successfully`);
     },
     onError: (error: unknown) => {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.error("Error deleting user:", errorMessage);
+      console.error("Error locking user:", errorMessage);
     },
   });
+  
 
   const handleDelete = () => {
     deleteMutation.mutate(user.id);
