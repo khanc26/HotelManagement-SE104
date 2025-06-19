@@ -25,10 +25,6 @@ export const getUsers = async (params?: UserSearchRequest) => {
   return response.data;
 };
 
-export const deleteUser = async (id: string) => {
-  const response = await api.delete<User>(`/${id}`);
-  return response.data;
-};
 
 export const updateUser = async (
   id: string,

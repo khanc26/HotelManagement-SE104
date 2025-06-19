@@ -61,3 +61,7 @@ export interface UserUpdateRequest {
   address?: string;
   identityNumber?: string;
 }
+
+export interface LockAccountDto {
+  userIds: string[];
+}
