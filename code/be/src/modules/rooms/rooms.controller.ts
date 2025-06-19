@@ -27,13 +27,13 @@ export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Post()
-  @Roles(RoleEnum.ADMIN)
+  @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
   async create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomsService.createRoom(createRoomDto);
   }
 
   @Get()
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   async findAll(@Query() searchRoomsDto?: SearchRoomsDto) {
     return this.roomsService.findAll(searchRoomsDto);
   }
@@ -47,13 +47,13 @@ export class RoomsController {
   }
 
   @Get(':id')
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER, RoleEnum.SUPER_ADMIN)
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.roomsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(RoleEnum.ADMIN)
+  @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateRoomDto: UpdateRoomDto,
@@ -62,7 +62,7 @@ export class RoomsController {
   }
 
   @Delete(':id')
-  @Roles(RoleEnum.ADMIN)
+  @Roles(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.roomsService.removeRoom(id);
   }

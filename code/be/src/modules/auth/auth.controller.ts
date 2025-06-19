@@ -74,7 +74,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard, RoleAuthGuard)
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.USER, Role.SUPER_ADMIN)
   async handleGetProfile(@Req() request: Request) {
     const { userId } = request.user as JwtPayload;
 

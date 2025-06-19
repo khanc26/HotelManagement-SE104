@@ -37,17 +37,8 @@ export class UsersController {
     return this.usersService.findAll(role, searchUsersDto);
   }
 
-  @Delete(':id')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  async deleteOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @UserSession('role') role: string,
-  ) {
-    return this.usersService.handleDeleteUser(id, role);
-  }
-
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.USER, RoleEnum.SUPER_ADMIN)
   async updateOne(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,

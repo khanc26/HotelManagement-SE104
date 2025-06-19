@@ -95,7 +95,6 @@ export const UserEdit = () => {
       nationality: values.nationality || undefined,
       phoneNumber: values.phoneNumber || undefined,
       identityNumber: values.identityNumber || undefined,
-      status: values.status || undefined,
       dob: new Date(values.dob),
     };
 

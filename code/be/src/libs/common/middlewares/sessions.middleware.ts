@@ -1,7 +1,7 @@
 import {
-  BadRequestException,
   Injectable,
   NestMiddleware,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { RedisProvider } from 'src/libs/common/providers/redis.provider';
@@ -15,7 +15,7 @@ export class SessionMiddleware implements NestMiddleware {
     const sessionId = req.signedCookies['user_session'] as string;
 
     if (!sessionId)
-      throw new BadRequestException('A valid session is required.');
+      throw new UnauthorizedException('A valid session is required.');
 
     const user = await this.redisProvider.get('sess:' + sessionId);
 
