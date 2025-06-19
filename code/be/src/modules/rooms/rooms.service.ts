@@ -114,19 +114,19 @@ export class RoomsService {
 
     const { roomTypeId, ...res } = updateRoomDto;
 
-    if (
-      res?.roomNumber &&
-      (
-        await this.roomRepository.findOne({
-          where: {
-            roomNumber: res.roomNumber,
-          },
-        })
-      )?.id !== id
-    )
-      throw new BadRequestException(
-        `Room number '${res.roomNumber}' already exists in the system.`,
-      );
+    if (res?.roomNumber) {
+      const existingRoomNumber = await this.roomRepository.findOne({
+        where: {
+          roomNumber: res.roomNumber,
+        },
+        withDeleted: true,
+      });
+
+      if (existingRoomNumber && existingRoomNumber.id !== id)
+        throw new BadRequestException(
+          `Room number '${res.roomNumber}' already exists in the system.`,
+        );
+    }
 
     let roomType: RoomType | null = null;
 

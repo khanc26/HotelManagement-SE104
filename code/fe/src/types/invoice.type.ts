@@ -1,8 +1,6 @@
-import { BookingDetail } from "./booking-detail";
-
 export enum InvoicesStatus {
-  UNPAID = "unpaid",
   PAID = "paid",
+  UNPAID = "unpaid",
   CANCELLED = "cancelled",
 }
 
@@ -25,8 +23,29 @@ export interface Invoice {
   totalPrice: number;
   dayRent: number;
   status: InvoicesStatus;
-  bookingDetail: BookingDetail;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
+  booking: {
+    id: string;
+    totalPrice: number;
+    checkInDate: string;
+    checkOutDate: string;
+    user: {
+      id: string;
+      email: string;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: string | null;
+    };
+    room: {
+      id: string;
+      roomNumber: string;
+      note: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: string | null;
+    };
+  };
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { getInvoiceById } from "@/api/invoices";
+import { getBookingById } from "@/api/bookings";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { z } from "zod";
@@ -18,77 +18,82 @@ import {
 import { Input } from "@/components/ui/input";
 import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { CardContentError } from "@/components/card-content-error";
-import { formatCurrency } from "@/utils/helpers/formatCurrency";
-import { InvoiceStatusBadge } from "./invoice-status-badge";
+import { DataTable } from "@/components/ui/data-table";
+import { columns as participantColumns } from "./participant-columns";
 
-const invoiceSchema = z.object({
+const bookingSchema = z.object({
   id: z.string(),
-  basePrice: z.number(),
-  totalPrice: z.number(),
-  dayRent: z.number(),
-  status: z.string(),
   roomNumber: z.string(),
-  payer: z.string(),
+  checkInDate: z.string(),
+  checkOutDate: z.string(),
+  booker: z.object({
+    email: z.string().email(),
+    fullName: z.string(),
+  }),
   createdAt: z.string(),
   updatedAt: z.string(),
+  deletedAt: z.string().nullable(),
 });
 
-export function InvoiceDetail() {
+export function BookingDetail() {
   const { id } = useParams();
 
   const {
-    data: invoice,
+    data: booking,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["invoice", id],
-    queryFn: () => getInvoiceById(id!),
+    queryKey: ["booking", id],
+    queryFn: () => getBookingById(id!),
   });
 
-  const form = useForm<z.infer<typeof invoiceSchema>>({
-    resolver: zodResolver(invoiceSchema),
+  const form = useForm<z.infer<typeof bookingSchema>>({
+    resolver: zodResolver(bookingSchema),
     defaultValues: {
       id: "",
-      basePrice: 0,
-      totalPrice: 0,
-      dayRent: 0,
-      status: "",
       roomNumber: "",
-      payer: "",
+      checkInDate: "",
+      checkOutDate: "",
+      booker: {
+        email: "",
+        fullName: "",
+      },
       createdAt: "",
       updatedAt: "",
+      deletedAt: null,
     },
   });
 
   React.useEffect(() => {
-    if (invoice) {
+    if (booking) {
+      console.log(booking);
       form.reset({
-        id: invoice.id,
-        basePrice: invoice.basePrice,
-        totalPrice: invoice.totalPrice,
-        dayRent: invoice.dayRent,
-        status: invoice.status,
-        roomNumber: invoice.booking.room.roomNumber,
-        payer: invoice.booking.user.email,
-        createdAt: format(new Date(invoice.createdAt), "yyyy-MM-dd HH:mm"),
-        updatedAt: format(new Date(invoice.updatedAt), "yyyy-MM-dd HH:mm"),
+        id: booking.id,
+        roomNumber: booking.room.roomNumber,
+        checkInDate: format(new Date(booking.checkInDate), "yyyy-MM-dd"),
+        checkOutDate: format(new Date(booking.checkOutDate), "yyyy-MM-dd"),
+        booker: {
+          email: booking.user.email,
+        },
+        createdAt: format(new Date(booking.createdAt), "yyyy-MM-dd"),
+        updatedAt: format(new Date(booking.updatedAt), "yyyy-MM-dd"),
       });
     }
-  }, [invoice, form]);
+  }, [booking, form]);
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Invoice Information</CardTitle>
+          <CardTitle>Booking Information</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <CardContentSkeleton items={8} />
           ) : isError ? (
             <CardContentError />
-          ) : !invoice ? (
-            <CardContentError errorMessage="This invoice is not found" />
+          ) : !booking ? (
+            <CardContentError errorMessage="This booking is not found" />
           ) : (
             <Form {...form}>
               <form className="space-y-4">
@@ -108,76 +113,44 @@ export function InvoiceDetail() {
                   />
                   <FormField
                     control={form.control}
-                    name="basePrice"
+                    name="checkInDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Base Price</FormLabel>
+                        <FormLabel>Check In Date</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            value={formatCurrency(field.value)}
-                            disabled
-                          />
+                          <Input type="date" {...field} disabled />
                         </FormControl>
-                        <FormDescription>Base price per day</FormDescription>
+                        <FormDescription>
+                          Check in date of the booking
+                        </FormDescription>
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="totalPrice"
+                    name="checkOutDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Total Price</FormLabel>
+                        <FormLabel>Check Out Date</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            value={formatCurrency(field.value)}
-                            disabled
-                          />
+                          <Input type="date" {...field} disabled />
                         </FormControl>
-                        <FormDescription>Total price for the stay</FormDescription>
+                        <FormDescription>
+                          Check out date of the booking
+                        </FormDescription>
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="dayRent"
+                    name="booker.email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Days Rented</FormLabel>
+                        <FormLabel>Booker Email</FormLabel>
                         <FormControl>
                           <Input {...field} disabled />
                         </FormControl>
-                        <FormDescription>Number of days rented</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <FormControl>
-                          <div className="flex items-center">
-                            <InvoiceStatusBadge status={invoice.status} />
-                          </div>
-                        </FormControl>
-                        <FormDescription>Current status of the invoice</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="payer"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Payer</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled />
-                        </FormControl>
-                        <FormDescription>Email of the person who paid</FormDescription>
+                        <FormDescription>Booker's email address</FormDescription>
                       </FormItem>
                     )}
                   />
@@ -188,10 +161,10 @@ export function InvoiceDetail() {
                       <FormItem>
                         <FormLabel>Created At</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled />
+                          <Input type="date" {...field} disabled />
                         </FormControl>
                         <FormDescription>
-                          Date the invoice was created
+                          Date the booking was created
                         </FormDescription>
                       </FormItem>
                     )}
@@ -203,10 +176,10 @@ export function InvoiceDetail() {
                       <FormItem>
                         <FormLabel>Updated At</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled />
+                          <Input type="date" {...field} disabled />
                         </FormControl>
                         <FormDescription>
-                          Date the invoice was last updated
+                          Date the booking was last updated
                         </FormDescription>
                       </FormItem>
                     )}
@@ -217,6 +190,26 @@ export function InvoiceDetail() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Participants</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <CardContentSkeleton items={5} />
+          ) : isError ? (
+            <CardContentError />
+          ) : !booking ? (
+            <CardContentError errorMessage="This booking is not found" />
+          ) : (
+            <DataTable
+              columns={participantColumns}
+              data={booking.participants}
+            />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
-}
+} 

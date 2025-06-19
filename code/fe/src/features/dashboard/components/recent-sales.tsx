@@ -1,83 +1,57 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Invoice } from "@/types/invoice.type";
 
-export function RecentSales() {
+interface RecentSalesProps {
+  invoices: Invoice[]
+  n?: number; // Number of rows to display (optional, defaults to 5)
+}
+
+export function RecentSales({ invoices, n = 5 }: RecentSalesProps) {
+
+  // Sort invoices by createdAt (descending) and take top N
+  const sortedInvoices = [...invoices]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, n);
+
+  // Format price as VNĐ
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/01.png" alt="Avatar" />
-          <AvatarFallback>OM</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-1 flex-wrap items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium leading-none">Olivia Martin</p>
-            <p className="text-sm text-muted-foreground">
-              olivia.martin@email.com
-            </p>
+      {sortedInvoices.map((invoice, index) => {
+        const email = invoice.booking.user.email;
+        // Derive a display name from email (e.g., "user" from "user@gmail.com")
+        const displayName = email.split("@")[0] || "Unknown User";
+        return (
+          <div key={invoice.id} className="flex items-center gap-4">
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={`/avatars/0${(index % 5) + 1}.png`}
+                alt="Avatar"
+              />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-1 flex-wrap items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {displayName}
+                </p>
+                <p className="text-sm text-muted-foreground">{email}</p>
+              </div>
+              <div className="font-medium">
+                +{formatPrice(invoice.totalPrice)}
+              </div>
+            </div>
           </div>
-          <div className="font-medium">+$1,999.00</div>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Avatar className="flex h-9 w-9 items-center justify-center space-y-0 border">
-          <AvatarImage src="/avatars/02.png" alt="Avatar" />
-          <AvatarFallback>JL</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-1 flex-wrap items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium leading-none">Jackson Lee</p>
-            <p className="text-sm text-muted-foreground">
-              jackson.lee@email.com
-            </p>
-          </div>
-          <div className="font-medium">+$39.00</div>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/03.png" alt="Avatar" />
-          <AvatarFallback>IN</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-1 flex-wrap items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium leading-none">Isabella Nguyen</p>
-            <p className="text-sm text-muted-foreground">
-              isabella.nguyen@email.com
-            </p>
-          </div>
-          <div className="font-medium">+$299.00</div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/04.png" alt="Avatar" />
-          <AvatarFallback>WK</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-1 flex-wrap items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium leading-none">William Kim</p>
-            <p className="text-sm text-muted-foreground">will@email.com</p>
-          </div>
-          <div className="font-medium">+$99.00</div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/05.png" alt="Avatar" />
-          <AvatarFallback>SD</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-1 flex-wrap items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium leading-none">Sofia Davis</p>
-            <p className="text-sm text-muted-foreground">
-              sofia.davis@email.com
-            </p>
-          </div>
-          <div className="font-medium">+$39.00</div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }

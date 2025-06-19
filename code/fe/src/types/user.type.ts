@@ -2,6 +2,7 @@
 export enum Role {
   ADMIN = "admin",
   USER = "user",
+  SUPER_ADMIN = "superadmin",
 }
 
 // Enum for UserType
@@ -31,7 +32,7 @@ export interface Profile {
   fullName: string;
   nationality: string;
   status: "active" | "inactive";
-  dob: string | Date; 
+  dob: string | Date;
   phoneNumber: string;
   address: string;
   identityNumber: string;
@@ -48,7 +49,7 @@ export interface UserSearchRequest {
   userTypeName?: UserType;
   identityNumber?: string;
   status?: "active" | "inactive";
-  dob?: string | Date; 
+  dob?: string | Date;
 }
 
 export interface UserUpdateRequest {

@@ -17,12 +17,14 @@ export function RoleBasedRoutes({
   if (!access_token) {
     return (
       <Navigate
-        to="/auth/not-authenticated"
+        to="/auth/sign-in"
         replace
         state={{ from: location }}
       />
     );
   }
+
+  console.log(allowedRoles.includes(role));
 
   if (!allowedRoles.includes(role)) {
     return <Navigate to="/error" replace state={{ from: location }} />;

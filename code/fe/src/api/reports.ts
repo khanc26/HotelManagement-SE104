@@ -14,7 +14,7 @@ export const getReports = async (query: ReportRequest) => {
   return response.data;
 };
 
-export const getReportById = async (id: string) => {
-  const response = await api.get<MonthlyRevenueByRoomType[]>(`/${id}`);
+export const getReportByMonth = async (month: string) => {
+  const response = await api.get<MonthlyRevenueByRoomType[]>(`/${month}`);
   return response.data;
 };

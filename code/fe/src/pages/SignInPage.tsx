@@ -117,21 +117,21 @@ const SignInPage = () => {
           />
 
           <div className="flex items-center justify-between">
-            <p>
+            {/* <p>
               <Link
                 to="/auth/forgot-password"
                 className="hover:text-blue-600 transition-all hover:underline text-sm"
               >
                 Forgot your password?
               </Link>
-            </p>
+            </p> */}
 
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <input type="checkbox" id="remember" />
               <label htmlFor="remember" className="ml-2 text-sm">
                 Remember me
               </label>
-            </div>
+            </div> */}
           </div>
 
           <Button type="submit" className="w-fit mx-auto" color="primary">

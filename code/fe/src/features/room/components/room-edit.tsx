@@ -167,7 +167,7 @@ export function RoomEdit() {
                   <FormItem>
                     <FormLabel>Room Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Room Name" {...field} />
+                      <Input placeholder="Room Name" {...field} disabled />
                     </FormControl>
                     <FormDescription>
                       This is the name of the room.
@@ -185,7 +185,8 @@ export function RoomEdit() {
                     <FormControl>
                       <select
                         {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 disabled:opacity-80 disabled:text-gray-500"
+                        disabled
                       >
                         <option value="">All Types</option>
                         {roomTypes?.map((type) => (
@@ -222,7 +223,8 @@ export function RoomEdit() {
                     <FormControl>
                       <select
                         {...field}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 disabled:opacity-80 disabled:text-gray-500"
+                        disabled
                       >
                         <option value="">Select status</option>
                         <option value="available">Available</option>
