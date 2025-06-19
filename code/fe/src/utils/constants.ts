@@ -1,4 +1,4 @@
-export const access_token_expired_time = 60000;
+export const access_token_expired_time = 600000;
 
 export const userStatus = [
   {
@@ -10,12 +10,6 @@ export const userStatus = [
     label: "Inactive",
   },
 ];
-
-export const roomPricingRules = {
-  FOREIGN_MULTIPLIER: 1.5,
-  GROUP_SURCHARGE_THRESHOLD: 3,
-  GROUP_SURCHARGE_PERCENTAGE: 25,
-};
 
 export const GuestTypeMap = {
   local: "Local",
@@ -29,6 +23,6 @@ export const RoleMap: Record<"user" | "admin", string> = {
 
 export const ParamMap = {
   max_guests_per_room: "Maximum Guests per Room",
-  surcharge_rate: "Additional Fee (%)",
+  surcharge_rate: "Additional Fee",
   foreign_guest_factor: "Foreign Guest Surcharge",
 };

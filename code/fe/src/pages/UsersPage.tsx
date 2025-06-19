@@ -6,10 +6,10 @@ const menuItems = [
     title: "User List",
     url: "list",
   },
-  {
-    title: "Add New User",
-    url: "add",
-  },
+  // {
+  //   title: "Add New User",
+  //   url: "add",
+  // },
 ];
 
 const UsersPage = () => {
