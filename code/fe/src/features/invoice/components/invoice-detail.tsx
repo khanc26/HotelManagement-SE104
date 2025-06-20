@@ -20,6 +20,10 @@ import { CardContentSkeleton } from "@/components/card-content-skeleton";
 import { CardContentError } from "@/components/card-content-error";
 import { formatCurrency } from "@/utils/helpers/formatCurrency";
 import { InvoiceStatusBadge } from "./invoice-status-badge";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { InvoiceDetailPDFDocument } from "./invoice-detail-pdf-document";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
 
 const invoiceSchema = z.object({
   id: z.string(),
@@ -79,8 +83,22 @@ export function InvoiceDetail() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Invoice Information</CardTitle>
+          {invoice && (
+            <PDFDownloadLink
+              key={Date.now()}
+              document={<InvoiceDetailPDFDocument invoice={invoice} />}
+              fileName="invoice-detail.pdf"
+            >
+              {({ loading }) => (
+                <Button variant="outline" disabled={loading}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  {loading ? "Generating PDF..." : "Print PDF"}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (

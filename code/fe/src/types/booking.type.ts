@@ -9,13 +9,32 @@ export interface Participant {
   userType: UserType;
 }
 
+export interface ParticipantResponse {
+  id: string;
+  email: string;
+  profile: {
+    id: string;
+    fullName: string;
+    nationality: string | null;
+    status: "active" | "inactive";
+    dob: string | Date | null;
+    phoneNumber: string | null;
+    address: string;
+    identityNumber: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+  };
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface Booking {
   id: string;
   room: Room;
   checkInDate: Date;
   checkOutDate: Date;
   user: User;
-  participants: Participant[];
+  participants: ParticipantResponse[];
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;

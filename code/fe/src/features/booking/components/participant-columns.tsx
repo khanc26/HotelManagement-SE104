@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Participant } from "@/types/booking.type";
+import {  ParticipantResponse } from "@/types/booking.type";
 
-export const columns: ColumnDef<Participant>[] = [
+export const columns: ColumnDef<ParticipantResponse>[] = [
   {
     accessorKey: "email",
     header: "Email",
