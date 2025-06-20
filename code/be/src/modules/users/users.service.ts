@@ -114,12 +114,16 @@ export class UsersService {
   async findAll(role: string, searchUsersDto?: SearchUsersDto) {
     const qb = this.userRepository
       .createQueryBuilder('user')
+      .withDeleted()
       .leftJoinAndSelect('user.profile', 'profile')
       .leftJoinAndSelect('user.userType', 'userType')
       .leftJoinAndSelect('user.role', 'role')
       .select([
         'user.id',
         'user.email',
+        'user.deletedAt',
+        'user.createdAt',
+        'user.updatedAt',
         'profile.id',
         'profile.fullName',
         'profile.nationality',

@@ -291,7 +291,7 @@ export function UserList() {
                               <SelectLabel>Status</SelectLabel>
                               <SelectItem value="active">Active</SelectItem>
                               <SelectItem value="inactive">
-                                In Active
+                                InActive
                               </SelectItem>
                             </SelectGroup>
                           </SelectContent>

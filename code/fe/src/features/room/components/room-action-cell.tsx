@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteRoom } from "@/api/rooms";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,10 +17,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Room } from "@/types/room.type";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Room } from "@/types/room.type";
-import { deleteRoom } from "@/api/rooms";
 
 // Create a separate component for the actions cell
 export function RoomActionsCell({ room }: { room: Room }) {
@@ -55,8 +55,13 @@ export function RoomActionsCell({ room }: { room: Room }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Link to={`/rooms/edit?id=${room.id}`}>
+          <DropdownMenuItem asChild>
+            <Link
+              to={`/rooms/edit?id=${room.id}`}
+              onClick={() => {
+                queryClient.setQueryData(["room", room.id], room);
+              }}
+            >
               <p className="text-sm font-normal">Edit</p>
             </Link>
           </DropdownMenuItem>

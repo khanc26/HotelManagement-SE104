@@ -1,4 +1,5 @@
-import { deleteUser, demoteToUser, promoteToAdmin } from "@/api/users";
+
+import { demoteToUser, lockAccount, promoteToAdmin } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,9 +29,10 @@ export function UserActionsCell({ user }: { user: User }) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteUser(id),
+    mutationFn: (id: string) => lockAccount(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      console.log(`User ${user.id} locked successfully`);
       toast.success("User deleted successfully");
     },
     onError: (error: unknown) => {
@@ -38,6 +40,7 @@ export function UserActionsCell({ user }: { user: User }) {
       toast.error("Error deleting user: " + errorMessage);
     },
   });
+  
 
   const promoteMutation = useMutation({
     mutationFn: (userId: string) => promoteToAdmin(userId),
@@ -81,8 +84,13 @@ export function UserActionsCell({ user }: { user: User }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Link to={`/users/edit?id=${user.id}`}>
+          <DropdownMenuItem asChild>
+            <Link
+              to={`/users/edit?id=${user.id}`}
+              onClick={() =>
+                queryClient.setQueryData<User>(["edit-user"], user)
+              }
+            >
               <p className="text-sm font-normal">Edit</p>
             </Link>
           </DropdownMenuItem>

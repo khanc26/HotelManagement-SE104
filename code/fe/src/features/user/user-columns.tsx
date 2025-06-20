@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { User } from "@/types/user.type";
+import { GuestTypeMap, RoleMap } from "@/utils/constants";
 import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import { ArrowUpDown } from "lucide-react";
 import { UserActionsCell } from "./user-action-cell";
-import { GuestTypeMap, RoleMap } from "@/utils/constants";
-import { format } from "date-fns";
 
 export const userColumns: ColumnDef<User>[] = [
   {
@@ -144,6 +144,36 @@ export const userColumns: ColumnDef<User>[] = [
           Identity Number
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "profile.status",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const status = row.original.profile.status;
+      return (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            status === "active"
+              ? "bg-green-100 text-green-800"
+              : status === "inactive"
+              ? "bg-red-100 text-red-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
       );
     },
   },
