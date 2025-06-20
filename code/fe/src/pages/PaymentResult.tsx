@@ -39,7 +39,7 @@ const PaymentResult = () => {
               ? "Your payment has been processed successfully."
               : "Your payment could not be processed. Please try again."}
           </p>
-          <Button onClick={() => navigate("/invoices")}>
+          <Button onClick={() => navigate("/user-invoices")}>
             Return to Invoices
           </Button>
         </CardContent>
