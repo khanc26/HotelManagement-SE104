@@ -1,15 +1,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Invoice } from "@/types/invoice.type";
+import { Invoice, InvoicesStatus } from "@/types/invoice.type";
 
 interface RecentSalesProps {
-  invoices: Invoice[]
+  invoices: Invoice[];
   n?: number; // Number of rows to display (optional, defaults to 5)
 }
 
 export function RecentSales({ invoices, n = 5 }: RecentSalesProps) {
-
   // Sort invoices by createdAt (descending) and take top N
   const sortedInvoices = [...invoices]
+    .filter((invoice) => invoice.status === InvoicesStatus.PAID)
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

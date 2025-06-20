@@ -67,7 +67,10 @@ export function RoomActionsCell({ room }: { room: Room }) {
           </DropdownMenuItem>
 
           <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              disabled={room.status === "occupied"}
+            >
               Delete
             </DropdownMenuItem>
           </DialogTrigger>
