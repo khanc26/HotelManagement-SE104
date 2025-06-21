@@ -22,7 +22,7 @@ import {
   RoleEnum,
   UserTypeEnum,
 } from 'src/modules/users/enums';
-import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { CreateParticipantDto } from '../bookings/dto';
 import { UsersRepository } from './users.repository';
 
@@ -530,6 +530,26 @@ export class UsersService {
           throw new BadRequestException(
             `User cannot be locked as they have ADMIN privileges.`,
           );
+        }
+
+        if (user.role.roleName === RoleEnum.USER) {
+          const existingBookings = await this.bookingRepository.find({
+            where: {
+              checkOutDate: MoreThan(new Date()),
+              participants: {
+                id: user.id,
+              },
+            },
+            relations: {
+              participants: true,
+            },
+          });
+
+          if (existingBookings.length) {
+            throw new BadRequestException(
+              `The user '${userId}' currently has ${existingBookings.length} active booking(s) and cannot be deactivated.`,
+            );
+          }
         }
 
         await this.userRepository.softRemove(user);
