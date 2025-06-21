@@ -22,6 +22,7 @@ import { LessThan, MoreThan, Not } from 'typeorm';
 import { DataSource } from 'typeorm';
 import { ParamsService } from 'src/modules/params/params.service';
 import { User } from 'src/modules/users/entities';
+import { startOfDay } from 'date-fns';
 
 @Injectable()
 export class BookingsService {
@@ -214,7 +215,9 @@ export class BookingsService {
         'Check-out date must be after check-in date',
       );
     }
-    if (checkInDate < new Date()) {
+    console.log(checkInDate, new Date());
+
+    if (checkInDate < startOfDay(new Date())) {
       throw new BadRequestException('Check-in date cannot be in the past');
     }
 
