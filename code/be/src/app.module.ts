@@ -21,6 +21,15 @@ import { EmailsModule } from './modules/emails/emails.module';
 import { ParamsModule } from './modules/params/params.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { Profile, Role, User, UserType } from 'src/modules/users/entities';
+import { Booking } from 'src/modules/bookings/entities';
+import { Param } from 'src/modules/params/entities';
+import { Invoice } from 'src/modules/invoices/entities';
+import { MonthlyRevenue } from 'src/modules/reports/entities';
+import { MonthlyRevenueDetail } from 'src/modules/reports/entities/monthly-revenue-detail.entity';
+import { Payment } from 'src/modules/payments/entities';
+import { Room } from 'src/modules/rooms/entities';
+import { RoomType } from 'src/modules/room-types/entities';
 
 @Module({
   imports: [
@@ -39,7 +48,20 @@ import { ReportsModule } from './modules/reports/reports.module';
         database: configService.get<string>('database.name'),
         port: configService.get<number>('database.port'),
         host: configService.get<string>('database.host'),
-        entities: ['dist/**/*.entity.js'],
+        entities: [
+          User,
+          Booking,
+          Param,
+          Invoice,
+          MonthlyRevenue,
+          MonthlyRevenueDetail,
+          Payment,
+          Profile,
+          Role,
+          Room,
+          RoomType,
+          UserType,
+        ],
         synchronize: true,
         logging: false,
         namingStrategy: new SnakeNamingStrategy(),
