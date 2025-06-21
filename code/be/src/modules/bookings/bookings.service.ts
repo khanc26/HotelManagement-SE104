@@ -22,7 +22,7 @@ import { LessThan, MoreThan, Not } from 'typeorm';
 import { DataSource } from 'typeorm';
 import { ParamsService } from 'src/modules/params/params.service';
 import { User } from 'src/modules/users/entities';
-import { startOfDay } from 'date-fns';
+import { isSameDay, startOfDay } from 'date-fns';
 
 @Injectable()
 export class BookingsService {
@@ -58,6 +58,7 @@ export class BookingsService {
         'participants',
         'participants.profile',
       ],
+      withDeleted: true,
     });
 
     return bookings.map((booking) => ({
@@ -93,7 +94,6 @@ export class BookingsService {
         ]),
         roomType: omit(booking.room.roomType, ['password', 'refresh_token']),
       },
-      // invoice: omit(booking.invoice, ['password', 'refresh_token']),
     }));
   }
 
@@ -119,6 +119,7 @@ export class BookingsService {
         'participants',
         'participants.profile',
       ],
+      withDeleted: true,
     });
 
     if (!existingBooking) {
@@ -215,7 +216,6 @@ export class BookingsService {
         'Check-out date must be after check-in date',
       );
     }
-    console.log(checkInDate, new Date());
 
     if (checkInDate < startOfDay(new Date())) {
       throw new BadRequestException('Check-in date cannot be in the past');
@@ -300,10 +300,12 @@ export class BookingsService {
       invoice,
     });
 
-    await this.roomsService.handleUpdateStatusOfRoom(
-      room.id,
-      RoomStatusEnum.OCCUPIED,
-    );
+    if (isSameDay(checkInDate, new Date())) {
+      await this.roomsService.handleUpdateStatusOfRoom(
+        room.id,
+        RoomStatusEnum.OCCUPIED,
+      );
+    }
 
     const savedBooking = await this.bookingsRepository.save(booking);
 
