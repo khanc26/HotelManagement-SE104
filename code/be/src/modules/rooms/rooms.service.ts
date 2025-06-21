@@ -153,6 +153,12 @@ export class RoomsService {
     if (!findRoom)
       throw new NotFoundException('Room not found or has been deleted.');
 
+    if (findRoom.status === RoomStatusEnum.OCCUPIED) {
+      throw new BadRequestException(
+        `This room is currently occupied by an active booking and cannot be deleted.`,
+      );
+    }
+
     await this.roomRepository.softDelete(findRoom.id);
 
     return await this.roomRepository.find({ relations: ['roomType'] });
