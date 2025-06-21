@@ -46,7 +46,7 @@ export class ParamsService {
       throw new NotFoundException(`Param with name ${paramName} not found`);
     }
 
-    const { id, ...existingParamValue } = existingParam;
+    const { id, createdAt, ...existingParamValue } = existingParam;
     const newParamValue = this.paramsRepository.create({
       ...existingParamValue,
       ...updateParamDto,
