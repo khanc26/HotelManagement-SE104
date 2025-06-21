@@ -1,3 +1,4 @@
+import { Invoice } from "./invoice.type";
 import { Room } from "./room.type";
 import { User, UserType } from "./user.type";
 
@@ -38,6 +39,7 @@ export interface Booking {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
+  invoice: Invoice
 }
 
 export interface CreateBookingDto {

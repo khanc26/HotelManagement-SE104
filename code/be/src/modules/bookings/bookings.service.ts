@@ -92,7 +92,7 @@ export class BookingsService {
         ]),
         roomType: omit(booking.room.roomType, ['password', 'refresh_token']),
       },
-      invoice: omit(booking.invoice, ['password', 'refresh_token']),
+      // invoice: omit(booking.invoice, ['password', 'refresh_token']),
     }));
   }
 

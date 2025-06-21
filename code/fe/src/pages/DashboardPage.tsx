@@ -2,7 +2,6 @@ import { RecentSales } from "@/features/dashboard/components/recent-sales";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -54,7 +53,6 @@ const DashboardPage = () => {
         <Card className="">
           <CardHeader>
             <CardTitle>Recent Sales</CardTitle>
-            <CardDescription>You made {invoices?.length} sales this month.</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoadingSale ? (

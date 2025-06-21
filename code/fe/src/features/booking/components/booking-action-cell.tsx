@@ -22,9 +22,13 @@ import { Link } from "react-router-dom";
 import { Booking } from "@/types/booking.type";
 import { deleteBooking } from "@/api/bookings";
 import { toast } from "sonner";
+import { InvoicesStatus } from "@/types/invoice.type";
 
 export function BookingActionCell({ booking }: { booking: Booking }) {
   const queryClient = useQueryClient();
+
+  // Check if invoice status is paid
+  const isInvoicePaid = booking.invoice.status === InvoicesStatus.PAID;
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteBooking(booking.id),
@@ -61,7 +65,7 @@ export function BookingActionCell({ booking }: { booking: Booking }) {
             </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem>
+          <DropdownMenuItem disabled={isInvoicePaid}>
             <Link to={`/bookings/${booking.id}/edit`}>
               <p className="text-sm font-normal">Edit</p>
             </Link>
