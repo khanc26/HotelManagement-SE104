@@ -199,7 +199,7 @@ export class RoomsService {
 
     if (existingBookings?.length) {
       throw new ForbiddenException(
-        `This room is associated with one or more existing bookings and cannot be deleted.`,
+        `This room is linked to one or more upcoming bookings and cannot be deleted.`,
       );
     }
 

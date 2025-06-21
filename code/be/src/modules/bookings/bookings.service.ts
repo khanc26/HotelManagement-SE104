@@ -58,7 +58,6 @@ export class BookingsService {
         'participants',
         'participants.profile',
       ],
-      withDeleted: true,
     });
 
     return bookings.map((booking) => ({
@@ -119,7 +118,6 @@ export class BookingsService {
         'participants',
         'participants.profile',
       ],
-      withDeleted: true,
     });
 
     if (!existingBooking) {
