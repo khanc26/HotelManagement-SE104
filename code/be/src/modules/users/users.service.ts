@@ -547,7 +547,7 @@ export class UsersService {
 
           if (existingBookings.length) {
             throw new BadRequestException(
-              `The user '${userId}' currently has ${existingBookings.length} active booking(s) and cannot be deactivated.`,
+              `The user '${user.email}' currently has ${existingBookings.length} active booking(s) and cannot be deactivated.`,
             );
           }
         }
