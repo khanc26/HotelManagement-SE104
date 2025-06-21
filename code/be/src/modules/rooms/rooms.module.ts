@@ -9,11 +9,12 @@ import { RoomTypesModule } from 'src/modules/room-types/room-types.module';
 import { ParamsModule } from 'src/modules/params/params.module';
 import { Param } from 'src/modules/params/entities';
 import { ParamsService } from 'src/modules/params/params.service';
+import { Booking } from 'src/modules/bookings/entities';
 
 @Module({
   imports: [
     RoomTypesModule,
-    TypeOrmModule.forFeature([Room, RoomType, Param]),
+    TypeOrmModule.forFeature([Room, RoomType, Param, Booking]),
     ParamsModule,
   ],
   controllers: [RoomsController],
