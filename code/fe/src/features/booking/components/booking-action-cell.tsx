@@ -72,7 +72,7 @@ export function BookingActionCell({ booking }: { booking: Booking }) {
           </DropdownMenuItem>
 
           <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <DropdownMenuItem disabled={isInvoicePaid} onSelect={(e) => e.preventDefault()}>
               Delete
             </DropdownMenuItem>
           </DialogTrigger>
