@@ -1,9 +1,11 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Booking } from 'src/modules/bookings/entities';
 import { ParamsService } from 'src/modules/params/params.service';
 import { RoomType } from 'src/modules/room-types/entities';
 import { RoomTypesService } from 'src/modules/room-types/room-types.service';
@@ -14,7 +16,7 @@ import {
 } from 'src/modules/rooms/dto';
 import { Room } from 'src/modules/rooms/entities/room.entity';
 import { RoomStatusEnum } from 'src/modules/rooms/enums';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 @Injectable()
 export class RoomsService {
@@ -22,6 +24,8 @@ export class RoomsService {
     @InjectRepository(Room) private readonly roomRepository: Repository<Room>,
     private readonly roomTypeService: RoomTypesService,
     private readonly paramsService: ParamsService,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
   ) {}
 
   async createRoom(createRoomDto: CreateRoomDto) {
@@ -77,19 +81,51 @@ export class RoomsService {
       });
     }
 
-    if (searchRoomsDto?.status) {
-      qb.andWhere('LOWER(rooms.status) LIKE LOWER(:status)', {
-        status: `%${searchRoomsDto.status}%`,
+    const rooms = await qb.getMany();
+    const currentDate = new Date();
+
+    const activeBookings = await this.bookingRepository.find({
+      where: {
+        checkInDate: LessThanOrEqual(currentDate),
+        checkOutDate: MoreThanOrEqual(currentDate),
+      },
+      relations: ['room'],
+    });
+
+    const occupiedRoomIds = new Set(
+      activeBookings.map((booking) => booking.room.id),
+    );
+
+    const updatedRooms: any[] = [];
+
+    for (const room of rooms) {
+      const newStatus = occupiedRoomIds.has(room.id)
+        ? RoomStatusEnum.OCCUPIED
+        : RoomStatusEnum.AVAILABLE;
+
+      if (room.status !== newStatus) {
+        await this.roomRepository.update(room.id, { status: newStatus });
+        room.status = newStatus;
+      }
+
+      updatedRooms.push({
+        ...room,
+        roomType: {
+          ...room.roomType,
+          maxGuests,
+        },
       });
     }
 
-    return (await qb.getMany()).map((d) => ({
-      ...d,
-      roomType: {
-        ...d.roomType,
-        maxGuests,
-      },
-    }));
+    if (searchRoomsDto?.status) {
+      const searchStatus = searchRoomsDto.status.toLowerCase();
+
+      return updatedRooms.filter((room) =>
+        room.status.toLowerCase().includes(searchStatus),
+      );
+    }
+
+    return updatedRooms;
   }
 
   async findOne(id: string) {
@@ -153,9 +189,17 @@ export class RoomsService {
     if (!findRoom)
       throw new NotFoundException('Room not found or has been deleted.');
 
-    if (findRoom.status === RoomStatusEnum.OCCUPIED) {
-      throw new BadRequestException(
-        `This room is currently occupied by an active booking and cannot be deleted.`,
+    const existingBookings = await this.bookingRepository.find({
+      where: {
+        room: {
+          id,
+        },
+      },
+    });
+
+    if (existingBookings?.length) {
+      throw new ForbiddenException(
+        `This room is associated with one or more existing bookings and cannot be deleted.`,
       );
     }
 
