@@ -159,8 +159,7 @@ function BookingCard({
           (c: Configuration) => c.paramName === "surcharge_rate"
         )?.paramValue || 25;
       const additionalGuests = participants.length - 2;
-      const surcharge =
-        basePrice * (Number(surchargeRate)) * additionalGuests;
+      const surcharge = basePrice * Number(surchargeRate) * additionalGuests;
       basePrice += surcharge;
     }
 
@@ -173,7 +172,7 @@ function BookingCard({
       basePrice *= Number(foreignFactor);
     }
 
-    console.log('ITEM', basePrice);
+    console.log("ITEM", basePrice);
 
     return basePrice;
   };
@@ -310,7 +309,7 @@ export function UserRoomList() {
             console.log(surchargeRate);
             console.log(roomTotal, Number(surchargeRate), additionalGuests);
             const surcharge =
-              roomTotal * (Number(surchargeRate)) * additionalGuests;
+              roomTotal * Number(surchargeRate) * additionalGuests;
             roomTotal += surcharge;
             console.log("AFTER", roomTotal);
           }
@@ -357,8 +356,8 @@ export function UserRoomList() {
   const handleRowSelectionChange = (rowSelection: Record<string, boolean>) => {
     const selected = Object.keys(rowSelection)
       .filter((key) => rowSelection[key])
-      .map((key) => rooms[Number(key)])
-      .filter((room): room is Room => room?.status === "available");
+      .map((key) => rooms[Number(key)]);
+    // .filter((room): room is Room => room?.status === "available");
     setSelectedRooms(selected);
   };
 
