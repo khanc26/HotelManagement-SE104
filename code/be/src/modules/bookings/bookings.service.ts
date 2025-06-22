@@ -242,7 +242,7 @@ export class BookingsService {
       if (!user) {
         user = await this.usersService.handleCreateDefaultUser(participant);
       } else {
-        await this.checkValidParticipant(user);
+        await this.checkValidParticipant(user, checkInDate, checkOutDate);
       }
 
       participants.push(user);
@@ -456,7 +456,7 @@ export class BookingsService {
               user =
                 await this.usersService.handleCreateDefaultUser(participant);
             } else {
-              await this.checkValidParticipantExcludeCurrent(user, id);
+              await this.checkValidParticipantExcludeCurrent(user, updateBookingDto.checkInDate!, updateBookingDto.checkOutDate!, id);
             }
 
             if (!user) {
@@ -556,7 +556,12 @@ export class BookingsService {
     }
   }
 
-  private async checkValidParticipantExcludeCurrent(user: User, excludeBookingId?: string) {
+  private async checkValidParticipantExcludeCurrent(
+    user: User,
+    checkInDate: Date,
+    checkOutDate: Date,
+    excludeBookingId?: string,
+  ) {
     if (!user.id) {
       throw new BadRequestException('User ID is missing.');
     }
@@ -564,7 +569,8 @@ export class BookingsService {
     const now = new Date();
 
     const whereConditions: any = {
-      checkOutDate: MoreThan(now),
+      checkInDate: LessThan(checkOutDate),
+      checkOutDate: MoreThan(checkInDate),
       participants: {
         id: user.id,
       },
@@ -588,24 +594,28 @@ export class BookingsService {
     }
   }
 
-  private checkValidParticipant = async (user: User) => {
-    const now = new Date();
-
-    const existingValidBookings = await this.bookingsRepository.find({
+  private checkValidParticipant = async (
+    user: User,
+    checkInDate: Date,
+    checkOutDate: Date,
+  ) => {
+    const existingOverlappingBookings = await this.bookingsRepository.find({
       where: {
-        checkOutDate: MoreThan(now),
         participants: {
           id: user.id,
         },
+        checkInDate: LessThan(checkOutDate),
+        checkOutDate: MoreThan(checkInDate),
       },
       relations: {
         participants: true,
       },
     });
 
-    if (existingValidBookings.length > 0)
+    if (existingOverlappingBookings.length > 0) {
       throw new BadRequestException(
-        `The user with email '${user.email}' is already part of a booking that hasn't reached its checkout date and cannot be added to another.`,
+        `The user with email '${user.email}' is already part of a booking with overlapping dates and cannot be added to another.`,
       );
+    }
   };
 }
