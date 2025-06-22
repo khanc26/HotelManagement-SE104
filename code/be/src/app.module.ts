@@ -30,6 +30,7 @@ import { MonthlyRevenueDetail } from 'src/modules/reports/entities/monthly-reven
 import { Payment } from 'src/modules/payments/entities';
 import { Room } from 'src/modules/rooms/entities';
 import { RoomType } from 'src/modules/room-types/entities';
+import { IS_PRODUCTION } from 'src/libs/common/constants';
 
 @Module({
   imports: [
@@ -62,7 +63,7 @@ import { RoomType } from 'src/modules/room-types/entities';
           RoomType,
           UserType,
         ],
-        synchronize: true,
+        synchronize: IS_PRODUCTION,
         logging: false,
         namingStrategy: new SnakeNamingStrategy(),
       }),
