@@ -396,11 +396,11 @@ export class BookingsService {
           throw new NotFoundException(`Room not found.`);
         }
 
-        if (newRoom.status === RoomStatusEnum.OCCUPIED) {
-          throw new BadRequestException(
-            `Room ${newRoom.roomNumber || 'unknown'} is already occupied.`,
-          );
-        }
+        // if (newRoom.status === RoomStatusEnum.OCCUPIED) {
+        //   throw new BadRequestException(
+        //     `Room ${newRoom.roomNumber || 'unknown'} is already occupied.`,
+        //   );
+        // }
 
         if (!existingBooking.room) {
           throw new InternalServerErrorException(
@@ -408,15 +408,15 @@ export class BookingsService {
           );
         }
 
-        await this.roomsService.handleUpdateStatusOfRoom(
-          existingBooking.room.id,
-          RoomStatusEnum.AVAILABLE,
-        );
+        // await this.roomsService.handleUpdateStatusOfRoom(
+        //   existingBooking.room.id,
+        //   RoomStatusEnum.AVAILABLE,
+        // );
 
-        await this.roomsService.handleUpdateStatusOfRoom(
-          newRoom.id,
-          RoomStatusEnum.OCCUPIED,
-        );
+        // await this.roomsService.handleUpdateStatusOfRoom(
+        //   newRoom.id,
+        //   RoomStatusEnum.OCCUPIED,
+        // );
 
         existingBooking.room = newRoom;
       }
@@ -524,15 +524,15 @@ export class BookingsService {
 
     const updatedBooking = await this.bookingsRepository.save(existingBooking);
 
-    if (
-      existingBooking.room &&
-      isSameDay(existingBooking.checkInDate!, new Date())
-    ) {
-      await this.roomsService.handleUpdateStatusOfRoom(
-        existingBooking.room.id,
-        RoomStatusEnum.OCCUPIED,
-      );
-    }
+    // if (
+    //   existingBooking.room &&
+    //   isSameDay(existingBooking.checkInDate!, new Date())
+    // ) {
+    //   await this.roomsService.handleUpdateStatusOfRoom(
+    //     existingBooking.room.id,
+    //     RoomStatusEnum.OCCUPIED,
+    //   );
+    // }
 
     return this.findOne(updatedBooking.id, userId);
   }
