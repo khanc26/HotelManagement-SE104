@@ -69,7 +69,7 @@ export function RoomPickerInput({
             checked={row.getIsSelected()}
             onChange={(e) => row.toggleSelected(e.target.checked)}
             className="peer hidden"
-            disabled={row.original.status !== "available"}
+            // disabled={row.original.status !== "available"}
           />
           <div className="w-5 h-5 border-2 border-black rounded bg-white peer-checked:bg-black transition-colors" />
         </label>
