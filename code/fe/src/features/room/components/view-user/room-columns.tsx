@@ -14,13 +14,11 @@ export const roomColumns: ColumnDef<Room>[] = [
           checked={row.getIsSelected()}
           onChange={(e) => row.toggleSelected(e.target.checked)}
           className="peer hidden"
-          disabled={row.original.status !== "available"}
+          // disabled={row.original.status !== "available"}
         />
-        <div className={`w-5 h-5 border-2 rounded transition-colors ${
-          row.original.status === "available" 
-            ? "border-black peer-checked:bg-black"
-            : "border-gray-300 bg-gray-100 cursor-not-allowed"
-        }`} />
+        <div
+          className={`w-5 h-5 border-2 rounded transition-colors ${"border-black peer-checked:bg-black"}`}
+        />
       </label>
     ),
     enableSorting: false,
@@ -62,7 +60,8 @@ export const roomColumns: ColumnDef<Room>[] = [
             : "bg-red-100 text-red-800"
         }`}
       >
-        {row.original.status.charAt(0).toUpperCase() + row.original.status.slice(1)}
+        {row.original.status.charAt(0).toUpperCase() +
+          row.original.status.slice(1)}
       </span>
     ),
   },
