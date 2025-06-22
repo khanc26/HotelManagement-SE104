@@ -347,110 +347,101 @@ export class BookingsService {
       );
     }
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    if (
+      updateBookingDto.roomId ||
+      updateBookingDto.checkInDate ||
+      updateBookingDto.checkOutDate
+    ) {
+      const roomId = updateBookingDto.roomId || existingBooking.room?.id;
+      const checkInDate =
+        updateBookingDto.checkInDate || existingBooking.checkInDate;
+      const checkOutDate =
+        updateBookingDto.checkOutDate || existingBooking.checkOutDate;
 
-    try {
-      if (
-        updateBookingDto.roomId ||
-        updateBookingDto.checkInDate ||
-        updateBookingDto.checkOutDate
-      ) {
-        const roomId = updateBookingDto.roomId || existingBooking.room?.id;
-        const checkInDate =
-          updateBookingDto.checkInDate || existingBooking.checkInDate;
-        const checkOutDate =
-          updateBookingDto.checkOutDate || existingBooking.checkOutDate;
-
-        if (!roomId) {
-          throw new BadRequestException('Room ID is missing.');
-        }
-        if (!checkInDate || !checkOutDate) {
-          throw new BadRequestException(
-            'Check-in or check-out date is missing.',
-          );
-        }
-
-        if (checkInDate >= checkOutDate) {
-          throw new BadRequestException(
-            'Check-out date must be after check-in date',
-          );
-        }
-
-        if (checkInDate < startOfDay(new Date())) {
-          throw new BadRequestException('Check-in date cannot be in the past');
-        }
-
-        const existingBookings = await this.bookingsRepository.find({
-          where: {
-            room: { id: roomId },
-            checkInDate: LessThan(checkOutDate),
-            checkOutDate: MoreThan(checkInDate),
-            id: Not(id),
-          },
-        });
-
-        if (existingBookings.length > 0) {
-          throw new BadRequestException(
-            'Room is already booked for these dates',
-          );
-        }
-
-        if (updateBookingDto.roomId) {
-          const newRoom = await this.roomsService.findOne(
-            updateBookingDto.roomId,
-          );
-          if (!newRoom) {
-            throw new NotFoundException(`Room not found.`);
-          }
-
-          if (newRoom.status === RoomStatusEnum.OCCUPIED) {
-            throw new BadRequestException(
-              `Room ${newRoom.roomNumber || 'unknown'} is already occupied.`,
-            );
-          }
-
-          if (!existingBooking.room) {
-            throw new InternalServerErrorException(
-              'Current booking room data is missing.',
-            );
-          }
-
-          await this.roomsService.handleUpdateStatusOfRoom(
-            existingBooking.room.id,
-            RoomStatusEnum.AVAILABLE,
-          );
-
-          await this.roomsService.handleUpdateStatusOfRoom(
-            newRoom.id,
-            RoomStatusEnum.OCCUPIED,
-          );
-
-          existingBooking.room = newRoom;
-        }
-
-        if (updateBookingDto.checkInDate) {
-          existingBooking.checkInDate = updateBookingDto.checkInDate;
-        }
-        if (updateBookingDto.checkOutDate) {
-          existingBooking.checkOutDate = updateBookingDto.checkOutDate;
-        }
+      if (!roomId) {
+        throw new BadRequestException('Room ID is missing.');
+      }
+      if (!checkInDate || !checkOutDate) {
+        throw new BadRequestException('Check-in or check-out date is missing.');
       }
 
-      if (updateBookingDto.participants) {
-        existingBooking.participants = [];
+      if (checkInDate >= checkOutDate) {
+        throw new BadRequestException(
+          'Check-out date must be after check-in date',
+        );
+      }
 
-        const participants = await Promise.all(
-          updateBookingDto.participants.map(async (participant) => {
-            if (!participant.email) {
-              throw new BadRequestException('Participant email is required.');
-            }
+      if (checkInDate < startOfDay(new Date())) {
+        throw new BadRequestException('Check-in date cannot be in the past');
+      }
 
-            let user = await this.usersService.handleGetUserByField(
-              'email',
-              participant.email,
-            );
+      const existingBookings = await this.bookingsRepository.find({
+        where: {
+          room: { id: roomId },
+          checkInDate: LessThan(checkOutDate),
+          checkOutDate: MoreThan(checkInDate),
+          id: Not(id),
+        },
+      });
+
+      if (existingBookings.length > 0) {
+        throw new BadRequestException('Room is already booked for these dates');
+      }
+
+      if (updateBookingDto.roomId) {
+        const newRoom = await this.roomsService.findOne(
+          updateBookingDto.roomId,
+        );
+        if (!newRoom) {
+          throw new NotFoundException(`Room not found.`);
+        }
+
+        if (newRoom.status === RoomStatusEnum.OCCUPIED) {
+          throw new BadRequestException(
+            `Room ${newRoom.roomNumber || 'unknown'} is already occupied.`,
+          );
+        }
+
+        if (!existingBooking.room) {
+          throw new InternalServerErrorException(
+            'Current booking room data is missing.',
+          );
+        }
+
+        await this.roomsService.handleUpdateStatusOfRoom(
+          existingBooking.room.id,
+          RoomStatusEnum.AVAILABLE,
+        );
+
+        await this.roomsService.handleUpdateStatusOfRoom(
+          newRoom.id,
+          RoomStatusEnum.OCCUPIED,
+        );
+
+        existingBooking.room = newRoom;
+      }
+
+      if (updateBookingDto.checkInDate) {
+        existingBooking.checkInDate = updateBookingDto.checkInDate;
+      }
+      if (updateBookingDto.checkOutDate) {
+        existingBooking.checkOutDate = updateBookingDto.checkOutDate;
+      }
+    }
+
+    if (updateBookingDto.participants) {
+      existingBooking.participants = [];
+
+      const participants = await Promise.all(
+        updateBookingDto.participants.map(async (participant) => {
+          if (!participant.email) {
+            throw new BadRequestException('Participant email is required.');
+          }
+
+          let user = await this.usersService.handleGetUserByField(
+            'email',
+            participant.email,
+          );
 
             if (!user) {
               user =
@@ -459,101 +450,91 @@ export class BookingsService {
               await this.checkValidParticipantExcludeCurrent(user, updateBookingDto.checkInDate!, updateBookingDto.checkOutDate!, id);
             }
 
-            if (!user) {
-              throw new InternalServerErrorException(
-                'Failed to create or retrieve participant.',
-              );
-            }
-
-            return user;
-          }),
-        );
-
-        existingBooking.participants = participants;
-      }
-
-      if (
-        updateBookingDto.roomId ||
-        updateBookingDto.checkInDate ||
-        updateBookingDto.checkOutDate ||
-        updateBookingDto.participants
-      ) {
-        if (!existingBooking.room?.roomType) {
-          throw new InternalServerErrorException(
-            'Room or room type data is missing.',
-          );
-        }
-
-        const checkIn = existingBooking.checkInDate;
-        const checkOut = existingBooking.checkOutDate;
-        const room = existingBooking.room;
-
-        const dayRent = Math.ceil(
-          (checkOut!.getTime() - checkIn!.getTime()) / (1000 * 60 * 60 * 24),
-        );
-
-        const basePrice = room.roomType.roomPrice;
-        let totalPrice = basePrice * dayRent;
-
-        const numberOfParticipants = existingBooking.participants?.length || 0;
-        const hasForeignGuest =
-          existingBooking.participants?.some(
-            (participant) =>
-              participant.userType?.typeName === UserTypeEnum.FOREIGN,
-          ) || false;
-
-        if (numberOfParticipants > 2) {
-          const surchargeRateFactor =
-            await this.paramsService.handleGetValueByName('surcharge_rate');
-          const additionalGuests = numberOfParticipants - 2;
-          totalPrice +=
-            totalPrice *
-            (surchargeRateFactor?.paramValue ?? 0.25) *
-            additionalGuests;
-        }
-
-        if (hasForeignGuest) {
-          const foreignGuestFactor =
-            await this.paramsService.handleGetValueByName(
-              'foreign_guest_factor',
+          if (!user) {
+            throw new InternalServerErrorException(
+              'Failed to create or retrieve participant.',
             );
-          totalPrice *= foreignGuestFactor?.paramValue ?? 1.5;
-        }
+          }
 
-        if (!existingBooking.invoice) {
-          throw new InternalServerErrorException('Invoice data is missing.');
-        }
+          return user;
+        }),
+      );
 
-        await this.invoicesService.update(existingBooking.invoice.id, {
-          basePrice,
-          totalPrice,
-          dayRent,
-        });
+      existingBooking.participants = participants;
+    }
 
-        existingBooking.totalPrice = totalPrice;
-      }
-
-      const updatedBooking = await queryRunner.manager.save(existingBooking);
-
-      if (
-        existingBooking.room &&
-        isSameDay(existingBooking.checkInDate!, new Date())
-      ) {
-        await this.roomsService.handleUpdateStatusOfRoom(
-          existingBooking.room.id,
-          RoomStatusEnum.OCCUPIED,
+    if (
+      updateBookingDto.roomId ||
+      updateBookingDto.checkInDate ||
+      updateBookingDto.checkOutDate ||
+      updateBookingDto.participants
+    ) {
+      if (!existingBooking.room?.roomType) {
+        throw new InternalServerErrorException(
+          'Room or room type data is missing.',
         );
       }
 
-      await queryRunner.commitTransaction();
+      const checkIn = existingBooking.checkInDate;
+      const checkOut = existingBooking.checkOutDate;
+      const room = existingBooking.room;
 
-      return this.findOne(updatedBooking.id, userId);
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+      const dayRent = Math.ceil(
+        (checkOut!.getTime() - checkIn!.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      const basePrice = room.roomType.roomPrice;
+      let totalPrice = basePrice * dayRent;
+
+      const numberOfParticipants = existingBooking.participants?.length || 0;
+      const hasForeignGuest =
+        existingBooking.participants?.some(
+          (participant) =>
+            participant.userType?.typeName === UserTypeEnum.FOREIGN,
+        ) || false;
+
+      if (numberOfParticipants > 2) {
+        const surchargeRateFactor =
+          await this.paramsService.handleGetValueByName('surcharge_rate');
+        const additionalGuests = numberOfParticipants - 2;
+        totalPrice +=
+          totalPrice *
+          (surchargeRateFactor?.paramValue ?? 0.25) *
+          additionalGuests;
+      }
+
+      if (hasForeignGuest) {
+        const foreignGuestFactor =
+          await this.paramsService.handleGetValueByName('foreign_guest_factor');
+        totalPrice *= foreignGuestFactor?.paramValue ?? 1.5;
+      }
+
+      if (!existingBooking.invoice) {
+        throw new InternalServerErrorException('Invoice data is missing.');
+      }
+
+      await this.invoicesService.update(existingBooking.invoice.id, {
+        basePrice,
+        totalPrice,
+        dayRent,
+      });
+
+      existingBooking.totalPrice = totalPrice;
     }
+
+    const updatedBooking = await this.bookingsRepository.save(existingBooking);
+
+    if (
+      existingBooking.room &&
+      isSameDay(existingBooking.checkInDate!, new Date())
+    ) {
+      await this.roomsService.handleUpdateStatusOfRoom(
+        existingBooking.room.id,
+        RoomStatusEnum.OCCUPIED,
+      );
+    }
+
+    return this.findOne(updatedBooking.id, userId);
   }
 
   private async checkValidParticipantExcludeCurrent(
