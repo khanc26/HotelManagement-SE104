@@ -1,0 +1,4 @@
+https://viblo.asia/p/setup-boilerplate-cho-du-an-nestjs-phan-8-xu-ly-background-job-voi-bullmq-yZjJY9DDJOE
+https://www.tomray.dev/nestjs-caching-redis
+https://typeorm.io/docs/getting-started
+https://docs.nestjs.com/
